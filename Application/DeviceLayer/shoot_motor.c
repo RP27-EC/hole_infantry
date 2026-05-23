@@ -1,78 +1,56 @@
 #include "shoot_motor.h"
-/*²¦ÅÌµç»ú*/
-#ifdef UART_COMMUNICATE
-Motor_DM_Born_Info_t Dail_Born_Info =
-{
-	.stdId = 0x08,
-	
-	.hcan = &hfdcan3,
 
+static pid_ctrl_t dail_speed =
+    {
+        .kp = 0.15f,
+        .ki = 0.2f,
+        .kd = 0.f,
+        .integral_max = 500.f,
+        .out_max = 1000.f,
 };
-#else
-Motor_DM_Born_Info_t Dail_Born_Info =
-{
-	.stdId = 0x08,
-	
-	.hcan = &hfdcan2,
-
+static pid_ctrl_t dail_position_out =
+    {
+        .kp = 0.10,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 0.f,
+        .out_max = 1000000.f,
 };
-#endif
-
-Motor_DM_Rx_Info_t Dail_Rx_Info_t;
-
-Motor_DM_Tx_Info_t Dail_Tx_Info_t;
-
-Motor_DM_State_t Dail_State_t;
-
-pid_ctrl_t Dail_Speed_Ctrl = 
-{
-	.kp = 0.8f,//
-	.ki = 0.1f,
-	.kd = 0.f,
-	.integral_max = 5.f,
-	.out_max = 12.5f,
+static pid_ctrl_t dail_position_inner =
+    {
+        .kp = 0.06f,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 0.f,
+        .out_max = 1000.f,
 };
 
-pid_ctrl_t Dail_Pos_Ctrl_out = 
-{
-	.kp = 70.f,//
-	.ki = 0.1f,
-	.kd = 0.f,
-	.integral_max = 0.f,
-	.out_max = 30.f,
+dail_pid_info_t dail_pid = {
+    .speed = &dail_speed,
+    .position_inner = &dail_position_inner,
+    .position_outer = &dail_position_out,
 };
 
-pid_ctrl_t Dail_Pos_Ctrl_inn = 
-{
-	.kp = 0.6f,//2.5f,//
-	.ki = 0.f,
-	.kd = 0.f,
-	.integral_max = 0.f,
-	.out_max = 12.5f,
-};
+KT_motor_t dail_motor = {
 
-
-Motor_DM_Ctrl_Info_t Dail_Ctrl_t = 
-{
-	.speed_ctrl = &Dail_Speed_Ctrl,
-	.position_inn = &Dail_Pos_Ctrl_inn,
-	.position_out = &Dail_Pos_Ctrl_out,
-};
-
-Motor_DM_t Dail_Motor = 
-{
-	.born_info = &Dail_Born_Info,
-	
-	.rx_info = &Dail_Rx_Info_t,
-	
-	.tx_info = &Dail_Tx_Info_t,
-	
-	.state = &Dail_State_t,
-	
-	.ctrl = &Dail_Ctrl_t,
-	
-	.single_init = &DM_Single_Motor_Init,
-	
-	.type = dail_4310,
-
+    .KT_motor_info = {
+        .id = {
+            .tx_id = DAIL_MOTOR_ID,
+            .rx_id = DAIL_MOTOR_ID,
+            .drive_type = M_CAN1,
+            .motor_type = KT4005,
+        },
+        .tx_info = {
+            .angle_single_Control = 0,
+            .angle_single_Control_maxSpeed = 0,
+            .angle_single_Control_spinDirection = 0,
+            .angle_add_Control = 0,
+            .angle_add_Control_maxSpeed = 0,
+            .angle_sum_Control = 0,
+            .angle_sum_Control_maxSpeed = 0,
+            .iqControl = 0,
+            .speedControl = 0,
+        },
+    },
+    .init = KT_motor_class_init,
 };

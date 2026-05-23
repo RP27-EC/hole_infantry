@@ -1,2531 +1,1359 @@
-//#include "ui.h"
-//#include "ui_priority.h"
-//#include "cap.h"
-//#include "communicate.h"
-//#include "judge_protocol.h"
-
-//void rotate_point(__packed uint16_t *x, __packed uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float angle);
-//void Get_Hp(float *current_hp,float *max_hp,robot_type_e robot_type);
-
-//my_ui_config_t my_ui_config = {
-//  .armor_radius = 100,
-//};
-
-//ui_info_t dynamic_ui_info [DYNAMIC_UI_NUM] = 
-//{
-//  [D_CAP_VOLTAGE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = ARC, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 20, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X , // ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y , //  ×ø±ê
-//  .ui_config.end_x = 360, // x °ëÖá³¤¶È
-//  .ui_config.end_y = 360, // y °ëÖá³¤¶È
-//  .ui_config.start_angel = 240, // ÆğÊ¼½Ç¶È
-//  .ui_config.end_angel = 240, // ÖÕÖ¹½Ç¶È
-//  },
-//  [D_FRIC_B_SPEED] = {
-//    /*²»±äÅäÖÃ*/
-//    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//    .ui_config.ui_type = FLOAT, // UIÄÚÈİÀàĞÍ
-//    /*¿É±äÅäÖÃ*/
-//    .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//    .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//    .ui_config.color = YELLOW, // ÑÕÉ«
-//    .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//    .ui_config.width = 3, // ÏßÌõ¿í¶È
-//    .ui_config.start_x = CLIENT_MID_POSITION_X + 470, // Æğµã x ×ø±ê
-//    .ui_config.start_y = CLIENT_MID_POSITION_Y + 320, // Æğµã y ×ø±ê
-//    .ui_config.float_num = 66.66, // ÏÔÊ¾µÄÊı×Ö
-//    .ui_config.decimal = 0, // Ğ¡ÊıÎ»ÓĞĞ§¸öÊı
-//  },
-//  [D_FRIC_F_SPEED] = {
-//    /*²»±äÅäÖÃ*/
-//    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//    .ui_config.ui_type = FLOAT, // UIÄÚÈİÀàĞÍ
-//    /*¿É±äÅäÖÃ*/
-//    .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//    .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//    .ui_config.color = PINK, // ÑÕÉ«
-//    .ui_config.size = 20, // ×ÖÌå´óĞ¡ 
-//    .ui_config.width = 3, // ÏßÌõ¿í¶È
-//    .ui_config.start_x = CLIENT_MID_POSITION_X +600, // Æğµã x ×ø±ê
-//    .ui_config.start_y = CLIENT_MID_POSITION_Y +320, // Æğµã y ×ø±ê
-//    .ui_config.float_num = 66.66, // ÏÔÊ¾µÄÊı×Ö
-//    .ui_config.decimal = 0, // Ğ¡ÊıÎ»ÓĞĞ§¸öÊı
-//  },
-//  [D_UWB_YAW] = {
-//    /*²»±äÅäÖÃ*/
-//    .ui_config.priority = LOW_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//    .ui_config.ui_type = FLOAT, // UIÄÚÈİÀàĞÍ
-//    /*¿É±äÅäÖÃ*/
-//    .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//    .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//    .ui_config.color = GREEN, // ÑÕÉ«
-//    .ui_config.size = 20, // ×ÖÌå´óĞ¡ 
-//    .ui_config.width = 2, // ÏßÌõ¿í¶È
-//    .ui_config.start_x = CLIENT_MID_POSITION_X + 730, // Æğµã x ×ø±ê
-//    .ui_config.start_y = CLIENT_MID_POSITION_Y + 320, // Æğµã y ×ø±ê
-//    .ui_config.float_num = 66.66, // ÏÔÊ¾µÄÊı×Ö
-//    .ui_config.decimal = 2, // Ğ¡ÊıÎ»ÓĞĞ§¸öÊı
-//  },
-//  [D_PTICH_IMU_ANGLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = LOW_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = FLOAT, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = GREEN, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + 80,  // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 350, // Æğµã y ×ø±ê
-//  .ui_config.float_num = 66.66, // ÏÔÊ¾µÄÊı×Ö
-//  .ui_config.decimal = 2, // Ğ¡ÊıÎ»ÓĞĞ§¸öÊı
-//  },
-
-//  [D_VISION_CIRCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 30, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 610, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 60, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 7, // °ë¾¶
-//  },
-//  
-//  [D_SPEED_ADAPT_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = LOW_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 30, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 610, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 172, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 7, // °ë¾¶
-//  },
-//  [D_CAP_ON_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 30, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 610, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 116, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 7, // °ë¾¶
-//  },
-//  [D_CAR_MODE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = GREEN, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 610, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 17, // Æğµã y ×ø±ê
-//  .ui_config.text = "DUNE", // ÏÔÊ¾µÄÎÄ×Ö
-//  }, 
-//  [D_FRIC_STATE_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 30, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + 650, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - 20, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 7, // °ë¾¶
-//  },
-//  
-//  [D_HIT_TARGET_DISTANCE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = FLOAT, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + -50, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 350, // Æğµã y ×ø±ê
-//  .ui_config.decimal = 2,
-//  .ui_config.float_num = 0, // ÏÔÊ¾µÄÊı×Ö
-//  },
-
-//  [D_RFID_CYCLE] = {
-// /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 30, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 610, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 238 , // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 7, // °ë¾¶
-//  },
-//  [D_MID_RECTANGEL] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = RECTANGEL, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = BLACK, // ÑÕÉ«
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - _VISION__RECTANGEL_X_WIDTH, // ×óÉÏ½Ç x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + _VISION__RECTANGEL_Y_OFFSET, // ×óÉÏ½Ç y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X + _VISION__RECTANGEL_X_WIDTH, // ÓÒÏÂ½Ç x ×ø±ê
-//  .ui_config.end_y = CLIENT_MID_POSITION_Y - _VISION__RECTANGEL_Y_OFFSET, // ÓÒÏÂ½Ç y ×ø±ê
-//  },
-//  [D_HIT_TARGET_TRIANGLE_1] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 6, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 10, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 120, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X , // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = CLIENT_MID_POSITION_Y + 137, // ÖÕµã y ×ø±ê
-//  },
-//  [D_HIT_TARGET_TRIANGLE_2] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 6, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X , // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 137, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X + 10, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = CLIENT_MID_POSITION_Y + 120, // ÖÕµã y ×ø±ê
-//  }, 
-//  [D_HIT_HIGHLIGHT_LINE_1] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 3, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.width = 3, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [D_HIT_HIGHLIGHT_LINE_2] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 3, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.width = 3, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [D_HEAD_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X , // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y +130, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 20, // °ë¾¶
-//  },
-//  #ifndef UI_SIMPLIFY
-//  [D_VISION_ARMOR_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = CIRCLE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = BLACK, // ÑÕÉ«
-//  .ui_config.width = 6, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0 , // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = 0 , // Ô²ĞÄ y ×ø±ê
-//  .ui_config.radius = 11, // °ë¾¶
-//  },
-//  [D_VISION_HP_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = ARC, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = GREEN, // ÑÕÉ«
-//  .ui_config.width = 6, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = 0, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.end_x = 11, // x °ëÖá³¤¶È
-//  .ui_config.end_y = 11, // y °ëÖá³¤¶È
-//  .ui_config.start_angel = 0, // ÆğÊ¼½Ç¶È
-//  .ui_config.end_angel = 0, // ÖÕÖ¹½Ç¶È
-//  },
-//  [D_VISION_WHITE_CYCLE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = ARC, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 6, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Ô²ĞÄ x ×ø±ê
-//  .ui_config.start_y = 0, // Ô²ĞÄ y ×ø±ê
-//  .ui_config.end_x = 11, // x °ëÖá³¤¶È
-//  .ui_config.end_y = 11, // y °ëÖá³¤¶È
-//  .ui_config.start_angel = 0, // ÆğÊ¼½Ç¶È
-//  .ui_config.end_angel = 0, // ÖÕÖ¹½Ç¶È
-//  },
-//  [D_ROI_LEFT] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [D_ROI_UP] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [D_ROI_RIGHT] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [D_ROI_DOWN] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [D_ROI_MID] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = FUCHSIA, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 0, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 0, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 0, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  #endif
-//  [D_PITCH_POINTER] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = RED_BLUE, // ÑÕÉ«
-//  .ui_config.width = 5, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1260, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 540, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1340, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 540, // ÖÕµã y ×ø±ê
-//  },
-// 
-//};
-
-//ui_info_t const_ui_info [CONST_UI_NUM] = 
-//{
-//  [C_VISION_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 800, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 72, // Æğµã y ×ø±ê
-//  .ui_config.text = "VISION", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_FRIC_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + 530, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y , // Æğµã y ×ø±ê
-//  .ui_config.text = "FRIC", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_FRIC_ADAPT_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 800, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 190, // Æğµã y ×ø±ê
-//  .ui_config.text = "FRIC_ADAPT", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_RFID_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 800, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 255, // Æğµã y ×ø±ê
-//  .ui_config.text = "RFID", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_CAP_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 800, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 127, // Æğµã y ×ø±ê
-//  .ui_config.text = "CAP", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_CAR_MODE_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 800, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y + 17, // Æğµã y ×ø±ê
-//  .ui_config.text = "MODE", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_MID_LINE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = ORANGE, // ÑÕÉ«
-//  .ui_config.width = 2, // ÏßÌõ¿í¶È
-//	  #if HERO_TYPE!=2
-//	   .ui_config.start_x = CLIENT_MID_POSITION_X+0, // Æğµã x ×ø±ê
-//	  #else
-//	   .ui_config.start_x = CLIENT_MID_POSITION_X-15, // Æğµã x ×ø±ê
-//	  #endif
-//		.ui_config.start_y = CLIENT_MID_POSITION_Y, // Æğµã y ×ø±ê
-//	  
-//	  #if HERO_TYPE!=2
-//	   .ui_config.end_x = CLIENT_MID_POSITION_X+0, // Æğµã x ×ø±ê
-//	  #else
-//	   .ui_config.end_x = CLIENT_MID_POSITION_X-15, // Æğµã x ×ø±ê
-//	  #endif
-//	  
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [C_TOILET_DOWN_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = FUCHSIA, // ÑÕÉ«
-//  .ui_config.size = 10, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + _TOILET_DOWN_WIDTH + 20, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - _TOILET_DOWN_OFFSET + 5, // Æğµã y ×ø±ê
-//  .ui_config.text = "TOILET_DOWN", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_OUTPOST_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = FUCHSIA, // ÑÕÉ«
-//  .ui_config.size = 10, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + _OUTPOST_WIDTH + 20, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - _OUTPOST_OFFSET + 5, // Æğµã y ×ø±ê
-//  .ui_config.text = "OUTPOST", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_HEIGHT_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.size = 10, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + _HEIGHT_WIDTH + 20, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - _HEIGHT_OFFSET + 5, // Æğµã y ×ø±ê
-//  .ui_config.text = "HEIGHT", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_HEIGHT_LINE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - _HEIGHT_WIDTH, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - _HEIGHT_OFFSET, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X + _HEIGHT_WIDTH, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = CLIENT_MID_POSITION_Y - _HEIGHT_OFFSET, // ÖÕµã y ×ø±ê
-//  },
-//  [C_OUTPOST_LINE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - _OUTPOST_WIDTH, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - _OUTPOST_OFFSET, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X + _OUTPOST_WIDTH, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = CLIENT_MID_POSITION_Y - _OUTPOST_OFFSET, // ÖÕµã y ×ø±ê
-//  },
-//  [C_TOILET_DOWN_LINE] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - _TOILET_DOWN_WIDTH, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - _TOILET_DOWN_OFFSET, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X + _TOILET_DOWN_WIDTH, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = CLIENT_MID_POSITION_Y - _TOILET_DOWN_OFFSET, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PASS_LINE_LEFT] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X - 155, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - 60, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X - 420, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PASS_LINE_RIGHT] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«¡¤
-//  .ui_config.width = 1, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = CLIENT_MID_POSITION_X + 155, // Æğµã x ×ø±ê
-//  .ui_config.start_y = CLIENT_MID_POSITION_Y - 60, // Æğµã y ×ø±ê
-//  .ui_config.end_x = CLIENT_MID_POSITION_X + 420, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 0, // ÖÕµã y ×ø±ê
-//  },
-////  #ifndef UI_SIMPLIFY
-//  [C_PITCH_LINE_0] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1300, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 540, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1330, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 540, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_10] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1295, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 599, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1324, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 604, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_20] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1279, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 656, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1307, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 666, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_30] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1254, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 710, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1280, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 725, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_40] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1220, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 758, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1243, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 778, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_50] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1178, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 800, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1198, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 823, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_N_10] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1294, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 480, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1324, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 476, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_N_20] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1279, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 424, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1308, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 413, // ÖÕµã y ×ø±ê
-//  },
-//  [C_PITCH_LINE_N_30] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = LINE, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = WHITE, // ÑÕÉ«
-//  .ui_config.width = 10, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1254, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 370, // Æğµã y ×ø±ê
-//  .ui_config.end_x = 1280, // ÖÕµã x ×ø±ê
-//  .ui_config.end_y = 355, // ÖÕµã y ×ø±ê
-//  }, 
-//  [C_PITCH_50_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 3, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1200, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 865 , // Æğµã y ×ø±ê
-//  .ui_config.text = "50", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_PITCH_0_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 3, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1340, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 550 , // Æğµã y ×ø±ê
-//  .ui_config.text = "0", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_PITCH_N_30_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 3, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1290, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 346 , // Æğµã y ×ø±ê
-//  .ui_config.text = "-30", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-//  [C_PITCH_30_CHAR] = {
-//  /*²»±äÅäÖÃ*/
-//  .ui_config.ui_type = CHAR, // UIÄÚÈİÀàĞÍ
-//  /*¿É±äÅäÖÃ*/
-//  .ui_config.layer = 0, // Í¼²ãÊı£¬0~9
-//  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-//  .ui_config.size = 20, // ×ÖÌå´óĞ¡
-//  .ui_config.width = 3, // ÏßÌõ¿í¶È
-//  .ui_config.start_x = 1300, // Æğµã x ×ø±ê
-//  .ui_config.start_y = 760 , // Æğµã y ×ø±ê
-//  .ui_config.text = "30", // ÏÔÊ¾µÄÎÄ×Ö
-//  },
-////  #endif
-//};
-
-
-///**
-// * @brief ³õÊ¼»¯UI ÔÚmain.cÖĞµ÷ÓÃ
-// * 
-// */
-//void My_Ui_Init(void)
-//{
-//  Init_Ui_List(dynamic_ui_info, sizeof(dynamic_ui_info)/sizeof(ui_info_t),const_ui_info, sizeof(const_ui_info)/sizeof(ui_info_t));
-//}
-
-//// float max_hp,current_hp;
-
-///**
-// * @brief UIĞÅÏ¢¸üĞÂ ÈÎÎñÖĞµ÷ÓÃ
-// * 
-// */
-
-//void Ui_Info_Update(void)
-//{
-//	client_info_update();
-//  /*³¬µçUI¸üĞÂ****************************************************/
-//   static float last_cap_voltage = 0;
-//	//#define BUFFER
-//	#ifdef BUFFER
-//	float cap_voltage = (float)judge.power_heat_data.chassis_power_buffer;
-//	dynamic_ui_info[D_CAP_VOLTAGE].ui_config.end_angel = 240.f + 75.f*(cap_voltage/60.f);
-//	#else
-//	 
-//	float cap_voltage = My_Cap.cap_v;
-//	 dynamic_ui_info[D_CAP_VOLTAGE].ui_config.end_angel = 240.f + 75.f*(cap_voltage/24.f)*(cap_voltage/24.f);
-//	#endif
-//  
-//  if (last_cap_voltage != cap_voltage)
-//  {
-//    
-//	 #ifdef BUFFER
-//	if (cap_voltage < 25)//µçÑ¹µÍÓÚ15V±äºì
-//	#else
-//	if (cap_voltage < 15)//µçÑ¹µÍÓÚ15V±äºì
-//	#endif 
-//    {
-//      dynamic_ui_info[D_CAP_VOLTAGE].ui_config.color = PINK;
-//    }
-//	else if(cap_voltage>23.4f)
-//	{
-//      dynamic_ui_info[D_CAP_VOLTAGE].ui_config.color = GREEN;
-//    }
-//    else //µçÑ¹¸ßÓÚ15V±ä°×+
-//    {
-//      dynamic_ui_info[D_CAP_VOLTAGE].ui_config.color = WHITE;
-//    }
-////	if (cap.info.wireless_rx_data.is_charging==1)
-////	{
-////		dynamic_ui_info[D_CAP_VOLTAGE].ui_config.color=YELLOW;
-////	}
-//    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_CAP_VOLTAGE]);
-//  }
-//  last_cap_voltage = cap_voltage;
-//  /*UWB XY¸üĞÂ*****************************************/
-////  static float last_fric_b_speed = 0, last_fric_f_speed = 0, last_uwb_yaw = 0;
-////  float fric_f_speed =  communicate.car_data1_rx_info->fric_f_speed;
-////  float fric_b_speed =  communicate.car_data1_rx_info->fric_b_speed;
-////  float uwb_yaw = judge.game_robot_pos.angle;
-////  if (last_fric_f_speed != fric_f_speed)
-////  {
-////    dynamic_ui_info[D_FRIC_F_SPEED].ui_config.float_num = fric_f_speed;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_FRIC_F_SPEED]);
-////  }
-////  if (last_fric_b_speed != fric_b_speed)
-////  {
-////    dynamic_ui_info[D_FRIC_B_SPEED].ui_config.float_num = fric_b_speed;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_FRIC_B_SPEED]);
-////  }
-////  if (last_uwb_yaw != uwb_yaw)
-////  {
-////    dynamic_ui_info[D_UWB_YAW].ui_config.float_num = uwb_yaw;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_UWB_YAW]);
-////  }
-////  last_uwb_yaw = uwb_yaw;
-////  last_fric_f_speed = fric_f_speed;
-////  last_fric_b_speed = fric_b_speed;
-//  /*ÔÆÌ¨»úĞµ½Ç¶È¸üĞÂ***************************************************/
-//  /*ÔÆÌ¨½Ç¶ÈUI¸üĞÂ****************************************************/
-//  static float last_pitch_imu_angle = 0;
-//  float pitch_imu_angle = (float)Board_Rx_Info.pitch_imu / 100.f; // ÔÆÌ¨½Ç¶È×ª¸¡µãÊı
-//  if (last_pitch_imu_angle != pitch_imu_angle)
-//  {
-//    dynamic_ui_info[D_PTICH_IMU_ANGLE].ui_config.float_num = pitch_imu_angle;
-//    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_PTICH_IMU_ANGLE]);
-//  }
-//  last_pitch_imu_angle = pitch_imu_angle;
-// /*ÊÓ¾õÔÊĞí´òµ¯×´Ì¬UI¸üĞÂ****************************************************/
-//  static uint8_t last_is_vision_online = 0;
-//  uint8_t is_vision_online = Board_Rx_Info.vision_state;
-//  if (last_is_vision_online != is_vision_online)
-//  {
-//    if (is_vision_online) // ÊÓ¾õÔÊĞí´òµ¯
-//    {
-//      dynamic_ui_info[D_VISION_CIRCLE].ui_config.color = GREEN;
-//    }
-//    else
-//    {
-//      dynamic_ui_info[D_VISION_CIRCLE].ui_config.color = WHITE;
-//    }
-//    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_CIRCLE]);
-//  }
-//  last_is_vision_online = is_vision_online;
-//  /*ÎŞ×ÔÊÊÓ¦UI¸üĞÂ****************************************************/
-//  static uint8_t last_is_open_adapt_flag = 0;
-////  uint8_t is_open_adapt_flag = communicate.car_data0_rx_info->car_state.bit.is_open_adapt ;
-////  if (is_open_adapt_flag != last_is_open_adapt_flag)
-////  {
-////    if (is_open_adapt_flag==1) 
-////    {
-////      dynamic_ui_info[D_SPEED_ADAPT_CYCLE].ui_config.color = GREEN;
-////    }
-////    else
-////    {
-////      dynamic_ui_info[D_SPEED_ADAPT_CYCLE].ui_config.color = WHITE;
-////    }
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_SPEED_ADAPT_CYCLE]);
-////  }
-////  last_is_open_adapt_flag = is_open_adapt_flag;
-//  /*³¬µçUI¸üĞÂ****************************************************/
-//  static uint8_t last_is_on_cap = 0;
-////  uint8_t is_on_cap = communicate.car_data0_rx_info->car_state.bit.is_on_cap;
-////  if (last_is_on_cap != is_on_cap)
-////  {
-////    if (is_on_cap) 
-////    {
-////      dynamic_ui_info[D_CAP_ON_CYCLE].ui_config.color = GREEN;
-////    }
-////    else
-////    {
-////      dynamic_ui_info[D_CAP_ON_CYCLE].ui_config.color = WHITE;
-////    }
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_CAP_ON_CYCLE]);
-////  }
-////  last_is_on_cap = is_on_cap;
-//  /*³µÁ¾Ä£Ê½UI¸üĞÂ****************************************************/
-//  static uint8_t last_car_mode = 0;
-////  uint8_t car_mode = communicate.car_data0_rx_info->car_move_mode;
-////  if (car_mode == vision_cycle_CAR) car_mode = cycle_CAR;
-////  if (car_mode == vision_gyro_CAR) car_mode = gyro_CAR;
-
-////  if (last_car_mode != car_mode)
-////  {
-////    memset(dynamic_ui_info[D_CAR_MODE].ui_config.text,0,sizeof(dynamic_ui_info[D_CAR_MODE].ui_config.text));
-////    switch (car_mode)
-////    {
-////    case offline_CAR:
-////      strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "OFFLINE");
-////      break;
-////    case init_CAR:
-////      strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "INIT");
-////      break;
-////    case cycle_CAR:
-////      strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "CYLE");
-////      break;
-////    case gyro_CAR:
-////      strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "GYRO");
-////      break;
-////    case mec_CAR:
-////      strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "MEC");
-////      break;
-////    case lob_CAR:
-////      strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "LOB");
-////      break;
-////    default:
-////      break;
-////    }
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_CAR_MODE]);
-////  }
-////  last_car_mode = car_mode;
-//  /*Ä¦²ÁÂÖËÙ¶ÈUI¸üĞÂ****************************************************/
-//  /*ÖĞ¼ä¿òÑÕÉ«****************************************************/
-//  static uint8_t last_vision_mode_state = 0;
-//  uint8_t vision_mode_state = Board_Rx_Info.vision_state;
-//  static uint8_t last_is_find_target = 0;
-//  uint8_t is_find_target = Board_Rx_Info.is_find_Target;
-
-//  if (last_vision_mode_state != vision_mode_state || last_is_find_target != is_find_target)
-//  {
-//    if (vision_mode_state && is_find_target) // ÊÓ¾õÄ£Ê½ÇÒÕÒµ½Ä¿±ê
-//    {
-//      dynamic_ui_info[D_MID_RECTANGEL].ui_config.color = GREEN;
-//    }
-//    else if (vision_mode_state && !is_find_target) // ÊÓ¾õÄ£Ê½µ«Î´ÕÒµ½Ä¿±ê
-//    {
-//      dynamic_ui_info[D_MID_RECTANGEL].ui_config.color = WHITE;
-//    }
-//    else if (!vision_mode_state && is_find_target) // ·ÇÊÓ¾õÄ£Ê½µ«ÕÒµ½Ä¿±ê
-//    {
-//      dynamic_ui_info[D_MID_RECTANGEL].ui_config.color = FUCHSIA;
-//    }
-//    else // ·ÇÊÓ¾õÄ£Ê½ÇÒÎ´ÕÒµ½Ä¿±ê
-//    {
-//      dynamic_ui_info[D_MID_RECTANGEL].ui_config.color = BLACK;
-//    }
-//    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_MID_RECTANGEL]);
-//  }
-//  last_vision_mode_state = vision_mode_state;
-//  last_is_find_target = is_find_target;
-//  /*Í·³¯ÏòÖ¸Ê¾****************************************************/
-//  static float last_chassis_angle = 0;
-////  float chassis_angle = (float)(communicate.car_data1_rx_info->chassis_angel) * 2.f * 3.14 / 180.f ; // µ×ÅÌ½Ç¶È½âËã
-////  if(last_chassis_angle!=chassis_angle)
-////  {
-////	rotate_point(&dynamic_ui_info[D_HEAD_CYCLE].ui_config.start_x,
-////                    &dynamic_ui_info[D_HEAD_CYCLE].ui_config.start_y,
-////                    CLIENT_MID_POSITION_X ,
-////                    CLIENT_MID_POSITION_Y +142,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y  ,
-////                    chassis_angle);
-////  }
-////  Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HEAD_CYCLE]);
-////  last_chassis_angle =chassis_angle;
-//  /*»÷´òÄ¿±êÖ¸Ê¾****************************************************/
-//  static float last_target_angle_err = 0;
-
-////  float target_angle_err = (float)(communicate.game_robot_pos_tx_info->angle_err) * 3.14 / 180.f ; // µ×ÅÌ½Ç¶È×ª¸¡µãÊı
-////  if (last_target_angle_err != target_angle_err)
-////  {
-////   // Ğı×ªÍ·²¿Èı½ÇĞÎ
-////    rotate_point(&dynamic_ui_info[D_HIT_TARGET_TRIANGLE_1].ui_config.start_x,
-////                    &dynamic_ui_info[D_HIT_TARGET_TRIANGLE_1].ui_config.start_y,
-////                    CLIENT_MID_POSITION_X - 10,
-////                    CLIENT_MID_POSITION_Y + 125,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y,
-////                    target_angle_err);
-////    rotate_point(&dynamic_ui_info[D_HIT_TARGET_TRIANGLE_1].ui_config.end_x,
-////                    &dynamic_ui_info[D_HIT_TARGET_TRIANGLE_1].ui_config.end_y,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y + 142,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y,
-////                    target_angle_err);
-////    rotate_point(&dynamic_ui_info[D_HIT_TARGET_TRIANGLE_2].ui_config.start_x,
-////                    &dynamic_ui_info[D_HIT_TARGET_TRIANGLE_2].ui_config.start_y,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y + 142,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y,
-////                    target_angle_err);
-////    rotate_point(&dynamic_ui_info[D_HIT_TARGET_TRIANGLE_2].ui_config.end_x,  
-////                    &dynamic_ui_info[D_HIT_TARGET_TRIANGLE_2].ui_config.end_y,
-////                    CLIENT_MID_POSITION_X + 10,
-////                    CLIENT_MID_POSITION_Y + 125,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y,
-////                    target_angle_err);
-
-////                    
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_TARGET_TRIANGLE_1]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_TARGET_TRIANGLE_2]);
-////  }
-////  last_target_angle_err = target_angle_err;
-//  /*»÷´òÃüÖĞÌáÊ¾²æ²æ************************************************/
-////  uint16_t enemy_outpost_HP;static uint16_t last_enemy_outpost_HP;
-////  uint16_t enemy_base_HP;static uint16_t last_enemy_base_HP;
-////  static uint8_t hit_highlight_flag;//ÏÔÊ¾Í¼±êÎª0£¬²»ÏÔÊ¾Ê±Îª0
-////  static uint16_t hit_tick;//»÷´òµ½Ê±¿Ì¿ªÊ¼¼ÆÊ±
-////  static uint16_t last_hit_tick;//ÓÃÀ´¼ì²âÌø±ä
-////  //¸üĞÂÑªÁ¿
-////  if(communicate.game_robot_status_tx_info->game_process.bit.car_color==0)//ºì·½
-////  {
-////	
-////	  enemy_outpost_HP=judge.game_robot_HP.blue_outpost_HP;
-////	  enemy_base_HP=judge.game_robot_HP.blue_base_HP;
-////  }
-////  else
-////  {
-////	  enemy_outpost_HP=judge.game_robot_HP.red_outpost_HP;
-////	  enemy_base_HP=judge.game_robot_HP.red_base_HP;
-////  }
-//  //¼ì²â½¨ÖşÎïµôÑª·ûºÏ·¶Î§
-////  if((last_enemy_outpost_HP-enemy_outpost_HP>=100&&last_enemy_outpost_HP-enemy_outpost_HP<=400)
-////	  ||(last_enemy_base_HP-enemy_base_HP>=100&&last_enemy_base_HP-enemy_base_HP<=400))
-////  {
-////	  hit_highlight_flag=1;
-////	  hit_tick=0;//¸´Î»Ê±¼ä
-////	  //»­²æ²æ
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.start_x=CLIENT_MID_POSITION_X-50;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.start_y=CLIENT_MID_POSITION_Y+50;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.end_x=CLIENT_MID_POSITION_X+50;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.end_y=CLIENT_MID_POSITION_Y-50;
-////	  
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.start_x=CLIENT_MID_POSITION_X+50;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.start_y=CLIENT_MID_POSITION_Y+50;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.end_x=CLIENT_MID_POSITION_X-50;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.end_y=CLIENT_MID_POSITION_Y-50;
-////	  //·¢ËÍ
-////	  Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1]);
-////	  Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2]);
-////  }
-////  if(hit_highlight_flag==1)
-////  {
-////	hit_tick++;
-////  }
-////  if(hit_tick>=600)//ÏÔÊ¾Ê±¼ä½áÊø£¬±êÖ¾Î»ºÍÊ±¼äÇåÁã
-////  {
-////	 //Çå³ı
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.start_x=0;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.start_y=0;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.end_x=0;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1].ui_config.end_y=0;
-////																
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.start_x=0;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.start_y=0;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.end_x=0;
-////	  dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2].ui_config.end_y=0;
-////	  //·¢ËÍ
-////	  Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_1]);
-////	  Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_HIGHLIGHT_LINE_2]);
-////	hit_tick=0;
-////	hit_highlight_flag=0;//²»ÔÙ¼ÆÊ±£¬ÊµÏÖÌø±äĞ§¹û
-////  }
-////  
-////  last_enemy_outpost_HP=enemy_outpost_HP;
-////  last_enemy_base_HP=enemy_base_HP;
-////  
-//  /*µ¯ËÙÏÔÊ¾**************************************************/
-//  /*Ä¦²ÁÂÖ×ªËÙ²îÏÔÊ¾*******************************************/
-//  /*Ä¦²ÁÂÖ×´Ì¬ÏÔÊ¾********************************************/
-////  static uint8_t last_fric_state = 0;
-////   static uint8_t last_fric_online = 0;
-////  uint8_t fric_state = communicate.car_data0_rx_info->car_state.bit.fri_speed_state;
-////  uint8_t fric_online = judge.game_robot_status.power_management_shooter_output;//¶Á²ÃÅĞÏµÍ³
-////  
-////  if (fric_state != last_fric_state||last_fric_online!=fric_online)//Èç¹ûÄ¦²ÁÂÖ×ªËÙ±ä»òÕßÔÚÏß×´Ì¬±ä
-////  {
-////    if ( fric_online== 0)//Ä¦²ÁÂÖµôÏß£¬ºÚ
-////    {
-////      dynamic_ui_info[D_FRIC_STATE_CYCLE].ui_config.color = BLACK;
-////    }
-////    else if(fric_online== 1&&fric_state==0)//Ä¦²ÁÂÖÔÚÏßµ«ÊÇÃ»×ª£¬ÇàÉ«
-////    {
-////      dynamic_ui_info[D_FRIC_STATE_CYCLE].ui_config.color = CYAN_BLUE;      
-////    }
-////	else if(fric_online== 1&&fric_state==1)//Ä¦²ÁÂÖµç»úÔÚÏß²¢ÇÒÔÚ×ª£¬ÂÌÉ«
-////	{
-////	  dynamic_ui_info[D_FRIC_STATE_CYCLE].ui_config.color = GREEN;   
-////	}
-////	
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_FRIC_STATE_CYCLE]);
-////  }
-////  last_fric_state = fric_state;
-////	last_fric_online=fric_online;
-//  /*RFIDÏÔÊ¾********************************************/
-////  static uint8_t last_rfid_state = 0;
-////  uint8_t rfid_state = (judge.rfid_status.rfid_status != 0);
-////  if (last_rfid_state != rfid_state)
-////  {
-////    if (rfid_state == 1)
-////    {
-////      dynamic_ui_info[D_RFID_CYCLE].ui_config.color = GREEN;
-////    }
-////    else
-////    {
-////      dynamic_ui_info[D_RFID_CYCLE].ui_config.color = WHITE;
-////    }
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RFID_CYCLE]);
-////  }
-////  last_rfid_state = rfid_state;
-
-//  /*ÊÓ¾õ×°¼×°åÏÔÊ¾********************************************/
-//  #ifndef UI_SIMPLIFY
-////  static uint16_t last_vision_armor_x,last_vision_armor_y;
-////  uint16_t vision_armor_x = communicate.car_data2_rx_info->ui_x;
-////  uint16_t vision_armor_y = 1080 - communicate.car_data2_rx_info->ui_y;
-////  if (communicate.car_data0_rx_info->car_state.bit.is_find_target == 1)
-////  {
-////    if (last_vision_armor_x != vision_armor_x || last_vision_armor_y != vision_armor_y)
-////    {
-////      //Î»ÖÃ¸üĞÂ
-////      dynamic_ui_info[D_VISION_ARMOR_CYCLE].ui_config.start_x = vision_armor_x;
-////      dynamic_ui_info[D_VISION_ARMOR_CYCLE].ui_config.start_y = vision_armor_y;
-////      dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.start_x = vision_armor_x;
-////      dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.start_y = vision_armor_y;
-////      dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.start_x = vision_armor_x;
-////      dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.start_y = vision_armor_y;
-////      //½Ç¶È¸üĞÂ
-////      float max_hp,current_hp;
-////      Get_Hp(&current_hp,&max_hp,communicate.car_data2_rx_info->detect_num);
-////      dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.end_angel = current_hp/max_hp*360.f;
-////      if (current_hp == 0)
-////      {
-////        dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.end_angel = 1;
-////      }
-////      //°×É«¹ı¶É¶¯»­
-////      dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.start_angel = dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.end_angel;
-////      float target_white_end_angel = dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.start_angel + 1;
-////      if (dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.end_angel > target_white_end_angel)//»áÖğ½¥¿¿½üÄ¿±ê½Ç¶È£¨Ò²¾ÍÊÇÑªÌõ½áÊø½Ç¶È£¬Ò²ÊÇ×ÔÉíµÄ¿ªÊ¼½Ç¶È£©£¬µ«ÊÇÓÀÔ¶²»»áµ½´ï£¬ÒòÎªÃ¿´Î¶¼ÊÇ²îÖµµÄ20%
-////      {
-////        dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.end_angel -= 0.2*(dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.end_angel - target_white_end_angel);
-////      }
-////      else//³õÊ¼»¯¹ı¶É¶¯»­½áÊø½Ç¶È
-////      {
-////        dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.end_angel = target_white_end_angel;
-////      }
-////      
-////      
-////      //ÑÕÉ«¸üĞÂ
-////      if (current_hp > (0.5*max_hp))
-////      {
-////        dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.color = GREEN;
-////      }
-////      else if (current_hp >= 200)
-////      {
-////        dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.color = YELLOW;
-////      }
-////      else
-////      {
-////        dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.color = FUCHSIA;
-////      }
-////        
-////      Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_HP_CYCLE]);
-////      Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_ARMOR_CYCLE]);
-////      Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_WHITE_CYCLE]);
-////    }
-////  }
-////  else if (dynamic_ui_info[D_VISION_ARMOR_CYCLE].ui_config.start_x != 0)
-////  {
-////    dynamic_ui_info[D_VISION_ARMOR_CYCLE].ui_config.start_x = 0;
-////    dynamic_ui_info[D_VISION_ARMOR_CYCLE].ui_config.start_y = 0;
-////    dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.start_x = 0;
-////    dynamic_ui_info[D_VISION_HP_CYCLE].ui_config.start_y = 0;
-////    dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.start_x = 0;
-////    dynamic_ui_info[D_VISION_WHITE_CYCLE].ui_config.start_y = 0;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_HP_CYCLE]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_ARMOR_CYCLE]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_WHITE_CYCLE]);
-////  }
-////  last_vision_armor_x = vision_armor_x;
-////  last_vision_armor_y = vision_armor_y;
-//  #endif
-//  /*»ùµØ¾àÀë********************************************/
-////  static float last_base_distance;
-////  float target_distance = communicate.game_robot_pos_tx_info->target_distance / 100.F;
-////  if (last_base_distance != target_distance)
-////  {
-////    dynamic_ui_info[D_HIT_TARGET_DISTANCE].ui_config.float_num = target_distance;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_HIT_TARGET_DISTANCE]);
-////  }
-////  last_base_distance = target_distance;
-//  /*PITCHÖ¸Õë****************************************************/
-////	#ifndef UI_SIMPLIFY
-////  float pitch_angel=(communicate.car_data1_rx_info->pitch_motor_angle)/180.f*3.14;
-////  static float  last_pitch_angel;
-////  // Ğı×ªÏßÌõ
-////  if(last_pitch_angel!=pitch_angel)
-////  {
-////	rotate_point(&dynamic_ui_info[D_PITCH_POINTER].ui_config.start_x,
-////                    &dynamic_ui_info[D_PITCH_POINTER].ui_config.start_y,
-////                    1260,
-////                    540,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y,
-////                    pitch_angel);
-////    rotate_point(&dynamic_ui_info[D_PITCH_POINTER].ui_config.end_x,
-////                    &dynamic_ui_info[D_PITCH_POINTER].ui_config.end_y,
-////                    1340,
-////                    540,
-////                    CLIENT_MID_POSITION_X,
-////                    CLIENT_MID_POSITION_Y,
-////                    pitch_angel);
-////  }
-////    last_pitch_angel=pitch_angel;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_PITCH_POINTER]);
-//////  #endif
-////  #ifndef UI_SIMPLIFY
-////  /*ROI*/
-////  static uint8_t last_roi;
-////  uint8_t current_roi = communicate.car_data3_rx_info->uix_lb;
-////  if (last_roi != current_roi)
-////  {
-////    dynamic_ui_info[D_ROI_UP].ui_config.start_x = communicate.car_data3_rx_info->uix_lt * 10;
-////    dynamic_ui_info[D_ROI_UP].ui_config.start_y = 1080 - communicate.car_data3_rx_info->uiy_lt * 5;
-////    dynamic_ui_info[D_ROI_UP].ui_config.end_x = communicate.car_data3_rx_info->uix_rt * 10;
-////    dynamic_ui_info[D_ROI_UP].ui_config.end_y = 1080 - communicate.car_data4_rx_info->uiy_rt * 5;
-////    dynamic_ui_info[D_ROI_DOWN].ui_config.start_x = communicate.car_data3_rx_info->uix_lb * 10;
-////    dynamic_ui_info[D_ROI_DOWN].ui_config.start_y = 1080 - communicate.car_data3_rx_info->uiy_lb * 5;
-////    dynamic_ui_info[D_ROI_DOWN].ui_config.end_x = communicate.car_data3_rx_info->uix_rb * 10;
-////    dynamic_ui_info[D_ROI_DOWN].ui_config.end_y = 1080 - communicate.car_data3_rx_info->uiy_rb * 5;
-////    dynamic_ui_info[D_ROI_LEFT].ui_config.start_x = communicate.car_data3_rx_info->uix_lt * 10;
-////    dynamic_ui_info[D_ROI_LEFT].ui_config.start_y = 1080 - communicate.car_data3_rx_info->uiy_lt * 5;
-////    dynamic_ui_info[D_ROI_LEFT].ui_config.end_x = communicate.car_data3_rx_info->uix_lb * 10;
-////    dynamic_ui_info[D_ROI_LEFT].ui_config.end_y = 1080 - communicate.car_data3_rx_info->uiy_lb * 5;
-////    dynamic_ui_info[D_ROI_RIGHT].ui_config.start_x = communicate.car_data3_rx_info->uix_rt * 10;
-////    dynamic_ui_info[D_ROI_RIGHT].ui_config.start_y = 1080 - communicate.car_data4_rx_info->uiy_rt * 5;
-////    dynamic_ui_info[D_ROI_RIGHT].ui_config.end_x = communicate.car_data3_rx_info->uix_rb * 10;
-////    dynamic_ui_info[D_ROI_RIGHT].ui_config.end_y = 1080 - communicate.car_data3_rx_info->uiy_rb * 5;
-////    dynamic_ui_info[D_ROI_MID].ui_config.start_x = communicate.car_data4_rx_info->uix_left * 10;
-////    dynamic_ui_info[D_ROI_MID].ui_config.start_y = 1080 - communicate.car_data4_rx_info->uiy_left * 5;
-////    dynamic_ui_info[D_ROI_MID].ui_config.end_x = communicate.car_data2_rx_info->uix_right * 10;
-////    dynamic_ui_info[D_ROI_MID].ui_config.end_y = 1080 - communicate.car_data2_rx_info->uiy_right * 5;
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ROI_UP]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ROI_DOWN]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ROI_LEFT]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ROI_RIGHT]);
-////    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ROI_MID]);
-////  }
-////  last_roi = current_roi;
-////  #endif
-// 
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///*Í¼ĞÎ´¦Àí**********************************************************************************/
-
-//#include <rp_math.h>
-
-///**
-// * @brief °ÑÄ³µãÈÆÄ³µãĞı×ªÒ»¶¨½Ç¶È
-// * 
-// * @param x ´æ´¢Ğı×ªºóxµÄµØÖ·
-// * @param y ´æ´¢Ğı×ªºóyµÄµØÖ·
-// * @param raw_x Ğı×ªÇ°xµÄÖµ
-// * @param raw_y Ğı×ªºóyµÄÖµ
-// * @param mid_x Ğı×ªÔ­µãx
-// * @param mid_y Ğı×ªÔ­µãy
-// * @param angle Ğı×ªµÄ½Ç¶Èrad
-// */
-//void rotate_point(__packed uint16_t *x, __packed uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float angle) 
-//{
-//  float s = sin(angle);
-//  float c = cos(angle);
-//  // Æ½ÒÆµ½Ô­µã
-//  float origin_x = raw_x - mid_x;
-//  float origin_y = raw_y - mid_y;
-//  // Ğı×ª
-//  float new_x = origin_x * c - origin_y * s;
-//  float new_y = origin_x * s + origin_y * c;
-//  // Æ½ÒÆ»ØÈ¥²¢¸üĞÂÔ­Ê¼×ø±ê
-//  *x = new_x + mid_x;
-//  *y = new_y + mid_y;
-//}
-
-///**
-// * @brief °´±ÈÀı·Å´óÄ³µã
-// * 
-// * @param x ´æ´¢·Å´óºóxµÄµØÖ·
-// * @param y ´æ´¢·Å´óºóyµÄµØÖ·
-// * @param raw_x Ô­Ê¼xµÄÖµ
-// * @param raw_y Ô­Ê¼yµÄÖµ
-// * @param mid_x ·Å´óÖĞĞÄµãx
-// * @param mid_y ·Å´óÖĞĞÄµãy
-// * @param scale ·Å´óµÄ±ÈÀı
-// */
-//void scale_point(uint16_t *x, uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float scale) 
-//{
-//  // Æ½ÒÆµ½Ô­µã
-//  float origin_x = raw_x - mid_x;
-//  float origin_y = raw_y - mid_y;
-//  // °´±ÈÀı·Å´ó
-//  float new_x = origin_x * scale;
-//  float new_y = origin_y * scale;
-//  // Æ½ÒÆ»ØÈ¥²¢¸üĞÂÔ­Ê¼×ø±ê
-//  *x = new_x + mid_x;
-//  *y = new_y + mid_y;
-//}
-
-///**
-// * @brief Ğı×ªÔ²»¡
-// * 
-// * @param start_angle ÆğÊ¼½Ç¶È 
-// * @param end_angel ÖÕÖ¹½Ç¶È
-// * @param rotation_angle 
-// */
-//void rotate_arc(uint16_t *start_angle, uint16_t *end_angel, float rotation_angle) 
-//{
-//  *start_angle = fmod(*start_angle + rotation_angle, 360);
-//  *end_angel = fmod(*end_angel + rotation_angle, 360);
-//}
-
-///*ÆäËû******************************************/
-//void Get_Hp(float *current_hp,float *max_hp,robot_type_e robot_type)
-//{
-//  //×î´óÑªÁ¿
-//  switch (robot_type)
-//  {
-//  case HERO:
-//    *max_hp = 500;
-//    break;
-//  case INFANRTY_3:
-//  case INFANRTY_4:
-//  case INFANRTY_5:
-//    *max_hp = 400;
-//    break;
-//  case OUTPOST:
-//    *max_hp = 1500;
-//    break;
-//  case SENTRY:
-//    *max_hp = 400;
-//    break;
-//  case BASE:
-//    *max_hp = 5000;
-//    break;
-//  default:
-//    break;
-//  }
-//  //ÅĞ¶ÏºìÀ¶
-//  if(My_Judge.org_info->game_robot_status.robot_id <= 10)//ºì·½
-//  {
-//    switch (robot_type)
-//    {
-////    case HERO:
-////      *current_hp = judge.game_robot_HP.blue_1_robot_HP;
-////      break;
-////    case ENGINEER:
-////      *current_hp = judge.game_robot_HP.blue_2_robot_HP;
-////      break;
-////    case INFANRTY_3:
-////      *current_hp = judge.game_robot_HP.blue_3_robot_HP;
-////      break;
-////    case INFANRTY_4:
-////      *current_hp = judge.game_robot_HP.blue_4_robot_HP;
-////      break;
-////    case INFANRTY_5:
-////      *current_hp = judge.game_robot_HP.blue_5_robot_HP;
-////      break;
-////    case OUTPOST:
-////      *current_hp = judge.game_robot_HP.blue_outpost_HP;
-////      break;
-////    case SENTRY:
-////      *current_hp = judge.game_robot_HP.blue_7_robot_HP;
-////      break;
-////    case BASE:
-////      *current_hp = judge.game_robot_HP.blue_base_HP;
-//      break;
-//    default:
-//      break;
-//    }
-//  }
-//  else//À¶·½
-//  {
-//    switch (robot_type)
-//    {
-////    case HERO:
-////      *current_hp = judge.game_robot_HP.red_1_robot_HP;
-////      break;
-////    case ENGINEER:
-////      *current_hp = judge.game_robot_HP.red_2_robot_HP;
-////      break;
-////    case INFANRTY_3:
-////      *current_hp = judge.game_robot_HP.red_3_robot_HP;
-////      break;
-////    case INFANRTY_4:
-////      *current_hp = judge.game_robot_HP.red_4_robot_HP;
-////      break;
-////    case INFANRTY_5:
-////      *current_hp = judge.game_robot_HP.red_5_robot_HP;
-////      break;
-////    case OUTPOST:
-////      *current_hp = judge.game_robot_HP.red_outpost_HP;
-////      break;
-////    case SENTRY:
-////      *current_hp = judge.game_robot_HP.red_7_robot_HP;
-////      break;
-////    case BASE:
-////      *current_hp = judge.game_robot_HP.red_base_HP;
-//      break;
-//    default:
-//      break;
-//    }
-//    
-//  }
-//}
-
 #include "ui.h"
-#include "ui_priority.h"
-#include "arm_math.h"
-#include "ui_protocol.h"
 #include "Balance.h"
 #include "Chassis.h"
-#include "judge.h"
-//#include "math_support.h"
+#include "arm_math.h"
+#include "cap.h"
 #include "car_info.h"
-#include "gimbal.h"
+#include "chassis_motor.h"
 #include "communicate.h"
-#include "cap.h"
-#include "gimbal_motor.h"
-#include "cap.h"
-//#include "speed_estimate.h"
+#include "gimbal.h"
+#include "ui_priority.h"
+#include "ui_protocol.h"
+#include <string.h>
 
-
-//UI_Dynamic_Info_t My_UI_Dynamic_Info;
-#define LEFT_UP_X (Client_mid_position_x - 820)
-#define LEFT_UP_Y (Client_mid_position_y + 320)
-#define RIGHT_UP_X (Client_mid_position_x + 820)
-#define RIGHT_UP_Y (Client_mid_position_y + 320)
-
-#define CHAS_CIRCLE_X     (Client_mid_position_x)
-#define CHAS_CIRCLE_Y     (Client_mid_position_y + 250 - 5)
-#define CHAS_CIRCLE_R     (110)//65
-
-#define PITCH_CENTER_X    260
-#define PITCH_CENTER_Y    690
-
-#define LEG_LENGTH_X      (Client_mid_position_x + 220)   //ÍÈ³¤ÏßÆğÊ¼£¬ÒÔ×îÏÂÃæµÄÏßÎª×¼,¸ß¶È120£¬0.24:120
-#define LEG_LENGTH_Y      (Client_mid_position_y - 475)
-
-UI_Dynamic_Info_t My_UI_Dynamic_Info;
-
-void UI_Info_Update_Leg_length(void);
-void rotate_point(__packed uint16_t *x, __packed uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float angle);
-void My_Chas_Pitch_Update(float angle);
-void My_Chas_Theta_Update(float angle);
-void My_Chas_Circle_Update(float angle);
-
-ui_info_t dynamic_ui_info [DYNAMIC_NUM] = 
-{
-	
-	[TOP_FRAME] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d1",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x + 630 ,              // Æğµã x ×ø±ê,110
-    .ui_config.start_y = Client_mid_position_y + 130 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = Client_mid_position_x + 740 ,
-		.ui_config.end_y = Client_mid_position_y + 70 ,
-                  
-	},
-	
-	[FLY_FRAME] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d2",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x + 630 ,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 220 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = Client_mid_position_x + 740 ,
-		.ui_config.end_y = Client_mid_position_y + 160 ,
-	},
-	
-	[UPSTEP_FRAME] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = LOW_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d3",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-     .ui_config.start_x = Client_mid_position_x + 630 ,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 310 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = Client_mid_position_x + 870 ,
-		.ui_config.end_y = Client_mid_position_y + 250 ,
-		
-	},
-	
-//	[UPSTEP_NUM] = {
-//		/*******²»±äÅäÖÃ*********/
-//		.ui_config.priority = HIGH_PRIORITY,
-//    .ui_config.ui_type = INT,           // UIÄÚÈİÀàĞÍ
-//    .ui_config.name = "d4",              // Í¼ĞÎÃû³Æ
-//    /*******¿É±äÅäÖÃ*********/
-//		.ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-//    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-//    .ui_config.color = CYAN_BLUE,            // ÑÕÉ«
-//    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-//    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-//    .ui_config.start_x = Client_mid_position_x + 830,              // Æğµã x ×ø±ê
-//    .ui_config.start_y = Client_mid_position_y + 297,              // Æğµã y ×ø±ê
-//    .ui_config.int_num = 0,
-//	},
-//	[POWER] = {
-//		/*******²»±äÅäÖÃ*********/
-//		.ui_config.priority = MID_PRIORITY,
-//    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-//    .ui_config.name = "d3",              // Í¼ĞÎÃû³Æ
-//    /*******¿É±äÅäÖÃ*********/
-//    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-//    .ui_config.color = WHITE,            // ÑÕÉ«
-//    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-//    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-//    .ui_config.start_x = RIGHT_UP_X - 165,              // Æğµã x ×ø±ê
-//    .ui_config.start_y = RIGHT_UP_Y - 30,              // Æğµã y ×ø±ê
-//    .ui_config.text = "POWER",            // ÏÔÊ¾µÄÎÄ×Ö
-//		
-//	},
-//	
-//	[POWER_FRAME] = {
-//		/*******²»±äÅäÖÃ*********/
-//    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-//    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-//    .ui_config.name = "d4",              // Í¼ĞÎÃû³Æ
-//    /*******¿É±äÅäÖÃ*********/
-//    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-//    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-//    .ui_config.color = WHITE,            // ÑÕÉ«
-//    .ui_config.width = 5,                // ÏßÌõ¿í¶È
-//    .ui_config.start_x = RIGHT_UP_X - 190,              // Æğµã x ×ø±ê
-//    .ui_config.start_y = RIGHT_UP_Y - 15 ,              // Æğµã y ×ø±ê
-//		.ui_config.end_x = RIGHT_UP_X ,
-//		.ui_config.end_y = RIGHT_UP_Y - 90 ,
-//		
-//	},
-	
-	[BUFF_FRAME] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = LOW_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d5",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-     .ui_config.start_x = 170 ,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 310 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = 350 ,
-		.ui_config.end_y = Client_mid_position_y + 250 ,
-		
-	},
-	
-	[BUFF_NUM] = {
-		/*******²»±äÅäÖÃ*********/
-		.ui_config.priority = HIGH_PRIORITY,
-    .ui_config.ui_type = INT,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d6",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-		.ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = CYAN_BLUE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = 310,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 297,              // Æğµã y ×ø±ê
-    .ui_config.int_num = 0,
-		
-	},
-	
-	[BULLET_NUM] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = INT,            // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d7",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = CYAN_BLUE,            // ÑÕÉ«
-    .ui_config.size = 60,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 4,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x + 310,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y - 90,              // Æğµã y ×ø±ê
-    .ui_config.int_num = 0,              // ÏÔÊ¾µÄÊı×Ö
-	},
-	
-	[CHAS_HEAD_LINE] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d8",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 2,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = CYAN_BLUE,            // ÑÕÉ«
-    .ui_config.width = 4,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = CHAS_CIRCLE_X,              // Æğµã x ×ø±ê
-    .ui_config.start_y = CHAS_CIRCLE_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = CHAS_CIRCLE_X,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = CHAS_CIRCLE_Y + CHAS_CIRCLE_R,                // ÖÕµã y ×ø±ê
-  },
-	
-	[CHAS_SIDE_LINE] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d9",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 2,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = CHAS_CIRCLE_X - CHAS_CIRCLE_R,              // Æğµã x ×ø±ê
-    .ui_config.start_y = CHAS_CIRCLE_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = CHAS_CIRCLE_X + CHAS_CIRCLE_R,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = CHAS_CIRCLE_Y,                // ÖÕµã y ×ø±ê		
-	},
-		
-	[PITCH_LINE] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d10",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 2,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = CYAN_BLUE,            // ÑÕÉ«
-    .ui_config.width = 7,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = PITCH_CENTER_X - 55,              // Æğµã x ×ø±ê
-    .ui_config.start_y = PITCH_CENTER_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = PITCH_CENTER_X + 55,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = PITCH_CENTER_Y,                // ÖÕµã y ×ø±ê	
-	},
-	
-	[THETA_LINE] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d11",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 2,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = PINK,            // ÑÕÉ«
-    .ui_config.width = 7,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = PITCH_CENTER_X,              // Æğµã x ×ø±ê
-    .ui_config.start_y = PITCH_CENTER_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = PITCH_CENTER_X,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = PITCH_CENTER_Y - 80,  
-	},
-	
-	[R_LEG_LENGTH] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d12",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = CYAN_BLUE,            // ÑÕÉ«
-    .ui_config.width = 30,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = LEG_LENGTH_X + 60,              // Æğµã x ×ø±ê
-    .ui_config.start_y = LEG_LENGTH_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = LEG_LENGTH_X + 60,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = LEG_LENGTH_Y + 120,                // ÖÕµã y ×ø±ê
-	},
-	
-	[L_LEG_LENGTH] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d13",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = PINK,            // ÑÕÉ«
-    .ui_config.width = 30,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = LEG_LENGTH_X + 20,              // Æğµã x ×ø±ê
-    .ui_config.start_y = LEG_LENGTH_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = LEG_LENGTH_X + 20,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = LEG_LENGTH_Y + 120,                // ÖÕµã y ×ø±ê
-	},
-	
-	[CAP_LINE] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d14",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = GREEN,            // ÑÕÉ«
-    .ui_config.width = 25,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 250,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 332,              // Æğµã y ×ø±ê
-    .ui_config.end_x = Client_mid_position_x + 250,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = Client_mid_position_y + 332,                // ÖÕµã y ×ø±ê
-	},
-	
-	[VISION_AIM] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = CIRCLE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d15",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 1,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x ,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y ,              // Æğµã y ×ø±ê
-		.ui_config.radius = 3,
-	},
-	
-	[AUTO_CATCH_FRAME] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.priority = HIGH_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d16",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-     .ui_config.start_x = Client_mid_position_x - 280,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 170 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = Client_mid_position_x + 280 ,
-		.ui_config.end_y = Client_mid_position_y - 180 ,
-	},
-	
-	[CAR_SPEED] = {
-		/*²»±äÅäÖÃ*/
-  .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-  .ui_config.ui_type = FLOAT, // UIÄÚÈİÀàĞÍ
-	.ui_config.name = "d17",
-  /*¿É±äÅäÖÃ*/
-  .ui_config.operate_type = MODIFY, // ²Ù×÷ÀàĞÍ
-  .ui_config.layer = 1, // Í¼²ãÊı£¬0~9
-  .ui_config.color = CYAN_BLUE, // ÑÕÉ«
-  .ui_config.size = 30, // ×ÖÌå´óĞ¡
-  .ui_config.width = 2, // ÏßÌõ¿í¶È
-  .ui_config.start_x = Client_mid_position_x - 60, // Æğµã x ×ø±ê
-  .ui_config.start_y = Client_mid_position_y - 400, // Æğµã y ×ø±ê
-  .ui_config.float_num = 0, // ÏÔÊ¾µÄÊı×Ö
-  .ui_config.decimal = 2, // Ğ¡ÊıÎ»ÓĞĞ§¸öÊı
-	},
-	
-	[LENGTH_FRAME] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.priority = MID_PRIORITY, // UIÓÅÏÈ¼¶(½ö¶¯Ì¬UIĞèÒªÅäÖÃ)
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "d18",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.operate_type = MODIFY,    // ²Ù×÷ÀàĞÍ
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = YELLOW,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-     .ui_config.start_x = Client_mid_position_x - 350,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y - 125 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = Client_mid_position_x - 310 ,
-		.ui_config.end_y = Client_mid_position_y - 165 ,
-	},
+/*==================== Leg UI Variables Begin ====================*/
+Leg_UI_Config_t Leg_UI_Config = {
+    .scale = 430.0f,
+    .leg_offset_x = 1550,
+    .leg_offset_y = 485,
+    .right_offset_x = 200,
+    .right_offset_y = 0,
+    .body_length = 50, // åŠé•¿åº¦
 };
 
-ui_info_t const_ui_info [CONST_NUM] = 
-{
-	[TOP_CHAR] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g1",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È,Ã»ÓÃ
-    .ui_config.start_x = Client_mid_position_x + 640,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 117,              // Æğµã y ×ø±ê
-    .ui_config.text = "TOP",            // ÏÔÊ¾µÄÎÄ×Ö
-	},
-	
-	[UPSTEP_CHAR] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g2",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x + 640,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 297,              // Æğµã y ×ø±ê
-    .ui_config.text = "UPSTEP",            // ÏÔÊ¾µÄÎÄ×Ö
-		
-	},
-	
-	[FLY_CHAR] = {
-		/*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g3",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x + 640,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 207,              // Æğµã y ×ø±ê
-    .ui_config.text = "FLY",            // ÏÔÊ¾µÄÎÄ×Ö
-	},
-	
-//	[AUTO_CATCH_FRAME] = {
-//		/*******²»±äÅäÖÃ*********/
-//    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-//    .ui_config.name = "g4",              // Í¼ĞÎÃû³Æ
-//    /*******¿É±äÅäÖÃ*********/
-// 
-//    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-//    .ui_config.color = WHITE,            // ÑÕÉ«
-//    .ui_config.width = 1,                // ÏßÌõ¿í¶È
-//    .ui_config.start_x = Client_mid_position_x - 260,              // Æğµã x ×ø±ê
-//    .ui_config.start_y = Client_mid_position_y + 180 ,              // Æğµã y ×ø±ê
-//		.ui_config.end_x = Client_mid_position_x + 260 ,
-//		.ui_config.end_y = Client_mid_position_y - 180 ,
-//	},
-	
-//	[VISION_CHAR] = {
-//		/*******²»±äÅäÖÃ*********/
-//    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-//    .ui_config.name = "g4",              // Í¼ĞÎÃû³Æ
-//    /*******¿É±äÅäÖÃ*********/
-//    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-//    .ui_config.color = WHITE,            // ÑÕÉ«
-//    .ui_config.size = 20,                // ×ÖÌå´óĞ¡
-//    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-//    .ui_config.start_x = RIGHT_UP_X - 40,              // Æğµã x ×ø±ê
-//    .ui_config.start_y = RIGHT_UP_Y - 60,              // Æğµã y ×ø±ê
-//    .ui_config.text = "BUFF",            // ÏÔÊ¾µÄÎÄ×Ö
-//	},
-	 [BUFF_CHAR] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g5",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = 180,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 297,              // Æğµã y ×ø±ê
-    .ui_config.text = "BUFF",            // ÏÔÊ¾µÄÎÄ×Ö
-	 },
-	 
-	 [CHAS_CIRCLE] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CIRCLE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g6",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 0,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = GREEN,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = CHAS_CIRCLE_X ,              // Ô²ĞÄ x ×ø±ê
-    .ui_config.start_y = CHAS_CIRCLE_Y,              // Ô²ĞÄ y ×ø±ê
-    .ui_config.radius = 65, 
-	 },
-	 
-	 
-	 [STANDARD_LINE] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g8",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 0,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = LEG_LENGTH_X,              // Æğµã x ×ø±ê
-    .ui_config.start_y = LEG_LENGTH_Y + 40,              // Æğµã y ×ø±ê
-    .ui_config.end_x = LEG_LENGTH_X + 100,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = LEG_LENGTH_Y + 40,                // ÖÕµã y ×ø±ê
-	 },
-	 
-	 [HIGH_LINE] = {
-		  /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g9",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 0,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = YELLOW,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = LEG_LENGTH_X,              // Æğµã x ×ø±ê
-    .ui_config.start_y = LEG_LENGTH_Y + 120,              // Æğµã y ×ø±ê
-    .ui_config.end_x = LEG_LENGTH_X + 100,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = LEG_LENGTH_Y + 120,                // ÖÕµã y ×ø±ê
-	 },
-	 
-	 [MINIMUM_LINE] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g10",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 0,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = LEG_LENGTH_X,              // Æğµã x ×ø±ê
-    .ui_config.start_y = LEG_LENGTH_Y,              // Æğµã y ×ø±ê
-    .ui_config.end_x = LEG_LENGTH_X + 100,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = LEG_LENGTH_Y ,                // ÖÕµã y ×ø±ê
-	 },
-	 
-	 [CAP_FRAME] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = RECTANGEL,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g11",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
- 
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 3,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 253,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 345 ,              // Æğµã y ×ø±ê
-		.ui_config.end_x = Client_mid_position_x + 253 ,
-		.ui_config.end_y = Client_mid_position_y + 317 ,
-	 },
-	 
-	 [MOVE_L_LINE] = {
-		  /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g12",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 1,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 334,              // Æğµã x ×ø±ê
-    .ui_config.start_y = 0,              // Æğµã y ×ø±ê
-    .ui_config.end_x = Client_mid_position_x - 82,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = Client_mid_position_y - 150 ,                // ÖÕµã y ×ø±ê
-		 
-	 },
+Leg_UI_Var_t Leg_UI_Var;
+/*==================== Leg UI Variables End ====================*/
 
-	 [MOVE_R_LINE] = {
-		  /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g13",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 1,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x + 334,              // Æğµã x ×ø±ê
-    .ui_config.start_y = 0,              // Æğµã y ×ø±ê
-    .ui_config.end_x = Client_mid_position_x + 82,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = Client_mid_position_y - 150 ,                // ÖÕµã y ×ø±ê
-		 
-	 },
-	 
-	 [LOW_CHAR] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g14",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 340,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y - 130,              // Æğµã y ×ø±ê
-    .ui_config.text = "L",            // ÏÔÊ¾µÄÎÄ×Ö
-	 },
-	 
-	 [MID_CHAR] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g15",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size =  30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 340,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y - 70,              // Æğµã y ×ø±ê
-    .ui_config.text = "M",            // ÏÔÊ¾µÄÎÄ×Ö
-	 },
-	 
-	 [HIGH_CHAR] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = CHAR,           // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g16",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 1,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.size = 30,                // ×ÖÌå´óĞ¡
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 340,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y - 10,              // Æğµã y ×ø±ê
-    .ui_config.text = "H",            // ÏÔÊ¾µÄÎÄ×Ö
-	 },
-	 
-	 [CAP_DIVISION_1] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g17",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 0,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 250 + 70,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 355,              // Æğµã y ×ø±ê
-    .ui_config.end_x = Client_mid_position_x - 250 + 70,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = Client_mid_position_y + 305 ,                // ÖÕµã y ×ø±ê
-	 },
-	 
-	 [CAP_DIVISION_2] = {
-		 /*******²»±äÅäÖÃ*********/
-    .ui_config.ui_type = LINE,         // UIÄÚÈİÀàĞÍ
-    .ui_config.name = "g18",              // Í¼ĞÎÃû³Æ
-    /*******¿É±äÅäÖÃ*********/
-    .ui_config.layer = 0,                // Í¼²ãÊı£¬0~9
-    .ui_config.color = WHITE,            // ÑÕÉ«
-    .ui_config.width = 2,                // ÏßÌõ¿í¶È
-    .ui_config.start_x = Client_mid_position_x - 250 + 195,              // Æğµã x ×ø±ê
-    .ui_config.start_y = Client_mid_position_y + 355,              // Æğµã y ×ø±ê
-    .ui_config.end_x = Client_mid_position_x - 250 + 195,                // ÖÕµã x ×ø±ê
-    .ui_config.end_y = Client_mid_position_y + 305 ,                // ÖÕµã y ×ø±ê
-	 },
+#define CHAS_CIRCLE_X (Client_mid_position_x)
+#define CHAS_CIRCLE_Y (Client_mid_position_y - 350)
+#define CHAS_CIRCLE_R 70
+
+// è…¿éƒ¨UI
+#define Sd_Circle_Radius 17
+#define Wheel_Circle_Radius 19
+
+// è¡€é‡UI
+#define ROBOT_NUM_UI_Y 880
+#define ROBOT_HEALTH_UI_Y 850
+#define RED_ROBOT_1_X 680
+#define RED_ROBOT_2_X 565
+#define RED_ROBOT_3_X 450
+#define RED_ROBOT_4_X 335
+#define RED_ROBOT_5_X 220
+#define BLUE_ROBOT_1_X 1220
+#define BLUE_ROBOT_2_X 1335
+#define BLUE_ROBOT_3_X 1450
+#define BLUE_ROBOT_4_X 1565
+#define BLUE_ROBOT_5_X 1680
+
+// é£é•–é¢„è­¦
+#define DART_WARNING_X 850
+#define DART_WARNING_Y 740
+
+// å·¦ä¾§çŠ¶æ€æ 
+#define LEFT_STATUS_CHAR_SIZE 20
+#define LEFT_STATUS_MODE_X Client_mid_position_x - 800       // å›ºå®šå­—ç¬¦xåæ ‡
+#define LEFT_STATUS_MODE_Y Client_mid_position_y + 17        // å›ºå®šå­—ç¬¦yåæ ‡
+#define LEFT_STATUS_MODE_VALUE_X Client_mid_position_x - 630 // åŠ¨æ€å­—ç¬¦xåæ ‡
+#define LEFT_STATUS_Y_STEP 40
+#define LEFT_STATUS_Fric_Y LEFT_STATUS_MODE_Y + LEFT_STATUS_Y_STEP
+#define LEFT_STATUS_L_Fric_X LEFT_STATUS_MODE_VALUE_X
+#define LEFT_STATUS_R_Fric_X LEFT_STATUS_MODE_VALUE_X + 40
+ui_info_t dynamic_ui_info[DYNAMIC_NUM] = {
+    [CHAS_HEAD_LINE] = {
+        .ui_config.priority = HIGH_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = CYAN_BLUE,
+        .ui_config.width = 4,
+        .ui_config.start_x = CHAS_CIRCLE_X,
+        .ui_config.start_y = CHAS_CIRCLE_Y,
+        .ui_config.end_x = CHAS_CIRCLE_X,
+        .ui_config.end_y = CHAS_CIRCLE_Y + CHAS_CIRCLE_R,
+    },
+    [CHAS_SIDE_LINE] = {
+        .ui_config.priority = HIGH_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = WHITE,
+        .ui_config.width = 2,
+        .ui_config.start_x = CHAS_CIRCLE_X - CHAS_CIRCLE_R,
+        .ui_config.start_y = CHAS_CIRCLE_Y,
+        .ui_config.end_x = CHAS_CIRCLE_X + CHAS_CIRCLE_R,
+        .ui_config.end_y = CHAS_CIRCLE_Y,
+    },
+    [CAP_LINE] = {
+        .ui_config.priority = HIGH_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 1,
+        .ui_config.color = GREEN,
+        .ui_config.width = 25,
+        .ui_config.start_x = Client_mid_position_x - 250,
+        .ui_config.start_y = Client_mid_position_y + 332,
+        .ui_config.end_x = Client_mid_position_x + 250,
+        .ui_config.end_y = Client_mid_position_y + 332,
+    },
+    [VISION_AIM] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.width = 1,
+        .ui_config.start_x = Client_mid_position_x,
+        .ui_config.start_y = Client_mid_position_y,
+        .ui_config.radius = 3,
+    },
+    [AUTO_CATCH_FRAME] = {
+        .ui_config.priority = HIGH_PRIORITY,
+        .ui_config.ui_type = RECTANGEL,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.width = 3,
+        .ui_config.start_x = Client_mid_position_x - 280,
+        .ui_config.start_y = Client_mid_position_y + 170,
+        .ui_config.end_x = Client_mid_position_x + 280,
+        .ui_config.end_y = Client_mid_position_y - 180,
+    },
+    [LENGTH_FRAME] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = RECTANGEL,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 1,
+        .ui_config.color = YELLOW,
+        .ui_config.width = 3,
+        .ui_config.start_x = Client_mid_position_x - 350,
+        .ui_config.start_y = Client_mid_position_y - 125,
+        .ui_config.end_x = Client_mid_position_x - 310,
+        .ui_config.end_y = Client_mid_position_y - 165,
+    },
+    [D_CAR_MODE] = {
+        /*ä¸å˜é…ç½®*/
+        .ui_config.priority = MID_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
+        .ui_config.ui_type = CHAR,          // UIå†…å®¹ç±»å‹
+        /*å¯å˜é…ç½®*/
+        .ui_config.operate_type = MODIFY,                 // æ“ä½œç±»å‹
+        .ui_config.layer = 1,                             // å›¾å±‚æ•°ï¼Œ0~9
+        .ui_config.color = GREEN,                         // é¢œè‰²
+        .ui_config.size = LEFT_STATUS_CHAR_SIZE,          // å­—ä½“å¤§å°
+        .ui_config.width = 2,                             // çº¿æ¡å®½åº¦
+        .ui_config.start_x = Client_mid_position_x - 630, // èµ·ç‚¹ x åæ ‡
+        .ui_config.start_y = Client_mid_position_y + 17,  // èµ·ç‚¹ y åæ ‡
+        .ui_config.text = "Hank Liang",                   // æ˜¾ç¤ºçš„æ–‡å­—
+    },
+    /* å·¦è…¿çº¿æ®µ begin */
+    [L_LEG_BODY_LINE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.end_x = 0,
+        .ui_config.end_y = 0,
+    },
+    [L_LEG_A_TO_D] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = CYAN_BLUE,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.end_x = 0,
+        .ui_config.end_y = 0,
+    },
+    [L_LEG_D_TO_C] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = CYAN_BLUE,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.end_x = 0,
+        .ui_config.end_y = 0,
+    },
+    /* å·¦è…¿çº¿æ®µ end */
+    /* å³è…¿çº¿æ®µ begin */
+    [R_LEG_BODY_LINE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = WHITE,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.end_x = 0,
+        .ui_config.end_y = 0,
+    },
+    [R_LEG_A_TO_D] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = CYAN_BLUE,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.end_x = 0,
+        .ui_config.end_y = 0,
+    },
+    [R_LEG_D_TO_C] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = LINE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = CYAN_BLUE,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.end_x = 0,
+        .ui_config.end_y = 0,
+    },
+    /* å³è…¿çº¿æ®µ end */
+    /* å·¦è…¿åœ†ç‚¹ begin */
+    [L_LEG_BODY_BACK_CIRCLE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.radius = Sd_Circle_Radius,
+    },
+    [L_LEG_BODY_FRONT_CIRCLE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.radius = Sd_Circle_Radius,
+    },
+    [L_LEG_C_CIRCLE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.radius = Wheel_Circle_Radius,
+    },
+    /* å·¦è…¿åœ†ç‚¹ end */
+    /* å³è…¿åœ†ç‚¹ begin */
+    [R_LEG_BODY_BACK_CIRCLE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.radius = Sd_Circle_Radius,
+    },
+    [R_LEG_BODY_FRONT_CIRCLE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.radius = Sd_Circle_Radius,
+    },
+    [R_LEG_C_CIRCLE] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 2,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.radius = Wheel_Circle_Radius,
+    },
+    /* å³è…¿åœ†ç‚¹ end */
+    /* çº¢æ–¹è¡€é‡ UI begin */
+    [D_RED_1_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_1_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_RED_2_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_2_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_RED_3_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_3_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_RED_4_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_4_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_RED_5_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_5_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    /* çº¢æ–¹è¡€é‡ UI end */
+    /* è“æ–¹è¡€é‡ UI begin */
+    [D_BLUE_1_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_1_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_BLUE_2_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_2_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_BLUE_3_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_3_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_BLUE_4_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_4_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    [D_BLUE_5_HEALTH_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_5_X,
+        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
+        .ui_config.text = "0",
+    },
+    /* è“æ–¹è¡€é‡ UI end */
+    /* é£é•–é¢„è­¦ UI begin */
+    [DART_WARNING_CHAR] = {
+        .ui_config.priority = MID_PRIORITY,
+        .ui_config.ui_type = CHAR,
+        .ui_config.operate_type = MODIFY,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 25,
+        .ui_config.width = 3,
+        .ui_config.start_x = 0,
+        .ui_config.start_y = 0,
+        .ui_config.text = "!!!DART!!!",
+    },
+    /* é£é•–é¢„è­¦ UI end */
+    [D_L_FRIC_STATE_CYCLE] = {
+        /*ä¸å˜é…ç½®*/
+        .ui_config.priority = MID_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
+        .ui_config.ui_type = CIRCLE,        // UIå†…å®¹ç±»å‹
+        /*å¯å˜é…ç½®*/
+        .ui_config.operate_type = MODIFY,            // æ“ä½œç±»å‹
+        .ui_config.layer = 1,                        // å›¾å±‚æ•°ï¼Œ0~9
+        .ui_config.color = WHITE,                    // é¢œè‰²
+        .ui_config.width = 20,                       // çº¿æ¡å®½åº¦
+        .ui_config.start_x = LEFT_STATUS_L_Fric_X,   // åœ†å¿ƒ x åæ ‡
+        .ui_config.start_y = LEFT_STATUS_Fric_Y - 7, // åœ†å¿ƒ y åæ ‡
+        .ui_config.radius = 7,                       // åŠå¾„
+    },
+    [D_R_FRIC_STATE_CYCLE] = {
+        /*ä¸å˜é…ç½®*/
+        .ui_config.priority = MID_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
+        .ui_config.ui_type = CIRCLE,        // UIå†…å®¹ç±»å‹
+        /*å¯å˜é…ç½®*/
+        .ui_config.operate_type = MODIFY,            // æ“ä½œç±»å‹
+        .ui_config.layer = 1,                        // å›¾å±‚æ•°ï¼Œ0~9
+        .ui_config.color = WHITE,                    // é¢œè‰²
+        .ui_config.width = 20,                       // çº¿æ¡å®½åº¦
+        .ui_config.start_x = LEFT_STATUS_R_Fric_X,   // åœ†å¿ƒ x åæ ‡
+        .ui_config.start_y = LEFT_STATUS_Fric_Y - 7, // åœ†å¿ƒ y åæ ‡
+        .ui_config.radius = 7,                       // åŠå¾„
+    },
+    [D_VISION_DETECT_ROBOT_HEALTH_INT] = {
+        /*ä¸å˜é…ç½®*/
+        .ui_config.priority = HIGH_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
+        .ui_config.ui_type = INT,            // UIå†…å®¹ç±»å‹
+        /*å¯å˜é…ç½®*/
+        .ui_config.operate_type = MODIFY, // æ“ä½œç±»å‹
+        .ui_config.layer = 0,             // å›¾å±‚æ•°ï¼Œ0~9
+        .ui_config.color = PINK,          // é¢œè‰²
+        .ui_config.size = 20,             // å­—ä½“å¤§å°
+        .ui_config.width = 4,             // çº¿æ¡å®½åº¦
+        .ui_config.start_x = 935,         // èµ·ç‚¹ x åæ ‡
+        .ui_config.start_y = 650,         // èµ·ç‚¹ y åæ ‡
+        .ui_config.int_num = 0,           // æ˜¾ç¤ºçš„æ•°å­—
+    },
+    [D_ENERMY_MONEY_INT] = {
+        /*ä¸å˜é…ç½®*/
+        .ui_config.priority = HIGH_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
+        .ui_config.ui_type = INT,            // UIå†…å®¹ç±»å‹
+        /*å¯å˜é…ç½®*/
+        .ui_config.operate_type = MODIFY, // æ“ä½œç±»å‹
+        .ui_config.layer = 0,             // å›¾å±‚æ•°ï¼Œ0~9
+        .ui_config.color = WHITE,         // é¢œè‰²
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = 930, // èµ·ç‚¹ x åæ ‡
+        .ui_config.start_y = 910, // èµ·ç‚¹ y åæ ‡
+        .ui_config.int_num = 0,   // æ˜¾ç¤ºçš„æ•°å­—
+    },
 };
+
+ui_info_t const_ui_info[CONST_NUM] = {
+    [CHAS_CIRCLE] = {
+        .ui_config.ui_type = CIRCLE,
+        .ui_config.layer = 0,
+        .ui_config.color = GREEN,
+        .ui_config.width = 2,
+        .ui_config.start_x = CHAS_CIRCLE_X,
+        .ui_config.start_y = CHAS_CIRCLE_Y,
+        .ui_config.radius = CHAS_CIRCLE_R,
+    },
+    [CAP_FRAME] = {
+        .ui_config.ui_type = RECTANGEL,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.width = 3,
+        .ui_config.start_x = Client_mid_position_x - 253,
+        .ui_config.start_y = Client_mid_position_y + 345,
+        .ui_config.end_x = Client_mid_position_x + 253,
+        .ui_config.end_y = Client_mid_position_y + 317,
+    },
+    [LOW_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.size = 30,
+        .ui_config.width = 2,
+        .ui_config.start_x = Client_mid_position_x - 340,
+        .ui_config.start_y = Client_mid_position_y - 130,
+        .ui_config.text = "L",
+    },
+    [MID_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.size = 30,
+        .ui_config.width = 2,
+        .ui_config.start_x = Client_mid_position_x - 340,
+        .ui_config.start_y = Client_mid_position_y - 70,
+        .ui_config.text = "M",
+    },
+    [HIGH_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.size = 30,
+        .ui_config.width = 2,
+        .ui_config.start_x = Client_mid_position_x - 340,
+        .ui_config.start_y = Client_mid_position_y - 10,
+        .ui_config.text = "H",
+    },
+    [C_CAR_MODE_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = LEFT_STATUS_CHAR_SIZE,
+        .ui_config.width = 2,
+        .ui_config.start_x = Client_mid_position_x - 800,
+        .ui_config.start_y = Client_mid_position_y + 17,
+        .ui_config.text = "MODE:",
+    },
+    [C_RED_1_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_1_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "1",
+    },
+    [C_RED_2_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_2_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "2",
+    },
+    [C_RED_3_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_3_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "3",
+    },
+    [C_RED_4_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_4_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "4",
+    },
+    [C_RED_5_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = RED_ROBOT_5_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "5",
+    },
+    [C_BLUE_1_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_1_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "1",
+    },
+    [C_BLUE_2_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_2_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "2",
+    },
+    [C_BLUE_3_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_3_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "3",
+    },
+    [C_BLUE_4_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 1,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_4_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "4",
+    },
+    [C_BLUE_5_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 3,
+        .ui_config.start_x = BLUE_ROBOT_5_X,
+        .ui_config.start_y = ROBOT_NUM_UI_Y,
+        .ui_config.text = "5",
+    },
+    [C_Fric_CHAR] = {
+        .ui_config.ui_type = CHAR,
+        .ui_config.layer = 0,
+        .ui_config.color = WHITE,
+        .ui_config.size = 20,
+        .ui_config.width = 2,
+        .ui_config.start_x = LEFT_STATUS_MODE_X,
+        .ui_config.start_y = LEFT_STATUS_Fric_Y,
+        .ui_config.text = "Fric:",
+    },
+};
+
+/* æ—‹è½¬åæ ‡ç‚¹ */
+static void rotate_point_f(float *x, float *y,
+                           float raw_x, float raw_y,
+                           float mid_x, float mid_y, float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    float origin_x = raw_x - mid_x;
+    float origin_y = raw_y - mid_y;
+    float new_x = origin_x * c - origin_y * s;
+    float new_y = origin_x * s + origin_y * c;
+    *x = new_x + mid_x;
+    *y = new_y + mid_y;
+}
+
+/* è¯»å–å·¦è…¿ADCåæ ‡å¹¶å–è´Ÿ */
+static void read_left_leg_raw_coords(void)
+{
+    Link_Coord_t *coord = Chassis.Leg_Unit[L_Leg]->Link->info->coord;
+    Leg_UI_Var.raw_A_l_x = -coord->xa * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_A_l_y = -coord->ya * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_D_l_x = -coord->xd * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_D_l_y = -coord->yd * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_C_l_x = -coord->xc * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_C_l_y = -coord->yc * Leg_UI_Config.scale;
+}
+
+/* è¯»å–å³è…¿ADCåæ ‡å¹¶å–è´Ÿ */
+static void read_right_leg_raw_coords(void)
+{
+    Link_Coord_t *coord = Chassis.Leg_Unit[R_Leg]->Link->info->coord;
+    Leg_UI_Var.raw_A_r_x = -coord->xa * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_A_r_y = -coord->ya * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_D_r_x = -coord->xd * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_D_r_y = -coord->yd * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_C_r_x = -coord->xc * Leg_UI_Config.scale;
+    Leg_UI_Var.raw_C_r_y = -coord->yc * Leg_UI_Config.scale;
+}
+
+/* æ ¹æ®ç”µæœºå®ä¾‹åˆ¤æ–­åœ¨çº¿çŠ¶æ€ */
+static uint8_t is_sd_motor_online(Motor_DM_t *motor)
+{
+    return (motor->state->status == DEV_ONLINE) ? 1 : 0;
+}
+
+static uint8_t is_wheel_motor_online(Motor_RM_t *motor)
+{
+    return (motor->state->status == DEV_ONLINE) ? 1 : 0;
+}
+
+/**
+ * @brief è…¿éƒ¨ã€æœºä½“UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+static void update_leg_ui(void)
+{
+    static float last_pitch = 0.f;
+    float pitch_now = Chassis.Posture->info->pitch;
+
+    // è¯»å–åŸå§‹åæ ‡
+    read_left_leg_raw_coords();
+    read_right_leg_raw_coords();
+
+    // è®¡ç®—å·¦è…¿ä¸–ç•Œåæ ‡ï¼ˆç»•Aç‚¹æ—‹è½¬pitchï¼‰
+    float ax_l = Leg_UI_Var.raw_A_l_x + Leg_UI_Config.leg_offset_x;
+    float ay_l = Leg_UI_Var.raw_A_l_y + Leg_UI_Config.leg_offset_y;
+    rotate_point_f(&Leg_UI_Var.world_A_l_x, &Leg_UI_Var.world_A_l_y,
+                   Leg_UI_Var.raw_A_l_x + Leg_UI_Config.leg_offset_x,
+                   Leg_UI_Var.raw_A_l_y + Leg_UI_Config.leg_offset_y,
+                   ax_l, ay_l,
+                   pitch_now);
+    rotate_point_f(&Leg_UI_Var.world_D_l_x, &Leg_UI_Var.world_D_l_y,
+                   Leg_UI_Var.raw_D_l_x + Leg_UI_Config.leg_offset_x,
+                   Leg_UI_Var.raw_D_l_y + Leg_UI_Config.leg_offset_y,
+                   ax_l, ay_l,
+                   pitch_now);
+    rotate_point_f(&Leg_UI_Var.world_C_l_x, &Leg_UI_Var.world_C_l_y,
+                   Leg_UI_Var.raw_C_l_x + Leg_UI_Config.leg_offset_x,
+                   Leg_UI_Var.raw_C_l_y + Leg_UI_Config.leg_offset_y,
+                   ax_l, ay_l,
+                   pitch_now);
+
+    // è®¡ç®—å³è…¿ä¸–ç•Œåæ ‡
+    float ax_r = Leg_UI_Var.raw_A_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x;
+    float ay_r = Leg_UI_Var.raw_A_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y;
+    rotate_point_f(&Leg_UI_Var.world_A_r_x, &Leg_UI_Var.world_A_r_y,
+                   Leg_UI_Var.raw_A_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x,
+                   Leg_UI_Var.raw_A_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y,
+                   ax_r, ay_r,
+                   pitch_now);
+    rotate_point_f(&Leg_UI_Var.world_D_r_x, &Leg_UI_Var.world_D_r_y,
+                   Leg_UI_Var.raw_D_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x,
+                   Leg_UI_Var.raw_D_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y,
+                   ax_r, ay_r,
+                   pitch_now);
+    rotate_point_f(&Leg_UI_Var.world_C_r_x, &Leg_UI_Var.world_C_r_y,
+                   Leg_UI_Var.raw_C_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x,
+                   Leg_UI_Var.raw_C_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y,
+                   ax_r, ay_r,
+                   pitch_now);
+
+    // å‡å°‘è®¡ç®—é‡
+    float cos_pitch = cos(pitch_now);
+    float sin_pitch = sin(pitch_now);
+
+    // è®¡ç®—æœºä½“æ†ç«¯ç‚¹ï¼ˆå·¦è…¿ï¼‰
+    Leg_UI_Var.body_back_l_x = ax_l - Leg_UI_Config.body_length * cos_pitch;
+    Leg_UI_Var.body_back_l_y = ay_l - Leg_UI_Config.body_length * sin_pitch;
+    Leg_UI_Var.body_front_l_x = ax_l + Leg_UI_Config.body_length * cos_pitch;
+    Leg_UI_Var.body_front_l_y = ay_l + Leg_UI_Config.body_length * sin_pitch;
+
+    // è®¡ç®—æœºä½“æ†ç«¯ç‚¹ï¼ˆå³è…¿ï¼‰
+    Leg_UI_Var.body_back_r_x = ax_r - Leg_UI_Config.body_length * cos_pitch;
+    Leg_UI_Var.body_back_r_y = ay_r - Leg_UI_Config.body_length * sin_pitch;
+    Leg_UI_Var.body_front_r_x = ax_r + Leg_UI_Config.body_length * cos_pitch;
+    Leg_UI_Var.body_front_r_y = ay_r + Leg_UI_Config.body_length * sin_pitch;
+
+    // æ›´æ–°å·¦è…¿çº¿æ®µåæ ‡
+    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_l_x;
+    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_l_y;
+    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.end_x = (uint16_t)Leg_UI_Var.body_front_l_x;
+    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.end_y = (uint16_t)Leg_UI_Var.body_front_l_y;
+
+    dynamic_ui_info[L_LEG_A_TO_D].ui_config.start_x = (uint16_t)Leg_UI_Var.world_A_l_x;
+    dynamic_ui_info[L_LEG_A_TO_D].ui_config.start_y = (uint16_t)Leg_UI_Var.world_A_l_y;
+    dynamic_ui_info[L_LEG_A_TO_D].ui_config.end_x = (uint16_t)Leg_UI_Var.world_D_l_x;
+    dynamic_ui_info[L_LEG_A_TO_D].ui_config.end_y = (uint16_t)Leg_UI_Var.world_D_l_y;
+
+    dynamic_ui_info[L_LEG_D_TO_C].ui_config.start_x = (uint16_t)Leg_UI_Var.world_D_l_x;
+    dynamic_ui_info[L_LEG_D_TO_C].ui_config.start_y = (uint16_t)Leg_UI_Var.world_D_l_y;
+    dynamic_ui_info[L_LEG_D_TO_C].ui_config.end_x = (uint16_t)Leg_UI_Var.world_C_l_x;
+    dynamic_ui_info[L_LEG_D_TO_C].ui_config.end_y = (uint16_t)Leg_UI_Var.world_C_l_y;
+
+    // æ›´æ–°å³è…¿çº¿æ®µåæ ‡
+    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_r_x;
+    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_r_y;
+    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.end_x = (uint16_t)Leg_UI_Var.body_front_r_x;
+    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.end_y = (uint16_t)Leg_UI_Var.body_front_r_y;
+
+    dynamic_ui_info[R_LEG_A_TO_D].ui_config.start_x = (uint16_t)Leg_UI_Var.world_A_r_x;
+    dynamic_ui_info[R_LEG_A_TO_D].ui_config.start_y = (uint16_t)Leg_UI_Var.world_A_r_y;
+    dynamic_ui_info[R_LEG_A_TO_D].ui_config.end_x = (uint16_t)Leg_UI_Var.world_D_r_x;
+    dynamic_ui_info[R_LEG_A_TO_D].ui_config.end_y = (uint16_t)Leg_UI_Var.world_D_r_y;
+
+    dynamic_ui_info[R_LEG_D_TO_C].ui_config.start_x = (uint16_t)Leg_UI_Var.world_D_r_x;
+    dynamic_ui_info[R_LEG_D_TO_C].ui_config.start_y = (uint16_t)Leg_UI_Var.world_D_r_y;
+    dynamic_ui_info[R_LEG_D_TO_C].ui_config.end_x = (uint16_t)Leg_UI_Var.world_C_r_x;
+    dynamic_ui_info[R_LEG_D_TO_C].ui_config.end_y = (uint16_t)Leg_UI_Var.world_C_r_y;
+
+    // æ›´æ–°å·¦è…¿åœ†ç‚¹åæ ‡
+    dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_l_x;
+    dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_l_y;
+    dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_front_l_x;
+    dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_front_l_y;
+    dynamic_ui_info[L_LEG_C_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.world_C_l_x;
+    dynamic_ui_info[L_LEG_C_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.world_C_l_y;
+
+    // æ›´æ–°å³è…¿åœ†ç‚¹åæ ‡
+    dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_r_x;
+    dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_r_y;
+    dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_front_r_x;
+    dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_front_r_y;
+    dynamic_ui_info[R_LEG_C_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.world_C_r_x;
+    dynamic_ui_info[R_LEG_C_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.world_C_r_y;
+
+    // æ›´æ–°ç”µæœºåœ¨çº¿çŠ¶æ€é¢œè‰²
+    uint8_t l_front_sd_online = is_sd_motor_online(Sd_Group.motor[L_F_Sd_M]);
+    uint8_t l_back_sd_online = is_sd_motor_online(Sd_Group.motor[L_B_Sd_M]);
+    uint8_t l_wheel_online = is_wheel_motor_online(Wheel_Group.motor[L_WHEEL_M]);
+    uint8_t r_front_sd_online = is_sd_motor_online(Sd_Group.motor[R_F_Sd_M]);
+    uint8_t r_back_sd_online = is_sd_motor_online(Sd_Group.motor[R_B_Sd_M]);
+    uint8_t r_wheel_online = is_wheel_motor_online(Wheel_Group.motor[R_WHEEL_M]);
+
+    dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE].ui_config.color = l_back_sd_online ? GREEN : FUCHSIA;
+    dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE].ui_config.color = l_front_sd_online ? GREEN : FUCHSIA;
+    dynamic_ui_info[L_LEG_C_CIRCLE].ui_config.color = l_wheel_online ? GREEN : FUCHSIA;
+    dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE].ui_config.color = r_back_sd_online ? GREEN : FUCHSIA;
+    dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE].ui_config.color = r_front_sd_online ? GREEN : FUCHSIA;
+    dynamic_ui_info[R_LEG_C_CIRCLE].ui_config.color = r_wheel_online ? GREEN : FUCHSIA;
+
+    // å‘é€è…¿éƒ¨UI
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_BODY_LINE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_A_TO_D]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_D_TO_C]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_BODY_LINE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_A_TO_D]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_D_TO_C]);
+
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_C_CIRCLE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE]);
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_C_CIRCLE]);
+}
+
+/**
+ * @brief è¶…ç”µæ¡UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+static void update_cap_line(void)
+{
+    static uint16_t cap_line_last = 0;
+    float cap_voltage = cap.info.cap_u;
+    uint16_t cap_line = (uint16_t)(((cap_voltage * cap_voltage) / (24.f * 24.f)) * 500);
+
+    if (cap_line_last != cap_line)
+    {
+        dynamic_ui_info[CAP_LINE].ui_config.end_x = (Client_mid_position_x - 250) + cap_line;
+
+        float ratio = (cap_voltage * cap_voltage) / (24.f * 24.f);
+        if (ratio <= 0.3f)
+        {
+            dynamic_ui_info[CAP_LINE].ui_config.color = FUCHSIA;
+        }
+        else if (ratio <= 0.7f)
+        {
+            dynamic_ui_info[CAP_LINE].ui_config.color = ORANGE;
+        }
+        else
+        {
+            dynamic_ui_info[CAP_LINE].ui_config.color = GREEN;
+        }
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[CAP_LINE]);
+    }
+    cap_line_last = cap_line;
+}
+
+/**
+ * @brief åº•ç›˜æ–¹ä½UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+static void update_chas_circle(void)
+{
+    static float angle_last = 0.f;
+    float angle_now = -(gimbal.base_info.yaw_motor_angle);
+    if (my_abs(angle_now) > PI)
+    {
+        angle_now -= sgn(angle_now) * 2 * PI;
+    }
+
+    if (my_abs(angle_now - angle_last) > 0.001f)
+    {
+        float end_x = (float)dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_x;
+        float end_y = (float)dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_y;
+        rotate_point_f(&end_x, &end_y,
+                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y + CHAS_CIRCLE_R,
+                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y, angle_now);
+        dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_x = (uint16_t)end_x;
+        dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_y = (uint16_t)end_y;
+
+        float start_x = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_x;
+        float start_y = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_y;
+        float end_x2 = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_x;
+        float end_y2 = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_y;
+        rotate_point_f(&start_x, &start_y,
+                       CHAS_CIRCLE_X - CHAS_CIRCLE_R, CHAS_CIRCLE_Y,
+                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y, angle_now);
+        rotate_point_f(&end_x2, &end_y2,
+                       CHAS_CIRCLE_X + CHAS_CIRCLE_R, CHAS_CIRCLE_Y,
+                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y, angle_now);
+        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_x = (uint16_t)start_x;
+        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_y = (uint16_t)start_y;
+        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_x = (uint16_t)end_x2;
+        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_y = (uint16_t)end_y2;
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_HEAD_LINE]);
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_SIDE_LINE]);
+    }
+    angle_last = angle_now;
+}
+
+/**
+ * @brief è‡ªç„æ¡†UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+static void update_auto_catch_frame(void)
+{
+    uint8_t vision_offline = !Board_Rx_Info.flag.is_vision_online;
+    uint8_t target_found = Board_Rx_Info.flag.is_find_target && Board_Rx_Info.flag.hit_enable;
+
+    if (vision_offline)
+    {
+        dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = BLACK;
+    }
+    else if (target_found)
+    {
+        dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = PINK;
+    }
+    else
+    {
+        dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = WHITE;
+    }
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[AUTO_CATCH_FRAME]);
+}
+
+/**
+ * @brief è…¿é•¿æ¨¡å¼æ¡†UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+static void update_length_frame(void)
+{
+    static uint8_t last_mode = 1;
+    uint8_t now_mode = 1;
+    if (Balance.Flag->KNEE_STRIKE_Flag)
+        now_mode = 3;
+    else if (Balance.Flag->Middle_Flag)
+        now_mode = 2;
+
+    if (last_mode != now_mode)
+    {
+        if (now_mode == 1)
+        {
+            dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 125;
+            dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 165;
+        }
+        else if (now_mode == 2)
+        {
+            dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 65;
+            dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 105;
+        }
+        else if (now_mode == 3)
+        {
+            dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 5;
+            dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 45;
+        }
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[LENGTH_FRAME]);
+    }
+    last_mode = now_mode;
+}
+
+/**
+ * @brief è½¦æ¨¡å¼UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+static void update_car_mode(void)
+{
+    static uint8_t last_car_mode = 255;
+    uint8_t car_mode = Balance.mode;
+
+    if (last_car_mode != car_mode)
+    {
+        memset(dynamic_ui_info[D_CAR_MODE].ui_config.text, 0, sizeof(dynamic_ui_info[D_CAR_MODE].ui_config.text));
+        switch (car_mode)
+        {
+        case Sleep_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "SLEEP");
+            break;
+        case Init_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "INIT");
+            break;
+        case Imu_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "IMU");
+            break;
+        case SitDown_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "SIT DOWN");
+            break;
+        case Mec_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "MEC");
+            break;
+        case Cycle_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "CYCLE");
+            break;
+        case Rescue_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "RESCUE");
+            break;
+        case Manual_Rescue_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "HELP YOURSELF");
+            break;
+        case LEG_TEST_Mode:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "TEST");
+            break;
+        default:
+            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "UNKNOWN");
+            break;
+        }
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_CAR_MODE]);
+    }
+    last_car_mode = car_mode;
+}
+
+/**
+ * @brief æœºå™¨äººè¡€é‡UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+void update_robot_health(void)
+{
+    static uint32_t last_health_update_timestamp;
+    static uint8_t health_value_color; // 0ç™½1ç»¿
+    uint32_t health_update_timestamp = My_Judge.org_info->radio_information_data.health.update_timestamp;
+
+    if (My_Judge.info->my_color == 0) // çº¢è‰²
+    {
+        if (health_update_timestamp != last_health_update_timestamp)
+        {
+            sprintf(dynamic_ui_info[D_BLUE_1_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.hero_health);
+            sprintf(dynamic_ui_info[D_BLUE_2_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.engineer_health);
+            sprintf(dynamic_ui_info[D_BLUE_3_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry1_health);
+            sprintf(dynamic_ui_info[D_BLUE_4_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry2_health);
+            sprintf(dynamic_ui_info[D_BLUE_5_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.sentry_health);
+
+            if (health_value_color == 0)
+            {
+                dynamic_ui_info[D_BLUE_1_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_BLUE_2_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_BLUE_3_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_BLUE_4_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_BLUE_5_HEALTH_CHAR].ui_config.color = WHITE;
+                health_value_color = !health_value_color;
+            }
+            else
+            {
+                dynamic_ui_info[D_BLUE_1_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_BLUE_2_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_BLUE_3_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_BLUE_4_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_BLUE_5_HEALTH_CHAR].ui_config.color = GREEN;
+                health_value_color = !health_value_color;
+            }
+
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_1_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_2_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_3_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_4_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_5_HEALTH_CHAR]);
+        }
+    }
+    else // è“è‰²
+    {
+        if (health_update_timestamp != last_health_update_timestamp)
+        {
+            sprintf(dynamic_ui_info[D_RED_1_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.hero_health);
+            sprintf(dynamic_ui_info[D_RED_2_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.engineer_health);
+            sprintf(dynamic_ui_info[D_RED_3_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry1_health);
+            sprintf(dynamic_ui_info[D_RED_4_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry2_health);
+            sprintf(dynamic_ui_info[D_RED_5_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.sentry_health);
+            if (health_value_color == 0)
+            {
+                dynamic_ui_info[D_RED_1_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_RED_2_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_RED_3_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_RED_4_HEALTH_CHAR].ui_config.color = WHITE;
+                dynamic_ui_info[D_RED_5_HEALTH_CHAR].ui_config.color = WHITE;
+                health_value_color = !health_value_color;
+            }
+            else
+            {
+                dynamic_ui_info[D_RED_1_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_RED_2_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_RED_3_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_RED_4_HEALTH_CHAR].ui_config.color = GREEN;
+                dynamic_ui_info[D_RED_5_HEALTH_CHAR].ui_config.color = GREEN;
+                health_value_color = !health_value_color;
+            }
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_1_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_2_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_3_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_4_HEALTH_CHAR]);
+            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_5_HEALTH_CHAR]);
+        }
+    }
+
+    last_health_update_timestamp = health_update_timestamp;
+}
+
+/**
+ * @brief é£é•–é¢„è­¦UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ */
+void update_dart_warning(void)
+{
+    static uint32_t last_dart_warning_timestamp;
+    static uint8_t dart_warning_color; // 0ç™½1ç²‰çº¢
+    static uint8_t last_dart_state;
+    static uint32_t dart_warning_enable_tick; // ä¸Šå‡æ²¿è§¦å‘æ—¶çš„æ—¶é—´æˆ³
+    uint32_t current_tick = HAL_GetTick();
+    uint8_t current_dart_state = My_Judge.org_info->radio_dart_state_data.state;
+    uint8_t need_send = 0;
+
+    // æ£€æµ‹ä¸Šå‡æ²¿è·³å˜ï¼ˆ0â†’1ï¼‰
+    if (last_dart_state == 0 && current_dart_state == 1)
+    {
+        dart_warning_enable_tick = current_tick; // è®°å½•è§¦å‘æ—¶é—´
+    }
+    last_dart_state = current_dart_state;
+
+    // 20sè¶…æ—¶åˆ¤æ–­ï¼Œè¶…è¿‡20såˆ™å…³é—­UI
+    if (current_tick - dart_warning_enable_tick > 20000)
+    {
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_x = 0;
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_y = 0;
+        return;
+    }
+
+    if (current_dart_state == 1)
+    { // é£é•–èˆ±é—¨å¼€å¯
+        if (current_tick - last_dart_warning_timestamp >= 1000)
+        { // æ¯1000msåˆ‡æ¢é¢œè‰²
+            last_dart_warning_timestamp = current_tick;
+            uint8_t new_color = !dart_warning_color;
+            if (new_color != dart_warning_color)
+            {
+                dart_warning_color = new_color;
+                need_send = 1;
+            }
+        }
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_x = DART_WARNING_X;
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_y = DART_WARNING_Y;
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.color = (dart_warning_color == 0) ? BLACK : PINK;
+    }
+    else
+    {
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_x = 0;
+        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_y = 0;
+    }
+
+    if (need_send)
+    {
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[DART_WARNING_CHAR]);
+    }
+}
 
 void My_Ui_Init(void)
 {
-  Init_Ui_List(dynamic_ui_info, sizeof(dynamic_ui_info)/sizeof(ui_info_t),const_ui_info, sizeof(const_ui_info)/sizeof(ui_info_t));
+    Init_Ui_List(dynamic_ui_info, sizeof(dynamic_ui_info) / sizeof(ui_info_t),
+                 const_ui_info, sizeof(const_ui_info) / sizeof(ui_info_t));
+}
+
+/**
+ * @brief æ‘©æ“¦è½®çŠ¶æ€ç¯UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ * @note  ç¦»çº¿=é»‘è‰², åœ¨çº¿ä¸è½¬=é’è‰², åœ¨çº¿æ—‹è½¬=ç»¿è‰²; ä»…é¢œè‰²å˜åŒ–æ—¶Enqueue_Ui_For_Sending
+ */
+void update_fric_state_cycles(void)
+{
+    static graphic_color_e last_color[2] = {0}; // [0]=å·¦è½®, [1]=å³è½®
+    uint8_t L_online = shoot.extern_input.fric.L_online;
+    uint8_t R_online = shoot.extern_input.fric.R_online;
+    uint8_t L_spinning = (shoot.adapt_info.final_fric_target_speed > 0);
+    uint8_t R_spinning = L_spinning;
+
+    // å·¦æ‘©æ“¦è½®
+    graphic_color_e L_color = (!L_online) ? BLACK : (L_spinning ? GREEN : CYAN_BLUE);
+    if (L_color != last_color[0])
+    {
+        last_color[0] = L_color;
+        dynamic_ui_info[D_L_FRIC_STATE_CYCLE].ui_config.color = L_color;
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_L_FRIC_STATE_CYCLE]);
+    }
+
+    // å³æ‘©æ“¦è½®
+    graphic_color_e R_color = (!R_online) ? BLACK : (R_spinning ? GREEN : CYAN_BLUE);
+    if (R_color != last_color[1])
+    {
+        last_color[1] = R_color;
+        dynamic_ui_info[D_R_FRIC_STATE_CYCLE].ui_config.color = R_color;
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_R_FRIC_STATE_CYCLE]);
+    }
+}
+
+/**
+ * @brief è§†è§‰æ£€æµ‹åˆ°çš„æ•Œæ–¹æœºå™¨äººè¡€é‡UIæ›´æ–°
+ * @author RobotPilots 2026 LYQ
+ * @note  detect_num 0-4æ˜¾ç¤ºå¯¹åº”è¡€é‡ï¼Œå¦åˆ™éšè—; update_timestampå˜åŒ–æ—¶é¢œè‰²åœ¨ç™½çº¢é—´è·³å˜
+ */
+void update_vision_detect_robot_health(void)
+{
+    static uint32_t last_health_timestamp = 0;
+    static uint8_t last_detect_num = 15;
+    static uint8_t last_health_value = 0;
+    static uint8_t last_valid_target = 0;
+    static graphic_color_e last_color = WHITE;
+    uint8_t detect_num = Board_Rx_Info.flag.vision_detect_num;
+    uint32_t current_timestamp = My_Judge.org_info->radio_information_data.health.update_timestamp;
+
+    // æ ¹æ®detect_numè·å–å¯¹åº”è¡€é‡
+    uint16_t health_value = 0;
+    uint8_t valid_target = 0;
+    if (Board_Rx_Info.flag.is_find_target == 1)
+    {
+        if (detect_num <= 4)
+        {
+            switch (detect_num)
+            {
+            case 0:
+                health_value = My_Judge.org_info->radio_information_data.health.sentry_health;
+                break;
+            case 1:
+                health_value = My_Judge.org_info->radio_information_data.health.hero_health;
+                break;
+            case 2:
+                health_value = My_Judge.org_info->radio_information_data.health.engineer_health;
+                break;
+            case 3:
+                health_value = My_Judge.org_info->radio_information_data.health.infantry1_health;
+                break;
+            case 4:
+                health_value = My_Judge.org_info->radio_information_data.health.infantry2_health;
+                break;
+            default:
+                valid_target = 0;
+                break;
+            }
+            valid_target = 1;
+        }
+    }
+    else
+    {
+        valid_target = 0;
+    }
+
+    // åˆ¤æ–­æ˜¯å¦æœ‰å˜åŒ–éœ€è¦å‘é€
+    uint8_t need_send = 0;
+    if (detect_num != last_detect_num)
+    {
+        need_send = 1;
+        last_detect_num = detect_num;
+    }
+    if (health_value != last_health_value)
+    {
+        need_send = 1;
+        last_health_value = health_value;
+    }
+    if (current_timestamp != last_health_timestamp)
+    {
+        last_health_timestamp = current_timestamp;
+        last_color = (last_color == WHITE) ? PINK : WHITE; // ç™½çº¢è·³å˜
+        need_send = 1;
+    }
+    if (valid_target != last_valid_target)
+    {
+        last_valid_target = valid_target;
+        need_send = 1;
+    }
+
+    if (!need_send)
+    {
+        return;
+    }
+
+    // è®¾ç½®ä½ç½®å’Œæ•°å€¼
+    if (valid_target)
+    {
+        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_x = 935;
+        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_y = 650;
+        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.int_num = health_value;
+    }
+    else
+    {
+        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_x = 0;
+        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_y = 0;
+    }
+    dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.color = last_color;
+    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT]);
+}
+
+void update_enermy_money(void)
+{
+    static uint32_t last_update_timestamp = 0;
+    static uint16_t last_coins = 65535;
+
+    uint32_t current_timestamp = My_Judge.org_info->radio_information_data.status.update_timestamp;
+    uint16_t current_coins = My_Judge.org_info->radio_information_data.status.coins_left;
+
+    if (current_timestamp != last_update_timestamp && current_coins != last_coins)
+    {
+        static uint8_t money_color = 0;
+        if (money_color == 0)
+        {
+            dynamic_ui_info[D_ENERMY_MONEY_INT].ui_config.color = WHITE;
+            money_color = 1;
+        }
+        else
+        {
+            dynamic_ui_info[D_ENERMY_MONEY_INT].ui_config.color = ORANGE;
+            money_color = 0;
+        }
+
+        dynamic_ui_info[D_ENERMY_MONEY_INT].ui_config.int_num = current_coins;
+        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ENERMY_MONEY_INT]);
+
+        last_update_timestamp = current_timestamp;
+        last_coins = current_coins;
+    }
 }
 
 void Ui_Info_Update(void)
 {
-	client_info_update();
-	
-	//ÍÓÂİ¿ò¸üĞÂ
-	static uint8_t top_last_mode = false;
-	
-	if(top_last_mode != Balance.Flag->Cycle_Flag)
-	{
-	  if(Balance.Flag->Cycle_Flag == true)
-	  {
-		  dynamic_ui_info[TOP_FRAME].ui_config.color = GREEN;
-  	}
-	  else
-	  {
-		  dynamic_ui_info[TOP_FRAME].ui_config.color = WHITE;
-	  }
-	  Enqueue_Ui_For_Sending(&dynamic_ui_info[TOP_FRAME]);
-  }
-	
-	top_last_mode = Balance.Flag->Cycle_Flag;
-	
-	//ÉÏÌ¨½×¿ò¸üĞÂ
-	static uint8_t upstep_last_mode = false;
-	
-	if(upstep_last_mode != (Balance.Flag->Knee_Strike_1_Flag || Balance.Flag->Knee_Strike_2_Flag))
-	{
-		if(Balance.Flag->Knee_Strike_1_Flag == true || Balance.Flag->Knee_Strike_2_Flag == true)
-		{
-			dynamic_ui_info[UPSTEP_FRAME].ui_config.color = GREEN;
-		}
-		else
-		{
-			dynamic_ui_info[UPSTEP_FRAME].ui_config.color = WHITE;
-		}
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[UPSTEP_FRAME]);
-	}
-	
-	upstep_last_mode = (Balance.Flag->Knee_Strike_1_Flag || Balance.Flag->Knee_Strike_2_Flag);
-//	
-//	if(My_Judge.org_info->power_heat_data.chassis_power_buffer <= 25.f)
-//	{
-//		dynamic_ui_info[POWER_FRAME].ui_config.color = ORANGE;
-//		dynamic_ui_info[POWER].ui_config.color = WHITE;
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[POWER_FRAME]);
-//	}
-//	else if(My_Judge.org_info->power_heat_data.chassis_power_buffer <= 8.f)
-//	{
-//		dynamic_ui_info[POWER_FRAME].ui_config.color = FUCHSIA;
-//		dynamic_ui_info[POWER].ui_config.color = FUCHSIA;
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[POWER_FRAME]);
-//	}
-//	else
-//	{
-//		dynamic_ui_info[POWER_FRAME].ui_config.color = WHITE;
-//		dynamic_ui_info[POWER].ui_config.color = WHITE;
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[POWER_FRAME]);
-//	}
-
-  //ÉÏÌ¨½×Êı×Ö¸üĞÂ£¬2025.7.29²»¸üĞÂÁË
-//	static uint8_t upstep_num = 0,upstep_last_num = 0;
-//	if(My_Chassis.Knee_Strike_Flag_1 == true)
-//	{
-//		upstep_num = 1;
-//	}
-//	else if(My_Chassis.Knee_Strike_Flag_2 == true)
-//	{
-//		upstep_num = 2;
-//	}
-//	else 
-//	{
-//		upstep_num = 0;
-//	}
-//	
-//	if(upstep_last_num != upstep_num)
-//	{
-//		if(upstep_num == 1)
-//		{
-//			dynamic_ui_info[UPSTEP_NUM].ui_config.int_num = 1;
-//		}
-//		else if(upstep_num == 2)
-//		{
-//			dynamic_ui_info[UPSTEP_NUM].ui_config.int_num = 2;
-//		}
-//		else
-//		{
-//			dynamic_ui_info[UPSTEP_NUM].ui_config.int_num = 0;
-//		}
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[UPSTEP_NUM]);
-//	}
-//	
-//	upstep_last_num = upstep_num;
-	
-	//Ê£Óà·¢µ¯Á¿¸üĞÂ
-	static int16_t bullet_remain = 0;
-	
-//	if(bullet_remain != My_Judge.org_info->ext_bullet_remaining.bullet_remaining_num_17mm)
-//	{
-//		dynamic_ui_info[BULLET_NUM].ui_config.int_num = (int16_t)My_Judge.org_info->ext_bullet_remaining.bullet_remaining_num_17mm;
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[BULLET_NUM]);
-//	}
-//	
-//	bullet_remain =  My_Judge.org_info->ext_bullet_remaining.bullet_remaining_num_17mm;
-//	
-//	//·ÉÆÂ¿ò¸üĞÂ
-//	
-//	static uint8_t fly_last_mode = false;
-//	
-//	if(fly_last_mode != My_Balance.command->chassis->Fly_Flag)
-//	{
-//		if(My_Balance.command->chassis->Fly_Flag == true)
-//		{
-//			dynamic_ui_info[FLY_FRAME].ui_config.color = GREEN;
-//		}
-//		else if(My_Balance.command->chassis->Fly_Flag == false)
-//		{
-//			dynamic_ui_info[FLY_FRAME].ui_config.color = WHITE;
-//		}
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[FLY_FRAME]);
-//	}
-//	fly_last_mode = My_Balance.command->chassis->Fly_Flag;
-//	
-	//ÊÓ¾õÊı×Ö¸üĞÂ
-	static uint8_t vision_last_mode = 0;
-	
-	if(vision_last_mode != Board_Tx_Info.vision_mode)
-	{
-		if(Board_Tx_Info.vision_mode == 1)
-		{
-			dynamic_ui_info[BUFF_NUM].ui_config.int_num = 1;
-		}
-		else if(Board_Tx_Info.vision_mode == 2)
-		{
-			dynamic_ui_info[BUFF_NUM].ui_config.int_num = 2;
-		}
-		else if(Board_Tx_Info.vision_mode == 3)
-		{
-			dynamic_ui_info[BUFF_NUM].ui_config.int_num = 3;
-		}
-		else if(Board_Tx_Info.vision_mode == 5)
-		{
-			dynamic_ui_info[BUFF_NUM].ui_config.int_num = 5;
-		}
-		else
-		{
-			dynamic_ui_info[BUFF_NUM].ui_config.int_num = 0;
-		}
-		
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[BUFF_NUM]);
-	}
-	vision_last_mode = Board_Tx_Info.vision_mode;
-	
-	//ÊÓ¾õ¿ò¸üĞÂ
-	static uint8_t vision_last_flag = 0;
-	
-	if(vision_last_flag != (Balance.Vision.Auto_Catch_Flag || Balance.Vision.Auto_Base_Flag))
-	{
-		if((Balance.Vision.Auto_Catch_Flag || Balance.Vision.Auto_Base_Flag) == 1)
-		{
-			dynamic_ui_info[BUFF_FRAME].ui_config.color = GREEN;
-		}
-		else
-		{
-			dynamic_ui_info[BUFF_FRAME].ui_config.color = WHITE;
-		}
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[BUFF_FRAME]);
-	}
-	vision_last_flag = (Balance.Vision.Auto_Catch_Flag || Balance.Vision.Auto_Base_Flag);
-	
-//	//ÍÈ³¤³¤¶È¸üĞÂ
-//	UI_Info_Update_Leg_length();
-//	
-//	static uint32_t l_last = 0, r_last = 0;
-//	
-//	if(l_last != My_UI_Dynamic_Info.l_leg_length)
-//	{
-//		dynamic_ui_info[L_LEG_LENGTH].ui_config.end_y = dynamic_ui_info[L_LEG_LENGTH].ui_config.start_y + My_UI_Dynamic_Info.l_leg_length;
-//		
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_LENGTH]);
-//	}
-//	
-//	l_last = My_UI_Dynamic_Info.l_leg_length;
-//	
-//	if(r_last != My_UI_Dynamic_Info.r_leg_length)
-//	{
-//		dynamic_ui_info[R_LEG_LENGTH].ui_config.end_y = dynamic_ui_info[R_LEG_LENGTH].ui_config.start_y + My_UI_Dynamic_Info.r_leg_length;
-//		
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_LENGTH]);
-//	}
-//	
-//	r_last = My_UI_Dynamic_Info.r_leg_length;
-//	
-	//³¬µçÌõ¸üĞÂ,24.f:500
-	float cap_V = 0;
-	static uint16_t cap_line = 0,cap_line_last = 0;
-	
-	cap_line = (uint16_t)(((My_Cap.cap_v * My_Cap.cap_v) / (24.f * 24.f)) * 500);
-	
-	if(cap_line_last != cap_line)
-	{
-		dynamic_ui_info[CAP_LINE].ui_config.end_x = (Client_mid_position_x -250) + cap_line;
-//		dynamic_ui_info[CAP_LINE].ui_config.end_y = Client_mid_position_y + 320;
-		if(((My_Cap.cap_v * My_Cap.cap_v) / (24.f * 24.f)) <= 0.14)
-		{
-			dynamic_ui_info[CAP_LINE].ui_config.color = FUCHSIA;
-		}			
-		else if(((My_Cap.cap_v * My_Cap.cap_v) / (24.f * 24.f)) <= 0.39)
-		{
-			dynamic_ui_info[CAP_LINE].ui_config.color = ORANGE;
-		}
-		else
-		{
-			dynamic_ui_info[CAP_LINE].ui_config.color = GREEN;
-		}
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[CAP_LINE]);
-	}
-	cap_line_last = cap_line;
-	
-	//»úÌåÏß¸üĞÂ
-	static float pitch_err_last = 0.f,pitch_err_now;
-	
-	pitch_err_now = Chassis.Posture->info->pitch;
-	pitch_err_now = Lowpass(pitch_err_last,pitch_err_now,0.5f);
-	if(pitch_err_last != pitch_err_now)
-	{
-		My_Chas_Pitch_Update(pitch_err_now);
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[PITCH_LINE]);
-	}
-	pitch_err_last = pitch_err_now;
-	
-	//°Ú½ÇÏß¸üĞÂ
-	static float theta_err_last = 0.f,theta_err_now;
-	
-	theta_err_now = Chassis.Leg_Unit[R_Leg]->Link->info->angle->phi0;//ÓÒÊÓÍ¼
-	theta_err_now = Lowpass(theta_err_last,theta_err_now,0.5f);
-	if(theta_err_last != theta_err_now)
-	{
-		My_Chas_Theta_Update(theta_err_now);
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[THETA_LINE]);
-	}
-	theta_err_last = theta_err_now;
-	
-	//µ×ÅÌ·½Î»½Ç¸üĞÂ
-	static float chas_angle_err_last = 0.f,test_chas_angle = 0.f;
-	
-	test_chas_angle = -(gimbal.base_info.yaw_motor_angle);
-	if(my_abs(test_chas_angle) > PI)
-	{
-		test_chas_angle -= sgn(test_chas_angle) * 2 * PI;
-	}
-	
-//	test_chas_angle = (test_chas_angle / 4096.f) * PI;
-	if(chas_angle_err_last != test_chas_angle)
-	{
-		My_Chas_Circle_Update(test_chas_angle);
-		
-	}
-	
-	//×ÔÃé¿ò¸üĞÂ
-	static uint8_t vision_last_state = 0,vision_now_state = 0;
-	static uint8_t vision_lost = 0;
-	
-	if((Board_Tx_Info.vision_mode == 1 || Board_Tx_Info.vision_mode == 5) && Board_Rx_Info.is_find_Target == 1)
-	{
-		vision_now_state = 1;
-	}
-	else if((Board_Tx_Info.vision_mode == 2 || Board_Tx_Info.vision_mode == 3) && Board_Rx_Info.is_find_base == 1)
-	{
-		vision_now_state = 2;
-	}
-	else
-	{
-		vision_now_state = 0;
-	}
-	
-	if(Board_Rx_Info.hit_enable == 1 && Board_Rx_Info.is_find_Target == 1 && Board_Rx_Info.vision_state == 1)
-	{
-		vision_lost = 0;
-	}
-	
-	if(vision_last_state != vision_now_state)
-	{
-		if(vision_now_state == 1)
-		{
-			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = CYAN_BLUE;
-		}
-		else if(vision_now_state == 2)
-		{
-			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = GREEN;
-		}
-		else if(vision_now_state == 0)
-		{
-			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = WHITE;
-		}
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[AUTO_CATCH_FRAME]);
-	}
-	
-	vision_last_state = vision_now_state;
-	
-	//ÊÓ¾õ¶ªÊ§
-	if(Board_Rx_Info.vision_state == 0 && vision_lost == 0)//Ö»¸üĞÂÒ»´Î
-	{
-		dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = BLACK;
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[AUTO_CATCH_FRAME]);
-		vision_lost = 1;
-	}
-	
-	//³µÌåËÙ¶È¸üĞÂ
-	static float speed_last = 0.f,speed_now = 0.f;
-//	
-//	speed_now = Chassis.Posture->info->;
-//	if(speed_last != speed_now)
-//	{
-//		dynamic_ui_info[CAR_SPEED].ui_config.float_num = speed_now;
-//		Enqueue_Ui_For_Sending(&dynamic_ui_info[CAR_SPEED]);
-//	}
-//	speed_last = speed_now;
-	
-	//ÍÈ³¤Ä£Ê½¸üĞÂ
-	static uint8_t length_mode = 1,length_mode_last = 1;
-	if(Balance.Flag->Knee_Strike_1_Flag == true)
-	{
-		length_mode = 3;
-	}
-	else if(Balance.Flag->Middle_Flag == true)
-	{
-		length_mode = 2;
-	}
-	else
-	{
-		length_mode = 1;
-	}
-	if(length_mode != length_mode_last)
-	{
-		if(length_mode == 1)
-		{
-			dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 125;
-			dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 165;
-		}
-		else if(length_mode == 2)
-		{
-			dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 65;
-			dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 105;
-		}
-		else if(length_mode == 3)
-		{
-			dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 5;
-			dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 45;
-		}
-		
-		Enqueue_Ui_For_Sending(&dynamic_ui_info[LENGTH_FRAME]);
-	}
-	
-	length_mode_last = length_mode;
+    client_info_update();
+    update_cap_line();
+    update_chas_circle();
+    update_auto_catch_frame();
+    update_length_frame();
+    update_car_mode();
+    update_leg_ui();
+    update_robot_health();
+    update_dart_warning();
+    update_fric_state_cycles();
+    update_vision_detect_robot_health();
+    update_enermy_money();
 }
-//2201-2431
-
-float test_l = 0.f;
-float test_r = 0.f;
-uint8_t face = 0;//0Ç°1ºó
-float testt = 0.f;
-
-void UI_Info_Update_Leg_length(void)//0.24:120
-{	
-	if(fabsf(Chassis.Posture->info->yaw) <= 0.7f)
-	{
-	  test_l = constrain(Chassis.Leg_Unit[L_Leg]->Link->info->length->l0, MIN_LEG_LENGTH, MAX_LEG_LENGTH) - MIN_LEG_LENGTH;
-	  test_r = constrain(Chassis.Leg_Unit[R_Leg]->Link->info->length->l0, MIN_LEG_LENGTH, MAX_LEG_LENGTH) - MIN_LEG_LENGTH;
-	}
-	else if(fabsf(Chassis.Posture->info->yaw) >= 0.7f)
-	{
-		test_r = constrain(Chassis.Leg_Unit[L_Leg]->Link->info->length->l0, MIN_LEG_LENGTH, MAX_LEG_LENGTH) - MIN_LEG_LENGTH;
-	  test_l = constrain(Chassis.Leg_Unit[R_Leg]->Link->info->length->l0, MIN_LEG_LENGTH, MAX_LEG_LENGTH) - MIN_LEG_LENGTH;
-	}
-	float real_range = (MAX_LEG_LENGTH - MIN_LEG_LENGTH);
-	
-	float gragh_range = my_abs((float)const_ui_info[HIGH_LINE].ui_config.start_y - (float)const_ui_info[MINIMUM_LINE].ui_config.start_y);
-	
-	My_UI_Dynamic_Info.l_leg_length = (uint32_t)((test_l / real_range) * gragh_range);
-	
-	My_UI_Dynamic_Info.r_leg_length = (uint32_t)((test_r / real_range) * gragh_range);	
-	
-}
-//2174  2460
-/**
- * @brief °ÑÄ³µãÈÆÄ³µãĞı×ªÒ»¶¨½Ç¶È
- * 
- * @param x ´æ´¢Ğı×ªºóxµÄµØÖ·
- * @param y ´æ´¢Ğı×ªºóyµÄµØÖ·
- * @param raw_x Ğı×ªÇ°xµÄÖµ
- * @param raw_y Ğı×ªºóyµÄÖµ
- * @param mid_x Ğı×ªÔ­µãx
- * @param mid_y Ğı×ªÔ­µãy
- * @param angle Ğı×ªµÄ½Ç¶Èrad
- */
-void rotate_point(__packed uint16_t *x, __packed uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float angle) 
-{
-  float s = sin(angle);
-  float c = cos(angle);
-  // Æ½ÒÆµ½Ô­µã
-  float origin_x = raw_x - mid_x;
-  float origin_y = raw_y - mid_y;
-  // Ğı×ª
-  float new_x = origin_x * c - origin_y * s;
-  float new_y = origin_x * s + origin_y * c;
-  // Æ½ÒÆ»ØÈ¥²¢¸üĞÂÔ­Ê¼×ø±ê
-  *x = new_x + mid_x;
-  *y = new_y + mid_y;
-}
-
-/*µ×ÅÌpitchÇã½Ç¸üĞÂ*/
-void My_Chas_Pitch_Update(float angle)
-{
-	rotate_point(&dynamic_ui_info[PITCH_LINE].ui_config.start_x,&dynamic_ui_info[PITCH_LINE].ui_config.start_y,
-	              PITCH_CENTER_X - 55,PITCH_CENTER_Y,
-	              PITCH_CENTER_X,PITCH_CENTER_Y,
-	              angle);
-	
-	rotate_point(&dynamic_ui_info[PITCH_LINE].ui_config.end_x,&dynamic_ui_info[PITCH_LINE].ui_config.end_y,
-	              PITCH_CENTER_X + 55,PITCH_CENTER_Y,
-	              PITCH_CENTER_X,PITCH_CENTER_Y,
-	              angle);
-}
-/*µ×ÅÌ°Ú½Ç¸üĞÂ*/
-void My_Chas_Theta_Update(float angle)
-{
-	rotate_point(&dynamic_ui_info[THETA_LINE].ui_config.end_x,&dynamic_ui_info[THETA_LINE].ui_config.end_y,
-	              PITCH_CENTER_X,PITCH_CENTER_Y - 80,
-	              PITCH_CENTER_X,PITCH_CENTER_Y,
-	              angle);
-}
-
-/*µ×ÅÌ·½Î»¸üĞÂ*/
-void My_Chas_Circle_Update(float angle)
-{
-	rotate_point(&dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_x,&dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_y,
-	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y + CHAS_CIRCLE_R,
-	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y,
-	              angle);
-	
-	rotate_point(&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_x,&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_y,
-	              CHAS_CIRCLE_X - CHAS_CIRCLE_R,CHAS_CIRCLE_Y,
-	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y,
-	              angle);
-	
-	rotate_point(&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_x,&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_y,
-	              CHAS_CIRCLE_X + CHAS_CIRCLE_R,CHAS_CIRCLE_Y,
-	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y,
-	              angle);
-	
-	Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_HEAD_LINE]);
-	Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_SIDE_LINE]);
-}
-

@@ -1,39 +1,22 @@
-#ifndef __MOTOR_H
-#define __MOTOR_H
-
-#include "rp_config.h"
-#include "can_protocol.h"
-#include "rm_motor.h"
-
-#include "HT_motor.h"
-#include "DM_motor.h"
-#include "motor_def.h"
-#include "drv_can.h"
-/*µç»ú¶¨Òå²½Öè------------------------------------------------*/
-//Èç¹ûÒªÔöÉ¾¸ÄRMµç»ú
-//1.rm_motor_driverÌí¼Óµç»úID¡¢CANÀàĞÍ 
-//2.dev_rm_motor_list_eÀï¼Óµç»úÃû×Ö
-//3.CAN1_rxDataHandler£¬CAN2_rxDataHandlerÀïÌí¼Ó»ñÈ¡µç»úĞÅÏ¢µÄº¯Êı
-//4.rm_motor_t rm_motor[]Êı×éÀï¼Óµç»ú×Ü½á¹¹Ìå
-//5.¶¨Òåpid½á¹¹ÌåÒÔ¼°ÔÚrm_motor_list_initÀïÓÃmo tor_pid_init³õÊ¼»¯pid½á¹¹Ìå
-//Èç¹ûÒªÇı¶¯µç»ú¾ÍÔÚmotor_outÀï¸³Öµ£¬ÓÉCAN_SendÍ³Ò»·¢ËÍ
-/*µç»úIDºê¶¨Òå------------------------------------------------*/
-#define ID_GIMB_YAW 	0x142
-
-#define ID_DAIL 		0x207 //0x1FF  45
-extern  Motor_DM_t Dail_Motor;
-
-
-extern  Motor_RM_Group_t RM_Group_F1;
-extern  Motor_RM_Group_t RM_Group_F2;
-extern  Motor_RM_Group_t RM_Group_3;
-/* Exported functions --------------------------------------------------------*/
-void rm_motor_list_init(void);
-void rm_motor_list_heart_beat(void);
-void kt_motor_list_init(void);
-void ht_motor_list_init(void);
-void dm_motor_list_init(void);
-uint8_t rm_motor_list_workstate(void);
-
-#endif
-
+#ifndef __MOTOR_H
+#define __MOTOR_H
+
+#include "rp_config.h"
+#include "motor_def.h"
+#include "KT_motor.h"
+#include "can_protocol.h"
+#include "drv_can.h"
+
+/*ç”µæœºIDå®å®šä¹‰------------------------------------------------*/
+#define DAIL_MOTOR_ID 0x141
+typedef struct dail_pid_info_struct {
+    pid_ctrl_t *speed;          // é€Ÿåº¦ç¯
+    pid_ctrl_t *position_outer; // ä½ç½®ç¯å¤–ç¯
+    pid_ctrl_t *position_inner; // ä½ç½®ç¯å†…ç¯
+} dail_pid_info_t;
+
+/* Exported functions --------------------------------------------------------*/
+extern KT_motor_t dail_motor;
+extern dail_pid_info_t dail_pid;
+
+#endif

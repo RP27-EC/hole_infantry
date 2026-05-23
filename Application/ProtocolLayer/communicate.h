@@ -1,193 +1,140 @@
 #ifndef __communicate_H_
+
 #define __communicate_H_
+
 #include "rp_device_config.h"
+
 #include "rc_sensor.h"
+
 #include "drv_can.h"
+
 #include "can_protocol.h"
+
 #include "shoot.h"
+
 #include "rp_math.h"
-//#include "LaserRanging_kalman.h"
-//#include "judge_protocol.h"
 
-#ifdef UART_COMMUNICATE
+// ä¸Šæ¿ç»™ä¸‹æ¿ä¸Šä¼ çš„æ•°æ®ç»“æ„ä½“
 
-	extern UART_HandleTypeDef huart3;
+typedef struct
 
-	//#define POWER_HEAT_DATA_RX_ID        (0x100)//power_heat_data·¢ËÍID
-	//#define GAME_ROBOT_STATUS_RX_ID      (0x101)//game_robot_status·¢ËÍID
-	//#define SHOOT_DATA_RX_ID             (0x102)//shoot_data·¢ËÍID
-	//#define GAME_ROBOT_POS_RX_ID    	 (0x103)//game_robot_pos·¢ËÍID
-	//#define CHASSIS_DATA_TX_ID           (0X250)
-	//#define CAR_DATA_TX_ID               (0X104)
-	//#define COMMUNICATE_OFFLINE_CNT_MAX  (200)//ÀëÏß×î´ó¼ÆÊı(ms)
+{
 
+    float yaw_imu_angle; // yaw é™€èºä»ªè§’åº¦
 
-	//ÉÏ°å¸øÏÂ°å·¢ËÍµÄ½á¹¹Ìå
-	typedef struct
-	{
-		uint8_t SOF; // Ö¡Í·£¬Êı¾İÖ¡µÄÆğÊ¼±êÖ¾
-		uint8_t CRC8; // Ñ­»·ÈßÓàĞ£Ñé£¬ÓÃÓÚĞ£ÑéÖ¡Í·²¿·ÖµÄÊı¾İÍêÕûĞÔ
+    float yaw_imu_speed; // yaw é™€èºä»ªè§’é€Ÿåº¦
 
-		float pitch_imu;
-		float yaw_imu;
-		float yaw_v;
-		float pitch_v;
-		float pitch_mec;//?
-		
-		/*ÊÓ¾õĞÅÏ¢,·¢Éä¸üĞÂ*/
-		uint8_t vision_state;
-		bool hit_enable;
-		bool is_find_Target;
-		bool is_find_outpost;
-		bool is_find_base;
-		uint16_t launch_timer;//·¢ÉäÖ÷¶¯µÈ´ıÊ±¼ä	
-		float vision_pitch_tar;
-		float vision_yaw_tar;
-		
-		uint16_t CRC16; // Ñ­»·ÈßÓàĞ£Ñé£¬ÓÃÓÚĞ£ÑéÕû¸öÊı¾İÖ¡µÄÍêÕûĞÔ
-	}Board_Rx_Info_t;
+    float pitch_imu_angle; // pitch é™€èºä»ªè§’åº¦
 
-	//ÏÂ°å¸øÉÏ°å·¢ËÍµÄ½á¹¹Ìå
-	typedef struct
-	{	
-		uint8_t SOF; // Ö¡Í·£¬Êı¾İÖ¡µÄÆğÊ¼±êÖ¾
-		uint8_t CRC8; // Ñ­»·ÈßÓàĞ£Ñé£¬ÓÃÓÚĞ£ÑéÖ¡Í·²¿·ÖµÄÊı¾İÍêÕûĞÔ
-		
-		float pitch_imu_tar;
-		float yaw_imu_tar;
-		float pitch_mec_tar;//?
-		
-		bool gimbal_state;
-		int8_t gimbal_mode;
-		
-		bool is_ready_shoot;//²¦ÅÌ¸´Î»,ÈÈÁ¿ÏŞÖÆ
-		bool is_on_lob;//µõ
-		bool is_handle_shoot;//ÊÇ·ñ²Ù×÷ÊÖÊÖ´ò
-		
-		bool is_fric_on;
-		uint8_t bullet_speed;
+    float pitch_imu_speed; // pitch é™€èºä»ªè§’é€Ÿåº¦
 
-		/*ÊÓ¾õĞÅÏ¢*/
-		uint8_t my_color;
-		uint8_t video_open;
-		uint8_t vision_mode;
-		uint8_t blood_0;
-		uint8_t blood_1;
-		uint8_t blood_2;
-		uint8_t blood_3;
-		uint8_t blood_4;
-		uint8_t blood_5;
-		uint8_t blood_6;
-		uint8_t blood_7;
-		float v_x;
-		float v_y;
-		uint16_t CRC16; // Ñ­»·ÈßÓàĞ£Ñé£¬ÓÃÓÚĞ£ÑéÕû¸öÊı¾İÖ¡µÄÍêÕûĞÔ
-	}Board_Tx_Info_t;
+    float vision_target_yaw; // è§†è§‰ç›®æ ‡ yaw
 
-	typedef struct
-	{
-		dev_work_state_t status;						//½ÓÊÜ×´Ì¬
-		uint32_t send_time;                   //·¢ËÍ¼ä¸ô
-		uint32_t rx_tick;						//½ÓÊÜµ½ĞÅÏ¢Ê±µÄÊ±¼ä
-		uint8_t offline_cnt;									//½ÓÊÜÀëÏß¼ÆÊı
-		uint8_t offline_cnt_max;							//½ÓÊÜÀëÏß×î´ó¼ÆÊı
-	}Board_HeartBeat_t;
+    float vision_target_pitch; // è§†è§‰ç›®æ ‡ pitch
 
+    float pitch_mec_angle; // pitch æœºæ¢°è§’
 
-	extern Board_Tx_Info_t Board_Tx_Info;
-	extern Board_Rx_Info_t Board_Rx_Info;
-	extern Board_HeartBeat_t Board_HeartBeat;
+    __packed union {
 
-	bool Board_Tx_Send_Data(void);
-	bool Board_D_Recieve_Data(uint8_t *rxBuf);
-	void D_Board_HeartBeat(void);
+        uint32_t realtime_flag;
 
-#else
-  
-  	//ÉÏ°å¸øÏÂ°å·¢ËÍµÄ½á¹¹Ìå
-	typedef struct
-	{
-		float pitch_imu;
-		float yaw_imu;
-		float yaw_v;
-		float pitch_v;
-		float pitch_mec;//?
-		
-		/*ÊÓ¾õĞÅÏ¢,·¢Éä¸üĞÂ*/
-		uint8_t vision_state;
-		bool hit_enable;
-		bool is_find_Target;
-		bool is_find_outpost;
-		bool is_find_base;
-		uint16_t launch_timer;//·¢ÉäÖ÷¶¯µÈ´ıÊ±¼ä	
-		float vision_pitch_tar;
-		float vision_yaw_tar;
-		
-	}Board_Rx_Info_t;
+        __packed struct
 
-	//ÏÂ°å¸øÉÏ°å·¢ËÍµÄ½á¹¹Ìå
-	typedef struct
-	{			
-	  bool is_rc_online;
-		
-		float pitch_imu_tar;//**Ò£¿Ø×ª360·¢ÏÂÈ¥
-		float yaw_mec_imu;//**
-		float pitch_mec_tar;//?//**Ò£¿Ø×ª360·¢ÏÂÈ¥
-		
-		int8_t gimbal_mode;//**ÈıÖÖÄ£Ê½
-		
-		bool gimbal_state;//**³õÊ¼»¯
-		bool is_ready_shoot;//²¦ÅÌ¸´Î»,ÈÈÁ¿ÏŞÖÆ//**
-		bool is_on_lob;//µõ//**
-		bool is_handle_shoot;//ÊÇ·ñ²Ù×÷ÊÖÊÖ´ò		//**
-		bool is_fric_on;//**¿ªÄ¦²ÁÂÖ
-		
-		
-		float bullet_speed;//**µ¯ËÙ£¬ÓÃÓÚ×ÔÊÊÓ¦
-    uint8_t shoot_count;
-		
-		/*ÊÓ¾õĞÅÏ¢*/
-		uint8_t my_color;//**
-		uint8_t video_open;//**
-		uint8_t vision_mode;//**
-		uint8_t blood_0;//**
-		uint8_t blood_1;//**
-		uint8_t blood_2;//**
-		uint8_t blood_3;//**
-		uint8_t blood_4;//**
-		uint8_t blood_5;//**
-		uint8_t blood_6;//**
-		uint8_t blood_7;//**
-		float v_x;//**
-		float v_y;//**
-	}Board_Tx_Info_t;
+        {
 
-	typedef struct
-	{
-		dev_work_state_t status;						//½ÓÊÜ×´Ì¬
-		uint32_t send_time;                   //·¢ËÍ¼ä¸ô
-		uint32_t rx_tick;						//½ÓÊÜµ½ĞÅÏ¢Ê±µÄÊ±¼ä
-		uint8_t offline_cnt_1;		//½ÓÊÜÀëÏß¼ÆÊı
-		uint8_t offline_cnt_2;
-		uint8_t offline_cnt_max;							//½ÓÊÜÀëÏß×î´ó¼ÆÊı
-	}Board_HeartBeat_t;
+            uint8_t pitch_motor_online : 1; // pitch ç”µæœºåœ¨çº¿
 
+            uint8_t L_fric_online : 1; // å·¦æ‘©æ“¦è½®åœ¨çº¿
 
-	extern Board_Tx_Info_t Board_Tx_Info;
-	extern Board_Rx_Info_t Board_Rx_Info;
-	extern Board_HeartBeat_t Board_HeartBeat;
-	void D_Board_HeartBeat(void);
+            uint8_t R_fric_online : 1;   // å³æ‘©æ“¦è½®åœ¨çº¿
+            uint8_t L_fric_spinning : 1; // å·¦æ‘©æ“¦è½®åœ¨è½¬
+            uint8_t R_fric_spinning : 1; // å³æ‘©æ“¦è½®åœ¨è½¬
 
-	void Board_Tx_D1(void);
-	void Board_Tx_D2(void);
-	void Board_Tx_D3(void);
-//	void Board_Tx_B4(void);
-	void Board_Rx_D1(uint8_t *rxbuf);
-	void Board_Rx_D2(uint8_t *rxbuf);
-//	void Board_Rx_C3(uint8_t *rxbuf);
-  void CAN3_SEND(void);
+            uint8_t is_find_target : 1;    // è¯†åˆ«åˆ°ç›®æ ‡
+            uint8_t vision_detect_num : 4; // é”åˆ°å‡ å·ï¼ˆ0å“¨å…µï¼Œ6å‰å“¨ï¼Œ15ä¸ºæ²¡é”åˆ°)
+            uint8_t hit_enable : 1;        // å…è®¸å‡»æ‰“
 
-#endif
+            uint8_t is_keep_shoot : 1; // è¿å‘æ¨¡å¼
 
+            uint8_t is_vision_online : 1; // è§†è§‰åœ¨çº¿
+
+        } flag;
+    };
+
+} Board_Rx_Info_t;
+
+// ä¸‹æ¿ç»™ä¸Šæ¿çš„æ•°æ®ç»“æ„ä½“
+
+typedef struct
+
+{
+
+    float yaw_mec_imu;
+
+    float fric_target_speed;
+
+    float pitch_output;
+
+    __packed union {
+
+        uint32_t realtime_flag;
+
+        __packed struct
+
+        {
+
+            uint8_t our_color_flag : 1;              // æœ¬æ–¹é¢œè‰²
+            uint8_t is_rc_online : 1;                // é¥æ§å™¨åœ¨çº¿
+            uint8_t is_ready_shoot : 1;              // å¯ä»¥é©¬ä¸Šå‘å°„
+            uint8_t is_game_in_progress : 1;         // æ¯”èµ›è¿›è¡Œä¸­
+            uint8_t is_big_energy_engine_mode : 1;   // å¤§ç¬¦æ¨¡å¼
+            uint8_t is_small_energy_engine_mode : 1; // å°ç¬¦æ¨¡å¼
+            uint8_t is_outpost_mode : 1;             // å‰å“¨æ¨¡å¼
+            uint8_t is_hero_mode : 1;                // è‹±é›„æ¨¡å¼
+
+        } bit;
+
+    } flag;
+
+} Board_Tx_Info_t;
+
+typedef struct
+{
+
+    dev_work_state_t status; // å·¥ä½œçŠ¶æ€
+
+    uint32_t send_time; // å‘åŒ…æ—¶é—´
+
+    uint32_t rx_tick; // æ”¶åˆ°æ•°æ®æ—¶é—´æˆ³
+
+    uint8_t offline_cnt_pack_1; // å„åŒ…ç¦»çº¿è®¡æ•°
+
+    uint8_t offline_cnt_pack_2;
+
+    uint8_t offline_cnt_pack_3;
+
+    uint8_t offline_cnt_pack_4;
+
+    uint8_t offline_cnt_max; // ç¦»çº¿è®¡æ•°ä¸Šé™
+
+} Board_HeartBeat_t;
+
+extern Board_Tx_Info_t Board_Tx_Info;
+
+extern Board_Rx_Info_t Board_Rx_Info;
+
+extern Board_HeartBeat_t Board_HeartBeat;
+
+void D_Board_HeartBeat(void);
+
+void Board_Rx_C1(uint8_t *rxbuf);
+
+void Board_Rx_C2(uint8_t *rxbuf);
+
+void Board_Rx_C3(uint8_t *rxbuf);
+
+void Board_Rx_C4(uint8_t *rxbuf);
+
+void Send_To_Up_Board(void);
 
 #endif

@@ -1,19 +1,40 @@
 /**
+
   ******************************************************************************
+
   * @file    Command_task.c
-  * @brief   指令更新任务
-  *          更新整车标志位和模式
+
+  * @brief   鎸囦护鏇存柊浠诲姟
+
+  *          鏇存柊鏁磋溅鏍囧織浣嶅拰妯″紡
+
   ******************************************************************************
+
   */
+
 #include "Command_Task.h"
 
-void StartCommandTask(void const * argument)
+void StartCommandTask(void const *argument)
+
 {
-	for(;;)
-	{
-		keyboard_update(rc_sensor.info);
-		Balance.update(&Balance);
-		
-		osDelay(1);
-	}
+
+    for (;;)
+
+    {
+
+        keyboard_update(rc_sensor.info);
+
+        rc_sensor_s_last_update(&rc_sensor);
+        Command_Update();
+#ifndef TEST_MY_LEG
+        Balance.update(&Balance);
+#endif
+        //    #ifndef TEST_MY_LEG
+
+        //        Balance.update(&Balance);
+
+        //    #endif
+
+        osDelay(1);
+    }
 }

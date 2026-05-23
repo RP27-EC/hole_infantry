@@ -1,275 +1,557 @@
 /**
+
   ******************************************************************************
+
   * @file           : judge_potocol.c\h
-	* @author         : czf
-	* @date           : 2022-4-22 14:39:50
-  * @brief          : 
-	* @history        : 
+
+    * @author         : czf
+
+    * @date           : 2022-4-22 14:39:50
+
+  * @brief          :
+
+    * @history        :
+
   ******************************************************************************
+
   */
-	
+
 #ifndef __JUDGE_POTOCOL_H
+
 #define __JUDGE_POTOCOL_H
 
 #include "stm32h7xx_hal.h"
 
-/* Ö¡Í· */
-typedef struct 
-{
-	uint8_t SOF;  //Êı¾İÖ¡ÆğÊ¼×Ö½Ú£¬¹Ì¶¨ÖµÎª 0xA5
-	uint16_t data_length;  //Êı¾İÖ¡ÖĞ data µÄ³¤¶È
-	uint8_t seq;  //°üĞòºÅ
-	uint8_t CRC8;  //Ö¡Í· CRC8 Ğ£Ñé
-}judge_frame_header_t;
+/* å¸§å¤´ */
 
-typedef struct 
+typedef struct
+
 {
-	judge_frame_header_t *frame_header;
-	uint16_t cmd_id;
-	uint16_t frame_tail;
-}drv_judge_info_t;
+
+    uint8_t SOF; // æ•°æ®å¸§èµ·å§‹å­—èŠ‚ï¼Œå›ºå®šå€¼ä¸º 0xA5
+
+    uint16_t data_length; // æ•°æ®å¸§ä¸­ data çš„é•¿åº¦
+
+    uint8_t seq; // åŒ…åºå·
+
+    uint8_t CRC8; // å¸§å¤´ CRC8 æ ¡éªŒ
+
+} judge_frame_header_t;
+
+typedef struct
+
+{
+
+    judge_frame_header_t *frame_header;
+
+    uint16_t cmd_id;
+
+    uint16_t frame_tail;
+
+} drv_judge_info_t;
 
 extern drv_judge_info_t drv_judge_info;
 
 void judge_recive(uint8_t *rxBuf);
 
-/********************from²ÃÅĞÏµÍ³´®¿ÚĞ­Òé¸½Â¼V1.3µÄÊı¾İ½á¹¹Ìå********************/
+/********************fromè£åˆ¤ç³»ç»Ÿä¸²å£åè®®é™„å½•V1.3çš„æ•°æ®ç»“æ„ä½“********************/
 
-/* ±ÈÈü×´Ì¬Êı¾İ£º0x0001¡£·¢ËÍÆµÂÊ£º1Hz */
+/* æ¯”èµ›çŠ¶æ€æ•°æ®ï¼š0x0001ã€‚å‘é€é¢‘ç‡ï¼š1Hz */
+
 typedef struct
+
 {
-	uint8_t game_type : 4;
-	uint8_t game_progress : 4;
-	uint16_t stage_remain_time;
-	uint64_t SyncTimeStamp;
+
+    uint8_t game_type : 4;
+
+    uint8_t game_progress : 4;
+
+    uint16_t stage_remain_time;
+
+    uint64_t SyncTimeStamp;
+
 } ext_game_status_t;
 
-/* ±ÈÈü½á¹ûÊı¾İ£º0x0002¡£·¢ËÍÆµÂÊ£º±ÈÈü½áÊøºó·¢ËÍ */
+/* æ¯”èµ›ç»“æœæ•°æ®ï¼š0x0002ã€‚å‘é€é¢‘ç‡ï¼šæ¯”èµ›ç»“æŸåå‘é€ */
+
 typedef struct
+
 {
-	uint8_t winner;
+
+    uint8_t winner;
+
 } ext_game_result_t;
 
-/* »úÆ÷ÈËÑªÁ¿Êı¾İ£º0x0003¡£·¢ËÍÆµÂÊ£º1Hz */
+/* æœºå™¨äººè¡€é‡æ•°æ®ï¼š0x0003ã€‚å‘é€é¢‘ç‡ï¼š1Hz */
+
 typedef struct
+
 {
-	uint16_t ally_1_robot_HP; 
-	uint16_t ally_2_robot_HP; 
-	uint16_t ally_3_robot_HP; 
-	uint16_t ally_4_robot_HP; 
-	uint16_t reserved; 
-	uint16_t ally_7_robot_HP; 
-	uint16_t ally_outpost_HP;
-	uint16_t ally_base_HP;
+
+    uint16_t ally_1_robot_HP;
+
+    uint16_t ally_2_robot_HP;
+
+    uint16_t ally_3_robot_HP;
+
+    uint16_t ally_4_robot_HP;
+
+    uint16_t reserved;
+
+    uint16_t ally_7_robot_HP;
+
+    uint16_t ally_outpost_HP;
+
+    uint16_t ally_base_HP;
+
 } ext_game_robot_HP_t;
 
-/* ³¡µØÊÂ¼şÊı¾İ£º0x0101¡£·¢ËÍÆµÂÊ£º1Hz */
+/* åœºåœ°äº‹ä»¶æ•°æ®ï¼š0x0101ã€‚å‘é€é¢‘ç‡ï¼š1Hz */
+
 typedef struct __attribute__((packed))
+
 {
-	uint32_t event_data;
+
+    uint32_t event_data;
+
 } ext_event_data_t;
 
-/* ²¹¸øÕ¾¶¯×÷±êÊ¶£º0x0102¡£·¢ËÍÆµÂÊ£º¶¯×÷¸Ä±äºó·¢ËÍ, ·¢ËÍ·¶Î§£º¼º·½»úÆ÷ÈË */
-//typedef struct __attribute__((packed))
+/* è¡¥ç»™ç«™åŠ¨ä½œæ ‡è¯†ï¼š0x0102ã€‚å‘é€é¢‘ç‡ï¼šåŠ¨ä½œæ”¹å˜åå‘é€, å‘é€èŒƒå›´ï¼šå·±æ–¹æœºå™¨äºº */
+
+// typedef struct __attribute__((packed))
+
 //{
-//	uint8_t supply_projectile_id; 
-//	uint8_t supply_robot_id; 
-//	uint8_t supply_projectile_step; 
+
+//	uint8_t supply_projectile_id;
+
+//	uint8_t supply_robot_id;
+
+//	uint8_t supply_projectile_step;
+
 //	uint8_t supply_projectile_num;
+
 //} ext_supply_projectile_action_t;
 
-/* ²ÃÅĞ¾¯¸æĞÅÏ¢£ºcmd_id (0x0104)¡£·¢ËÍÆµÂÊ£º¼º·½¾¯¸æ·¢Éúºó·¢ËÍ */
+/* è£åˆ¤è­¦å‘Šä¿¡æ¯ï¼šcmd_id (0x0104)ã€‚å‘é€é¢‘ç‡ï¼šå·±æ–¹è­¦å‘Šå‘ç”Ÿåå‘é€ */
+
 typedef struct __attribute__((packed))
+
 {
-  uint8_t level; 
-  uint8_t offending_robot_id; 
-  uint8_t count;  
+
+    uint8_t level;
+
+    uint8_t offending_robot_id;
+
+    uint8_t count;
+
 } ext_referee_warning_t;
 
-/* ·ÉïÚ·¢Éä¿Úµ¹¼ÆÊ±£ºcmd_id (0x0105)¡£·¢ËÍÆµÂÊ£º1Hz ÖÜÆÚ·¢ËÍ£¬·¢ËÍ·¶Î§£º¼º·½»úÆ÷ÈË */
+/* é£é•–å‘å°„å£å€’è®¡æ—¶ï¼šcmd_id (0x0105)ã€‚å‘é€é¢‘ç‡ï¼š1Hz å‘¨æœŸå‘é€ï¼Œå‘é€èŒƒå›´ï¼šå·±æ–¹æœºå™¨äºº */
+
 typedef struct __attribute__((packed))
+
 {
- uint8_t dart_remaining_time; 
- uint16_t dart_info; 
+
+    uint8_t dart_remaining_time;
+
+    uint16_t dart_info;
+
 } ext_dart_info_t;
 
-///* ±ÈÈü»úÆ÷ÈË×´Ì¬£º0x0201¡£·¢ËÍÆµÂÊ£º10Hz */
-//typedef struct __attribute__((packed))
+///* æ¯”èµ›æœºå™¨äººçŠ¶æ€ï¼š0x0201ã€‚å‘é€é¢‘ç‡ï¼š10Hz */
+
+// typedef struct __attribute__((packed))
+
 //{
+
 //	uint8_t robot_id;
+
 //	uint8_t robot_level;
+
 //	uint16_t remain_HP;
+
 //	uint16_t max_HP;
+
 //	uint16_t shooter_id1_17mm_cooling_rate;
+
 //	uint16_t shooter_id1_17mm_cooling_limit;
+
 //	uint16_t shooter_id1_17mm_speed_limit;
+
 //	uint16_t shooter_id2_17mm_cooling_rate;
+
 //	uint16_t shooter_id2_17mm_cooling_limit;
+
 //	uint16_t shooter_id2_17mm_speed_limit;
+
 //	uint16_t shooter_id1_42mm_cooling_rate;
+
 //	uint16_t shooter_id1_42mm_cooling_limit;
+
 //	uint16_t shooter_id1_42mm_speed_limit;
+
 //	uint16_t chassis_power_limit;
+
 //	uint8_t mains_power_gimbal_output : 1;
+
 //	uint8_t mains_power_chassis_output : 1;
+
 //	uint8_t mains_power_shooter_output : 1;
+
 //} ext_game_robot_status_t;
 
-/* ±ÈÈü»úÆ÷ÈË×´Ì¬£º0x0201¡£·¢ËÍÆµÂÊ£º10Hz */
+/* æ¯”èµ›æœºå™¨äººçŠ¶æ€ï¼š0x0201ã€‚å‘é€é¢‘ç‡ï¼š10Hz */
+
 typedef struct __attribute__((packed))
+
 {
-  uint8_t robot_id; 
-  uint8_t robot_level; 
-  uint16_t current_HP; 
-  uint16_t maximum_HP; 
-  uint16_t shooter_barrel_cooling_value; 
-  uint16_t shooter_barrel_heat_limit; 
-  uint16_t chassis_power_limit; 
-  uint8_t power_management_gimbal_output : 1; 
-  uint8_t power_management_chassis_output : 1; 
-  uint8_t power_management_shooter_output : 1; 
+
+    uint8_t robot_id;
+
+    uint8_t robot_level;
+
+    uint16_t current_HP;
+
+    uint16_t maximum_HP;
+
+    uint16_t shooter_barrel_cooling_value;
+
+    uint16_t shooter_barrel_heat_limit;
+
+    uint16_t chassis_power_limit;
+
+    uint8_t power_management_gimbal_output : 1;
+
+    uint8_t power_management_chassis_output : 1;
+
+    uint8_t power_management_shooter_output : 1;
+
 } ext_game_robot_status_t;
 
-/* ÊµÊ±¹¦ÂÊÈÈÁ¿Êı¾İ£º0x0202¡£·¢ËÍÆµÂÊ£º50Hz */
+/* å®æ—¶åŠŸç‡çƒ­é‡æ•°æ®ï¼š0x0202ã€‚å‘é€é¢‘ç‡ï¼š50Hz */
+
 typedef struct __attribute__((packed))
+
 {
-	uint16_t reserved; 
-  uint16_t reserved_1; 
-  float reserved_2; 
-  uint16_t buffer_energy; 
-  uint16_t shooter_17mm_barrel_heat; 
-  uint16_t shooter_42mm_barrel_heat; 
+
+    uint16_t reserved;
+
+    uint16_t reserved_1;
+
+    float reserved_2;
+
+    uint16_t buffer_energy;
+
+    uint16_t shooter_17mm_barrel_heat;
+
+    uint16_t shooter_42mm_barrel_heat;
+
 } ext_power_heat_data_t;
 
-/* »úÆ÷ÈËÎ»ÖÃ£º0x0203¡£·¢ËÍÆµÂÊ£º10Hz */
+/* æœºå™¨äººä½ç½®ï¼š0x0203ã€‚å‘é€é¢‘ç‡ï¼š10Hz */
+
 typedef struct __attribute__((packed))
+
 {
-	float x;
-	float y;
-	float yaw;
+
+    float x;
+
+    float y;
+
+    float yaw;
+
 } ext_game_robot_pos_t;
 
-/* »úÆ÷ÈËÔöÒæ£º0x0204¡£·¢ËÍÆµÂÊ£º1Hz */
-typedef struct __attribute__((packed))
-{
-	uint8_t recovery_buff;  
-	uint16_t cooling_buff;  
-	uint8_t defence_buff;  
-	uint8_t vulnerability_buff; 
-	uint16_t attack_buff; 
-	uint8_t remaining_energy; 
-}ext_buff_t;
+/* æœºå™¨äººå¢ç›Šï¼š0x0204ã€‚å‘é€é¢‘ç‡ï¼š1Hz */
 
-/* ¿ÕÖĞ»úÆ÷ÈËÄÜÁ¿×´Ì¬£º0x0205¡£·¢ËÍÆµÂÊ£º10Hz */
 typedef struct __attribute__((packed))
+
 {
-	uint8_t attack_time;
+
+    uint8_t recovery_buff;
+
+    uint16_t cooling_buff;
+
+    uint8_t defence_buff;
+
+    uint8_t vulnerability_buff;
+
+    uint16_t attack_buff;
+
+    uint8_t remaining_energy;
+
+} ext_buff_t;
+
+/* ç©ºä¸­æœºå™¨äººèƒ½é‡çŠ¶æ€ï¼š0x0205ã€‚å‘é€é¢‘ç‡ï¼š10Hz */
+
+typedef struct __attribute__((packed))
+
+{
+
+    uint8_t attack_time;
+
 } aerial_robot_energy_t;
 
-/* ÉËº¦×´Ì¬£º0x0206¡£·¢ËÍÆµÂÊ£ºÉËº¦·¢Éúºó·¢ËÍ */
+/* ä¼¤å®³çŠ¶æ€ï¼š0x0206ã€‚å‘é€é¢‘ç‡ï¼šä¼¤å®³å‘ç”Ÿåå‘é€ */
+
 typedef struct __attribute__((packed))
+
 {
-	uint8_t armor_id : 4;
-	uint8_t HP_deduction_reason : 4;
+
+    uint8_t armor_id : 4;
+
+    uint8_t HP_deduction_reason : 4;
+
 } ext_robot_hurt_t;
 
-/* ÊµÊ±Éä»÷ĞÅÏ¢£º0x0207¡£·¢ËÍÆµÂÊ£ºÉä»÷ºó·¢ËÍ */
+/* å®æ—¶å°„å‡»ä¿¡æ¯ï¼š0x0207ã€‚å‘é€é¢‘ç‡ï¼šå°„å‡»åå‘é€ */
+
 typedef struct __attribute__((packed))
+
 {
-	uint8_t bullet_type;
-	uint8_t shooter_number;
-	uint8_t bullet_freq;
-	float initial_speed;
+
+    uint8_t bullet_type;
+
+    uint8_t shooter_number;
+
+    uint8_t bullet_freq; // Hz
+
+    float initial_speed;
+
 } ext_shoot_data_t;
 
-/* ×Óµ¯Ê£Óà·¢ÉäÊı£º0x0208¡£·¢ËÍÆµÂÊ£º10Hz ÖÜÆÚ·¢ËÍ£¬ËùÓĞ»úÆ÷ÈË·¢ËÍ */
+/* å­å¼¹å‰©ä½™å‘å°„æ•°ï¼š0x0208ã€‚å‘é€é¢‘ç‡ï¼š10Hz å‘¨æœŸå‘é€ï¼Œæ‰€æœ‰æœºå™¨äººå‘é€ */
+
 typedef struct __attribute__((packed))
+
 {
-	uint16_t projectile_allowance_17mm; 
-  uint16_t projectile_allowance_42mm; 
-  uint16_t remaining_gold_coin; 
-  uint16_t projectile_allowance_fortress; 
+
+    uint16_t projectile_allowance_17mm;
+
+    uint16_t projectile_allowance_42mm;
+
+    uint16_t remaining_gold_coin;
+
+    uint16_t projectile_allowance_fortress;
+
 } ext_projectile_allowance_t;
 
-/* »úÆ÷ÈË RFID ×´Ì¬£º0x0209¡£·¢ËÍÆµÂÊ£º1Hz£¬·¢ËÍ·¶Î§£ºµ¥Ò»»úÆ÷ÈË */
+/* æœºå™¨äºº RFID çŠ¶æ€ï¼š0x0209ã€‚å‘é€é¢‘ç‡ï¼š1Hzï¼Œå‘é€èŒƒå›´ï¼šå•ä¸€æœºå™¨äºº */
+
 typedef struct __attribute__((packed))
+
 {
-	uint32_t rfid_status; 
-  uint8_t rfid_status_2; 
+
+    uint32_t rfid_status;
+
+    uint8_t rfid_status_2;
+
 } ext_rfid_status_t;
 
-/* ·ÉïÚ»úÆ÷ÈË¿Í»§¶ËÖ¸ÁîÊı¾İ£º0x020A¡£·¢ËÍÆµÂÊ£º10Hz£¬·¢ËÍ·¶Î§£ºµ¥Ò»»úÆ÷ÈË */
+/* é£é•–æœºå™¨äººå®¢æˆ·ç«¯æŒ‡ä»¤æ•°æ®ï¼š0x020Aã€‚å‘é€é¢‘ç‡ï¼š10Hzï¼Œå‘é€èŒƒå›´ï¼šå•ä¸€æœºå™¨äºº */
+
 typedef struct __attribute__((packed))
+
 {
-	uint8_t dart_launch_opening_status; 
-  uint8_t reserved; 
-  uint16_t target_change_time; 
-  uint16_t latest_launch_cmd_time; 
+
+    uint8_t dart_launch_opening_status;
+
+    uint8_t reserved;
+
+    uint16_t target_change_time;
+
+    uint16_t latest_launch_cmd_time;
+
 } ext_dart_client_cmd_t;
 
-/*»úÆ÷ÈË½»»¥Êı¾İ£¬·¢ËÍ·½´¥·¢·¢ËÍ*/
-typedef struct __attribute__((packed))
-{ 
- uint16_t data_cmd_id; 
- uint16_t sender_id; 
- uint16_t receiver_id; 
- uint8_t user_data[112]; //ÄÚÈİÊı¾İ¶Î×î´ó112
-}robot_interaction_data_t; 
+/*æœºå™¨äººäº¤äº’æ•°æ®ï¼Œå‘é€æ–¹è§¦å‘å‘é€*/
+typedef struct __attribute__((packed)) {
+    uint16_t data_cmd_id;
+    uint16_t sender_id;
+    uint16_t receiver_id;
+    uint8_t user_data[112]; // å†…å®¹æ•°æ®æ®µæœ€å¤§112
 
-/********************ÃüÁîÂëÃ¶¾Ù********************/
+} robot_interaction_data_t;
+
+// å­ç»“æ„ä½“
+
+typedef struct __attribute__((packed)) {
+    uint8_t heal;
+    uint16_t cooldown;
+    uint8_t defense;
+    uint8_t vulnerable;
+    uint16_t attack;
+} basic_buff_t;
+
+typedef struct __attribute__((packed)) {
+    uint8_t heal;
+    uint16_t cooldown;
+    uint8_t defense;
+    uint8_t vulnerable;
+    uint16_t attack;
+    uint8_t form;
+} sentry_buff_t;
+
+typedef struct __attribute__((packed)) {
+    uint16_t hero_health;
+    uint16_t engineer_health;
+    uint16_t infantry1_health;
+    uint16_t infantry2_health;
+    uint16_t sentry_health;
+    uint32_t update_timestamp;
+} health_data_t;
+
+typedef struct __attribute__((packed)) {
+    uint16_t hero_allow_shoot;
+    uint16_t infantry1_allow_shoot;
+    uint16_t infantry2_allow_shoot;
+    uint16_t drone_allow_shoot;
+    uint16_t sentry_allow_shoot;
+    uint32_t update_timestamp;
+} allow_shoot_data_t;
+
+typedef struct __attribute__((packed)) {
+    uint16_t coins_left;
+    uint16_t coins_total;
+    uint32_t capture_status;
+    uint32_t update_timestamp;
+} status_data_t;
+
+typedef struct __attribute__((packed)) {
+    basic_buff_t hero;
+    basic_buff_t engineer;
+    basic_buff_t infantry1;
+    basic_buff_t infantry2;
+    sentry_buff_t sentry;
+    uint32_t update_timestamp;
+} buff_data_t;
+
+#define Radio_information_data_id 0x211
+/*é›·è¾¾æ— çº¿ç”µäº¤äº’æ•°æ® data_id:0x211*/
+typedef struct __attribute__((packed)) {
+    uint16_t data_cmd_id;
+    uint16_t sender_id;
+    uint16_t receiver_id;
+    health_data_t health;
+    allow_shoot_data_t allow_shoot;
+    status_data_t status;
+    buff_data_t buff;
+    uint32_t current_timestamp;
+} radio_information_data_t;
+
+#define Radio_dart_state_data_id 0x0201
+/* é›·è¾¾æ£€æµ‹é£é•–èˆ±é—¨å¼€å¯æ•°æ® data_id:0x0201 */
+typedef struct __attribute__((packed)) {
+    uint16_t data_cmd_id;
+    uint16_t sender_id;
+    uint16_t receiver_id;
+    uint8_t state; // 0å…³1å¼€
+} dart_state_data_t;
+
+/********************å‘½ä»¤ç æšä¸¾********************/
+
 enum
+
 {
-	ID_game_state       						= 0x0001,//±ÈÈü×´Ì¬Êı¾İ£¬1Hz
-	ID_game_result 	   							= 0x0002,//±ÈÈü½á¹ûÊı¾İ£¬±ÈÈü½áÊø·¢ËÍ
-	ID_game_robot_HP       					= 0x0003,//±ÈÈü»úÆ÷ÈËÑªÁ¿Êı¾İ£¬1Hz·¢ËÍ
-	ID_dart_status									=  0x0004,//·ÉïÚ·¢Éä×´Ì¬£¬·ÉïÚ·¢ÉäÊ±·¢ËÍ
-	ID_ICRA_buff_debuff_zone_status = 0x0005,//ÈË¹¤ÖÇÄÜÌôÕ½Èü¼Ó³ÉÓë³Í·£Çø×´Ì¬£¬1Hz
-	ID_event_data  									= 0x0101,//³¡µØÊÂ¼şÊı¾İ£¬1Hz
-	ID_supply_projectile_action   	= 0x0102,//³¡µØ²¹¸øÕ¾¶¯×÷±êÊ¶Êı¾İ
-	ID_referee_warning					 		= 0x0104,//²ÃÅĞ¾¯¸æÊı¾İ£¬¾¯¸æºó·¢ËÍ
-	ID_dart_remaining_time					=  0x0105,//·ÉïÚ·¢Éä¿Úµ¹¼ÆÊ±£¬1Hz
-	ID_game_robot_state    					= 0x0201,//»úÆ÷ÈË×´Ì¬Êı¾İ£¬10Hz
-	ID_power_heat_data    					= 0x0202,//ÊµÊ±¹¦ÂÊÈÈÁ¿Êı¾İ£¬50Hz
-	ID_game_robot_pos        				= 0x0203,//»úÆ÷ÈËÎ»ÖÃÊı¾İ£¬10Hz
-	ID_buff_musk										= 0x0204,//»úÆ÷ÈËÔöÒæÊı¾İºÍµ×ÅÌÄÜÁ¿£¬3Hz
-	ID_aerial_robot_energy					=  0x0205,//¿ÕÖĞ»úÆ÷ÈËÄÜÁ¿×´Ì¬Êı¾İ£¬10Hz£¬Ö»ÓĞ¿ÕÖĞ»úÆ÷ÈËÖ÷¿Ø·¢ËÍ
-	ID_robot_hurt										= 0x0206,//ÉËº¦×´Ì¬Êı¾İ£¬ÉËº¦·¢Éúºó·¢ËÍ
-	ID_shoot_data										= 0x0207,//ÊµÊ±Éä»÷Êı¾İ£¬×Óµ¯·¢Éäºó·¢ËÍ
-	ID_projectile_allowance							= 0x0208,//ÔÊĞí·¢µ¯Á¿£¬¹Ì¶¨ÒÔ 10Hz ÆµÂÊ·¢
-	ID_rfid_status									= 0x0209,//»úÆ÷ÈËRFID×´Ì¬£¬3Hz
-	ID_interactive_header_data			= 0x0301,//»úÆ÷ÈË½»»¥Êı¾İ£¬·¢ËÍ·½´¥·¢·¢ËÍ
-  ID_Custom_client                = 0x0310,//»úÆ÷ÈË·¢ËÍ¸ø×Ô¶¨Òå¿Í»§¶ËµÄÊı¾İ£¬ÆµÂÊÉÏÏŞÎª 50Hz
-	ID_map                          = 0x0305///ÊÖ¶ËĞ¡µØÍ¼½ÓÊÕÀ×´ïÊı¾İ£¬ÆµÂÊÉÏÏŞÎª 5Hz
+
+    ID_game_state = 0x0001, // æ¯”èµ›çŠ¶æ€æ•°æ®ï¼Œ1Hz
+
+    ID_game_result = 0x0002, // æ¯”èµ›ç»“æœæ•°æ®ï¼Œæ¯”èµ›ç»“æŸå‘é€
+
+    ID_game_robot_HP = 0x0003, // æ¯”èµ›æœºå™¨äººè¡€é‡æ•°æ®ï¼Œ1Hzå‘é€
+
+    ID_dart_status = 0x0004, // é£é•–å‘å°„çŠ¶æ€ï¼Œé£é•–å‘å°„æ—¶å‘é€
+
+    ID_ICRA_buff_debuff_zone_status = 0x0005, // äººå·¥æ™ºèƒ½æŒ‘æˆ˜èµ›åŠ æˆä¸æƒ©ç½šåŒºçŠ¶æ€ï¼Œ1Hz
+
+    ID_event_data = 0x0101, // åœºåœ°äº‹ä»¶æ•°æ®ï¼Œ1Hz
+
+    ID_supply_projectile_action = 0x0102, // åœºåœ°è¡¥ç»™ç«™åŠ¨ä½œæ ‡è¯†æ•°æ®
+
+    ID_referee_warning = 0x0104, // è£åˆ¤è­¦å‘Šæ•°æ®ï¼Œè­¦å‘Šåå‘é€
+
+    ID_dart_remaining_time = 0x0105, // é£é•–å‘å°„å£å€’è®¡æ—¶ï¼Œ1Hz
+
+    ID_game_robot_state = 0x0201, // æœºå™¨äººçŠ¶æ€æ•°æ®ï¼Œ10Hz
+
+    ID_power_heat_data = 0x0202, // å®æ—¶åŠŸç‡çƒ­é‡æ•°æ®ï¼Œ50Hz
+
+    ID_game_robot_pos = 0x0203, // æœºå™¨äººä½ç½®æ•°æ®ï¼Œ10Hz
+
+    ID_buff_musk = 0x0204, // æœºå™¨äººå¢ç›Šæ•°æ®å’Œåº•ç›˜èƒ½é‡ï¼Œ3Hz
+
+    ID_aerial_robot_energy = 0x0205, // ç©ºä¸­æœºå™¨äººèƒ½é‡çŠ¶æ€æ•°æ®ï¼Œ10Hzï¼Œåªæœ‰ç©ºä¸­æœºå™¨äººä¸»æ§å‘é€
+
+    ID_robot_hurt = 0x0206, // ä¼¤å®³çŠ¶æ€æ•°æ®ï¼Œä¼¤å®³å‘ç”Ÿåå‘é€
+
+    ID_shoot_data = 0x0207, // å®æ—¶å°„å‡»æ•°æ®ï¼Œå­å¼¹å‘å°„åå‘é€
+
+    ID_projectile_allowance = 0x0208, // å…è®¸å‘å¼¹é‡ï¼Œå›ºå®šä»¥ 10Hz é¢‘ç‡å‘
+
+    ID_rfid_status = 0x0209, // æœºå™¨äººRFIDçŠ¶æ€ï¼Œ3Hz
+
+    ID_interactive_header_data = 0x0301, // æœºå™¨äººäº¤äº’æ•°æ®ï¼Œå‘é€æ–¹è§¦å‘å‘é€
+
+    ID_Custom_client = 0x0310, // æœºå™¨äººå‘é€ç»™è‡ªå®šä¹‰å®¢æˆ·ç«¯çš„æ•°æ®ï¼Œé¢‘ç‡ä¸Šé™ä¸º 50Hz
+
+    ID_map = 0x0305 /// æ‰‹ç«¯å°åœ°å›¾æ¥æ”¶é›·è¾¾æ•°æ®ï¼Œé¢‘ç‡ä¸Šé™ä¸º 5Hz
 };
 
-/********************³¤¶ÈÃ¶¾Ù********************/
+/********************é•¿åº¦æšä¸¾********************/
+
 enum
+
 {
-	LEN_FRAME_HEAD 	                = 5,	    // Ö¡Í·³¤¶È
-	LEN_CMD_ID 		                  = 2,	    // ÃüÁîÂë³¤¶È
-	LEN_FRAME_TAIL 	                = 2,	    // Ö¡Î²CRC16
-	LEN_game_state       						= 11,			//0x0001,//±ÈÈü×´Ì¬Êı¾İ£¬1Hz
-	LEN_game_result 	   						= 1,			//0x0002,//±ÈÈü½á¹ûÊı¾İ£¬±ÈÈü½áÊø·¢ËÍ
-	LEN_game_robot_HP       				= 16,			//0x0003,//±ÈÈü»úÆ÷ÈËÑªÁ¿Êı¾İ£¬1Hz·¢ËÍ
-	LEN_dart_status									= 3,			//0x0004,//·ÉïÚ·¢Éä×´Ì¬£¬·ÉïÚ·¢ÉäÊ±·¢ËÍ
-	LEN_ICRA_buff_debuff_zone_status= 3,			//0x0005,//ÈË¹¤ÖÇÄÜÌôÕ½Èü¼Ó³ÉÓë³Í·£Çø×´Ì¬£¬1Hz
-	LEN_event_data  								= 4,			//0x0101,//³¡µØÊÂ¼şÊı¾İ£¬1Hz
-	LEN_supply_projectile_action   	= 4,			//0x0102,//³¡µØ²¹¸øÕ¾¶¯×÷±êÊ¶Êı¾İ
-	LEN_referee_warning					 		= 3,			//0x0104,//²ÃÅĞ¾¯¸æÊı¾İ£¬¾¯¸æºó·¢ËÍ
-	LEN_dart_remaining_time					= 3,			//0x0105,//·ÉïÚ·¢Éä¿Úµ¹¼ÆÊ±£¬1Hz
-	LEN_game_robot_state    				= 13,			//0x0201,//»úÆ÷ÈË×´Ì¬Êı¾İ£¬10Hz
-	LEN_power_heat_data    					= 14,			//0x0202,//ÊµÊ±¹¦ÂÊÈÈÁ¿Êı¾İ£¬50Hz
-	LEN_game_robot_pos        			= 16,			//0x0203,//»úÆ÷ÈËÎ»ÖÃÊı¾İ£¬10Hz
-	LEN_buff_musk										= 8,			//0x0204,//»úÆ÷ÈËÔöÒæÊı¾İ£¬1Hz
-	LEN_aerial_robot_energy					= 3,			//0x0205,//¿ÕÖĞ»úÆ÷ÈËÄÜÁ¿×´Ì¬Êı¾İ£¬10Hz£¬Ö»ÓĞ¿ÕÖĞ»úÆ÷ÈËÖ÷¿Ø·¢ËÍ
-	LEN_robot_hurt									= 1,			//0x0206,//ÉËº¦×´Ì¬Êı¾İ£¬ÉËº¦·¢Éúºó·¢ËÍ
-	LEN_shoot_data									= 7,			//0x0207,//ÊµÊ±Éä»÷Êı¾İ£¬×Óµ¯·¢Éäºó·¢ËÍ
-	LEN_bullet_remaining						= 6,			//0x0208,//µ¯ÍèÊ£Óà·¢ËÍÊı£¬½ö¿ÕÖĞ»úÆ÷ÈË£¬ÉÚ±ø»úÆ÷ÈËÒÔ¼°ICRA»úÆ÷ÈË·¢ËÍ£¬1Hz
-	LEN_rfid_status									= 5,  		//0x0209,//»úÆ÷ÈËRFID×´Ì¬£¬1Hz
-//	LEN_interactive_header_data			= n			//0x0301 //»úÆ÷ÈË½»»¥Êı¾İ£¬·¢ËÍ·½´¥·¢·¢ËÍ
-  LEN_map                         = 24      //0x0305 //Ñ¡ÊÖ¶ËĞ¡µØÍ¼½ÓÊÕÀ×´ïÊı¾İ£¬ÆµÂÊÉÏÏŞÎª 5Hz
+
+    LEN_FRAME_HEAD = 5, // å¸§å¤´é•¿åº¦
+
+    LEN_CMD_ID = 2, // å‘½ä»¤ç é•¿åº¦
+
+    LEN_FRAME_TAIL = 2, // å¸§å°¾CRC16
+
+    LEN_game_state = 11, // 0x0001,//æ¯”èµ›çŠ¶æ€æ•°æ®ï¼Œ1Hz
+
+    LEN_game_result = 1, // 0x0002,//æ¯”èµ›ç»“æœæ•°æ®ï¼Œæ¯”èµ›ç»“æŸå‘é€
+
+    LEN_game_robot_HP = 16, // 0x0003,//æ¯”èµ›æœºå™¨äººè¡€é‡æ•°æ®ï¼Œ1Hzå‘é€
+
+    LEN_dart_status = 3, // 0x0004,//é£é•–å‘å°„çŠ¶æ€ï¼Œé£é•–å‘å°„æ—¶å‘é€
+
+    LEN_ICRA_buff_debuff_zone_status = 3, // 0x0005,//äººå·¥æ™ºèƒ½æŒ‘æˆ˜èµ›åŠ æˆä¸æƒ©ç½šåŒºçŠ¶æ€ï¼Œ1Hz
+
+    LEN_event_data = 4, // 0x0101,//åœºåœ°äº‹ä»¶æ•°æ®ï¼Œ1Hz
+
+    LEN_supply_projectile_action = 4, // 0x0102,//åœºåœ°è¡¥ç»™ç«™åŠ¨ä½œæ ‡è¯†æ•°æ®
+
+    LEN_referee_warning = 3, // 0x0104,//è£åˆ¤è­¦å‘Šæ•°æ®ï¼Œè­¦å‘Šåå‘é€
+
+    LEN_dart_remaining_time = 3, // 0x0105,//é£é•–å‘å°„å£å€’è®¡æ—¶ï¼Œ1Hz
+
+    LEN_game_robot_state = 13, // 0x0201,//æœºå™¨äººçŠ¶æ€æ•°æ®ï¼Œ10Hz
+
+    LEN_power_heat_data = 14, // 0x0202,//å®æ—¶åŠŸç‡çƒ­é‡æ•°æ®ï¼Œ50Hz
+
+    LEN_game_robot_pos = 16, // 0x0203,//æœºå™¨äººä½ç½®æ•°æ®ï¼Œ10Hz
+
+    LEN_buff_musk = 8, // 0x0204,//æœºå™¨äººå¢ç›Šæ•°æ®ï¼Œ1Hz
+
+    LEN_aerial_robot_energy = 3, // 0x0205,//ç©ºä¸­æœºå™¨äººèƒ½é‡çŠ¶æ€æ•°æ®ï¼Œ10Hzï¼Œåªæœ‰ç©ºä¸­æœºå™¨äººä¸»æ§å‘é€
+
+    LEN_robot_hurt = 1, // 0x0206,//ä¼¤å®³çŠ¶æ€æ•°æ®ï¼Œä¼¤å®³å‘ç”Ÿåå‘é€
+
+    LEN_shoot_data = 7, // 0x0207,//å®æ—¶å°„å‡»æ•°æ®ï¼Œå­å¼¹å‘å°„åå‘é€
+
+    LEN_bullet_remaining = 6, // 0x0208,//å¼¹ä¸¸å‰©ä½™å‘é€æ•°ï¼Œä»…ç©ºä¸­æœºå™¨äººï¼Œå“¨å…µæœºå™¨äººä»¥åŠICRAæœºå™¨äººå‘é€ï¼Œ1Hz
+
+    LEN_rfid_status = 5, // 0x0209,//æœºå™¨äººRFIDçŠ¶æ€ï¼Œ1Hz
+
+    LEN_interactive_header_data = 6, // 0x0301 //æœºå™¨äººäº¤äº’æ•°æ®ï¼Œæ•°æ®å¤´é•¿åº¦
+
+    LEN_radio_information_data = 90, // æ— çº¿ç”µè§£è°ƒä¿¡æ¯é•¿åº¦
+
+    LEN_radio_dart_state_data = 7, // é›·è¾¾è¯†åˆ«é£é•–é—¸é—¨å¼€å¯ä¿¡æ¯é•¿åº¦
+
+    LEN_map = 24 // 0x0305 //é€‰æ‰‹ç«¯å°åœ°å›¾æ¥æ”¶é›·è¾¾æ•°æ®ï¼Œé¢‘ç‡ä¸Šé™ä¸º 5Hz
 };
-
-
 
 #endif

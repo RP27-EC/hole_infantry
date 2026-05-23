@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>STM32H723VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32H7xx_DFP.4.1.2</PackID>
+          <PackID>Keil.STM32H7xx_DFP.4.0.0</PackID>
           <PackURL>https://www.keil.com/pack/</PackURL>
           <Cpu>IRAM(0x20000000-0x2001FFFF) IRAM2(0x24000000-0x2401FFFF) IROM(0x8000000-0x80FFFFF) CLOCK(12000000) FPU3(DFPU) CPUTYPE("Cortex-M7") ELITTLE TZ</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_PWR_LDO_SUPPLY,USE_HAL_DRIVER,STM32H723xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Application/AlgorithmLayer;../Application/ConfigLayer;../Application/DriverLayer;../Application/DeviceLayer/Imu;../Application/DeviceLayer/Sensor;../Application/DeviceLayer;../Application/HardwareLayer;../Application/ModuleLayer;../Application/ProtocolLayer;../Application/SolvingLayer;../Application/TaskLayer;../Application/UserLayer;../Application/ServiceLayer;../Application/ParameterLayer;../Application/ControlLayer</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc;../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32H7xx/Include;../Drivers/CMSIS/Include;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Application/AlgorithmLayer;../Application/ConfigLayer;../Application/DriverLayer;../Application/DeviceLayer/Imu;../Application/DeviceLayer/Sensor;../Application/DeviceLayer;../Application/HardwareLayer;../Application/ModuleLayer;../Application/ProtocolLayer;../Application/SolvingLayer;../Application/TaskLayer;../Application/UserLayer;../Application/ServiceLayer;../Application/ParameterLayer;../Application/ControlLayer;../Middlewares/Segger_RTT</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -576,6 +576,11 @@
               <FileType>1</FileType>
               <FilePath>..\Application\TaskLayer\UI_Task.c</FilePath>
             </File>
+            <File>
+              <FileName>RP_Log_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Application\TaskLayer\RP_Log_task.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -602,39 +607,14 @@
               <FilePath>..\Application\ModuleLayer\gimbal.c</FilePath>
             </File>
             <File>
-              <FileName>gimbal.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Application\ModuleLayer\gimbal.h</FilePath>
-            </File>
-            <File>
               <FileName>shoot.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Application\ModuleLayer\shoot.c</FilePath>
             </File>
             <File>
-              <FileName>shoot.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Application\ModuleLayer\shoot.h</FilePath>
-            </File>
-            <File>
-              <FileName>shoot_base.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Application\ModuleLayer\shoot_base.c</FilePath>
-            </File>
-            <File>
-              <FileName>shoot_base.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Application\ModuleLayer\shoot_base.h</FilePath>
-            </File>
-            <File>
               <FileName>ui.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Application\ModuleLayer\ui.c</FilePath>
-            </File>
-            <File>
-              <FileName>ui.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Application\ModuleLayer\ui.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -652,14 +632,9 @@
               <FilePath>..\Application\ServiceLayer\Command_Instance.c</FilePath>
             </File>
             <File>
-              <FileName>posture.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\Application\ServiceLayer\posture.h</FilePath>
-            </File>
-            <File>
-              <FileName>posture.c</FileName>
+              <FileName>RP_Log.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Application\ServiceLayer\posture.c</FilePath>
+              <FilePath>..\Application\ServiceLayer\RP_Log.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -836,6 +811,11 @@
               <FileType>5</FileType>
               <FilePath>..\Application\DeviceLayer\shoot_motor.h</FilePath>
             </File>
+            <File>
+              <FileName>buzzer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Application\DeviceLayer\buzzer.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -950,6 +930,11 @@
               <FileName>motor_def.h</FileName>
               <FileType>5</FileType>
               <FilePath>..\Application\HardwareLayer\motor_def.h</FilePath>
+            </File>
+            <File>
+              <FileName>KT_motor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Application\HardwareLayer\KT_motor.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1805,6 +1790,16 @@
               <FileName>system_stm32h7xx.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/system_stm32h7xx.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>Middlewares/Segger_RTT</GroupName>
+          <Files>
+            <File>
+              <FileName>SEGGER_RTT.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\Segger_RTT\SEGGER_RTT.c</FilePath>
             </File>
           </Files>
         </Group>

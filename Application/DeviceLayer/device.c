@@ -1,10 +1,10 @@
 /**
  * @file  device.c
  */
- 
+
 /* Includes ------------------------------------------------------------------*/
 #include "device.h"
-
+#include "buzzer.h"
 
 /* Private macro -------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
@@ -12,7 +12,7 @@
 /* Private variables ---------------------------------------------------------*/
 /* Exported variables --------------------------------------------------------*/
 dev_list_t dev_list = {
-	.rc_sen     = &rc_sensor,
+    .rc_sen = &rc_sensor,
 };
 
 /* Private functions ---------------------------------------------------------*/
@@ -20,22 +20,19 @@ dev_list_t dev_list = {
 void DEVICE_Init(void)
 {
 
-	dev_list.rc_sen->init(dev_list.rc_sen);
-	Board_Tx_Info.is_rc_online = 1;
-	imu_sensor.init(&imu_sensor);
-	/*Ö»ÄÜ·ÅÔÚimu³õÊ¼»¯ºóÃæ begin*/
-	Chassis.Init(&Chassis);
-	Balance.init(&Balance);
-	/*Ö»ÄÜ·ÅÔÚimu³õÊ¼»¯ºóÃæ end*/
-	/*Èí¼ş²ã³õÊ¼»¯*/
-	Yaw_Motor.single_init(&Yaw_Motor);
-	Dail_Motor.single_init(&Dail_Motor);
-	Sd_Group.group_init(&Sd_Group);
-	Wheel_Group.group_init(&Wheel_Group);
-	Cmd_Init();
-	Shoot_Init(&shoot);
-	/*²ÃÅĞÏµÍ³³õÊ¼»¯*/
-	My_Judge_Init();;
-	
-	
+    dev_list.rc_sen->init(dev_list.rc_sen);
+    Board_Tx_Info.flag.bit.is_rc_online = 1;
+    imu_sensor.init(&imu_sensor);
+    buzzer.init(&buzzer);
+    shoot.init(&shoot);
+    /*åªèƒ½æ”¾åœ¨imuåˆå§‹åŒ–åé¢ begin*/
+    Chassis.Init(&Chassis);
+    Balance.init(&Balance);
+    /*åªèƒ½æ”¾åœ¨imuåˆå§‹åŒ–åé¢ end*/
+    /*è½¯ä»¶å±‚åˆå§‹åŒ–*/
+    Yaw_Motor.single_init(&Yaw_Motor);
+    dail_motor.init(&dail_motor);
+    Sd_Group.group_init(&Sd_Group);
+    Wheel_Group.group_init(&Wheel_Group);
+    Cmd_Init();
 }

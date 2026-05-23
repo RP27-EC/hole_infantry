@@ -1,252 +1,503 @@
 /**
+
   ******************************************************************************
+
   * File Name          : Straight_Leg_Calc.c
+
   * Description        : Code for Straight_Leg_Calc applications
+
   ******************************************************************************
+
   * @attention
+
   * Copyright (c) 2026 SZU RobotPilots.
+
   * @author 
+
   * Liang 741427745@qq.com
+
   ==============================================================================
+
                       ##### How To Use #####
+
   ==============================================================================
-  (#) µ÷ÓÃ³õÊ¼»¯º¯Êý
+
+  (#) è°ƒç”¨åˆå§‹åŒ–å‡½æ•°
+
 	  Straight_Leg_Init
-	  Ö®ºóµÄ²½Öè¿ÉÒÔÊ¹ÓÃº¯ÊýÖ¸Õë£¬´Ë´¦ÒÔÔ­º¯ÊýÃû½²½â
+
+	  ä¹‹åŽçš„æ­¥éª¤å¯ä»¥ä½¿ç”¨å‡½æ•°æŒ‡é’ˆï¼Œæ­¤å¤„ä»¥åŽŸå‡½æ•°åè®²è§£
+
   
-  (#) µ÷ÓÃ»ñÈ¡Íâ²¿Êý¾ÝAPI£¬¡¶ÇëÈ·±£ÊäÈëµÄÊý¾Ý·½ÏòÕýÈ·¡·£¬
-		Straight_Leg_Target_State_update¡¢
+
+  (#) è°ƒç”¨èŽ·å–å¤–éƒ¨æ•°æ®APIï¼Œã€Šè¯·ç¡®ä¿è¾“å…¥çš„æ•°æ®æ–¹å‘æ­£ç¡®ã€‹ï¼Œ
+
+		Straight_Leg_Target_State_updateã€
+
 		Straight_Leg_External_data_update
+
+
+  ï¼ˆ#ï¼‰Chassis_State_Var_Updateå‡½æ•°ç›´æŽ¥å¯¹çŠ¶æ€é‡æ“ä½œ,ä¸é¢å¤–è°ƒç”¨APIèŽ·å–å‡½æ•°
+
 		
-  £¨#£©Chassis_State_Var_Updateº¯ÊýÖ±½Ó¶Ô×´Ì¬Á¿²Ù×÷,²»¶îÍâµ÷ÓÃAPI»ñÈ¡º¯Êý
+
+  (#) åœ¨ä½¿ç”¨ã€ŠLQRæ¨¡å¼ã€‹æ—¶å…ˆè°ƒç”¨K_Matrix_Fitting_Updateï¼ŒåŽè°ƒç”¨Straight_Leg_Torque_Calï¼Œ
+
+		å³å¯è‡ªåŠ¨è®¡ç®—æŽ§åˆ¶é‡u=[Tw Tp]^T
+
 		
-  (#) ÔÚÊ¹ÓÃ¡¶LQRÄ£Ê½¡·Ê±ÏÈµ÷ÓÃK_Matrix_Fitting_Update£¬ºóµ÷ÓÃStraight_Leg_Torque_Cal£¬
-		¼´¿É×Ô¶¯¼ÆËã¿ØÖÆÁ¿u=[Tw Tp]^T
-		
-  (#)µ÷ÓÃÒÔÏÂº¯Êý»ñÈ¡¿ØÖÆÁ¿µÄÖµ
+
+  (#)è°ƒç”¨ä»¥ä¸‹å‡½æ•°èŽ·å–æŽ§åˆ¶é‡çš„å€¼
+
 		Get_LQR_Tw
+
 		Get_LQR_Tp
+
   
+
   */
+
 #include "Straight_Leg_Calc.h"
+
 static void Straight_Leg_Mat_Init(Straight_Leg_t* My_Model);
+
 static void Straight_Leg_Target_State_update(Straight_Leg_t* My_Model,float tar_thetal,float tar_thetald1,
+
 											float tar_s,float tar_sd1,
-											float tar_thetab,float tar_thetabd1);//Ä¿±êÖµAPI
+
+											float tar_thetab,float tar_thetabd1);//ç›®æ ‡å€¼API
+
 static void Straight_Leg_External_data_update(Straight_Leg_t* My_Model,float l0);
+
 static void Straight_Leg_Lmat_update(Straight_Leg_t* My_Model);
+
 static void K_Matrix_Fitting_Update(Straight_Leg_t* My_Model);
+
 static void Straight_Leg_Torque_Cal(Straight_Leg_t* My_Model);
-static void Straight_Leg_Err_State_update(Straight_Leg_t* My_Model);//·½±ãdebug
+
+static void Straight_Leg_Err_State_update(Straight_Leg_t* My_Model);//æ–¹ä¾¿debug
+
 static void Straight_Leg_Xmat_update(Straight_Leg_t* My_Model);
+
 static float Get_LQR_Tw(Straight_Leg_t* My_Model);
+
 static float Get_LQR_Tp(Straight_Leg_t* My_Model);
+
 											
+
 /**
-  * @brief  Ö±ÍÈÄ£ÐÍÈí¼þ²ã³õÊ¼»¯
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  ç›´è…¿æ¨¡åž‹è½¯ä»¶å±‚åˆå§‹åŒ–
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 void Straight_Leg_Init(Straight_Leg_t* My_Model)
+
 {
-	Straight_Leg_Mat_Init(My_Model);//¾ØÕó³õÊ¼»¯£¬ÓÃÓÚºóÃæ¼ÆËã
+
+	Straight_Leg_Mat_Init(My_Model);//çŸ©é˜µåˆå§‹åŒ–ï¼Œç”¨äºŽåŽé¢è®¡ç®—
+
 	
+
 	My_Model->LQR_cal = Straight_Leg_Torque_Cal;
+
 	My_Model->K_fitting = K_Matrix_Fitting_Update; 
+
 	My_Model->target_state_update=Straight_Leg_Target_State_update;
+
 	My_Model->ex_data_update=Straight_Leg_External_data_update;
+
 	My_Model->get_Tw=Get_LQR_Tw;
+
 	My_Model->get_Tp=Get_LQR_Tp;
+
 	
+
 }
 
+
+
 /**
-  * @brief  ¼ÆËãÖ±ÍÈÄ£ÐÍÇý¶¯ÂÖ£¬¹Ø½ÚÁ¦¾Ø
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
-  * @param  State_Var_t* var      ×´Ì¬±äÁ¿
+
+  * @brief  è®¡ç®—ç›´è…¿æ¨¡åž‹é©±åŠ¨è½®ï¼Œå…³èŠ‚åŠ›çŸ©
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
+  * @param  State_Var_t* var      çŠ¶æ€å˜é‡
+
   * @retval None
+
   */
+
 void Straight_Leg_Torque_Cal(Straight_Leg_t* My_Model)
+
 {
+
 	arm_status status;
+
 	
-	Straight_Leg_Xmat_update(My_Model);//¸üÐÂ×´Ì¬¾ØÕó
+
+	Straight_Leg_Xmat_update(My_Model);//æ›´æ–°çŠ¶æ€çŸ©é˜µ
+
 	
+
 	status |=Matrix_Subtract(&My_Model->X_info->X_target_mat, &My_Model->X_info->X_state_mat, &My_Model->X_info->X_err_mat);//X_err=X_target-X_state
-	//¼ÆËã¾ØÕóÎó²î
-	Straight_Leg_Err_State_update(My_Model);//Ä¿±ê-²âÁ¿
-	//´¦Àí¾ØÕóÎó²î
+
+	//è®¡ç®—çŸ©é˜µè¯¯å·®
+
+	Straight_Leg_Err_State_update(My_Model);//ç›®æ ‡-æµ‹é‡
+
+	//å¤„ç†çŸ©é˜µè¯¯å·®
+
 	status |=Matrix_Multiply(&My_Model->K_info->K_mat,&My_Model->X_info->X_err_mat,&My_Model->u->u_mat);
-	//½â³ö¿ØÖÆÁ¿
+
+	//è§£å‡ºæŽ§åˆ¶é‡
+
 }
 
+
+
 /**
-  * @brief  ¸ù¾ÝÊµÊ±ÍÈ³¤ÄâºÏK¾ØÕó£¬ÔÚÍÈ³¤¸üÐÂºóµ÷ÓÃ
+
+  * @brief  æ ¹æ®å®žæ—¶è…¿é•¿æ‹ŸåˆKçŸ©é˜µï¼Œåœ¨è…¿é•¿æ›´æ–°åŽè°ƒç”¨
+
   * @param  Straight_Leg_t* My_Model
+
   * @retval None
+
   * @note   p00 + p10*ll + p01*lr + p20*ll^2 + p11*ll*lr + p02*lr^2
+
   */
+
+
 
 static void K_Matrix_Fitting_Update(Straight_Leg_t* My_Model)
+
 {
+
 	arm_status status;
-	/*ÍÈ³¤ÄâºÏK¾ØÕó*/
+
+	/*è…¿é•¿æ‹ŸåˆKçŸ©é˜µ*/
+
 	float l0=My_Model->Ex_leg_data->l0;
+
 	float l0_coefficient_vector[4];
+
 	mat l0_Coefficient_Vector;
+
 	l0_coefficient_vector[0]=1;
+
 	l0_coefficient_vector[1]=l0;
+
 	l0_coefficient_vector[2]=l0*l0;
+
 	l0_coefficient_vector[3]=l0*l0*l0;
+
 	
+
 	Matrix_Init(&l0_Coefficient_Vector,4,1,l0_coefficient_vector);
+
 	
+
 	float K_Tw_coe[6];
-	mat K_Tw_Vector;//½öÓÃÓÚÔËËã
+
+	mat K_Tw_Vector;//ä»…ç”¨äºŽè¿ç®—
+
 	Matrix_Init(&K_Tw_Vector,6,1,K_Tw_coe);
+
 	
-	mat K_Tw;//½öÓÃÓÚ´æ´¢µ½K_coefficient
+
+	mat K_Tw;//ä»…ç”¨äºŽå­˜å‚¨åˆ°K_coefficient
+
 	Matrix_Init(&K_Tw,1,6,&My_Model->K_info->K_coefficient[0][0]);
+
 	
+
 	status |=Matrix_Multiply(&My_Model->K_info->K_fit_Tw_mat,&l0_Coefficient_Vector,&K_Tw_Vector);
+
 	status |=Matrix_Transpose(&K_Tw_Vector,&K_Tw);
+
 	
+
 	
+
 	float K_Tp_coe[6];
-	mat K_Tp_Vector;//½öÓÃÓÚÔËËã
+
+	mat K_Tp_Vector;//ä»…ç”¨äºŽè¿ç®—
+
 	Matrix_Init(&K_Tp_Vector,6,1,K_Tp_coe);
+
 	
-	mat K_Tp;//½öÓÃÓÚ´æ´¢µ½K_coefficient
+
+	mat K_Tp;//ä»…ç”¨äºŽå­˜å‚¨åˆ°K_coefficient
+
 	Matrix_Init(&K_Tp,1,6,&My_Model->K_info->K_coefficient[1][0]);
+
 	
+
 	status |=Matrix_Multiply(&My_Model->K_info->K_fit_Tp_mat,&l0_Coefficient_Vector,&K_Tp_Vector);
+
 	status |=Matrix_Transpose(&K_Tp_Vector,&K_Tp);
+
 	
+
 }
 
+
+
 /**
-  * @brief  ×´Ì¬½á¹¹ÌåÄ¿±ê¸üÐÂAPI
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  çŠ¶æ€ç»“æž„ä½“ç›®æ ‡æ›´æ–°API
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static void Straight_Leg_Target_State_update(Straight_Leg_t* My_Model,float tar_thetal,float tar_thetald1,
+
 											float tar_s,float tar_sd1,
+
 											float tar_thetab,float tar_thetabd1)
+
 {
+
 	My_Model->info->target_thetal  =  tar_thetal;
+
 	My_Model->info->target_thetald1=  tar_thetald1  ;
+
 	
+
 	My_Model->info->target_s  		= tar_s ;
+
 	My_Model->info->target_sd1		= tar_sd1  ;
+
 	
+
 	My_Model->info->target_thetab  =  tar_thetab  ;
+
 	My_Model->info->target_thetabd1=  tar_thetabd1  ;
+
 	
+
 }
 
+
+
 /**
-  * @brief  Íâ²¿Êý¾Ý¸üÐÂAPI
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  å¤–éƒ¨æ•°æ®æ›´æ–°API
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static void Straight_Leg_External_data_update(Straight_Leg_t* My_Model,float l0)
+
 {
+
 	My_Model->Ex_leg_data->l0=l0;
+
 }
 
+
+
 /**
-  * @brief  Ö±ÍÈ×´Ì¬¾ØÕóºÍÄ¿±ê¾ØÕó¸üÐÂ
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  ç›´è…¿çŠ¶æ€çŸ©é˜µå’Œç›®æ ‡çŸ©é˜µæ›´æ–°
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static void Straight_Leg_Xmat_update(Straight_Leg_t* My_Model)
+
 {
-	/*×´Ì¬¾ØÕó¸üÐÂ*/
+
+	/*çŠ¶æ€çŸ©é˜µæ›´æ–°*/
+
 	My_Model->X_info->X_state_mat_storage[X_s] = My_Model->info->s;
+
 	My_Model->X_info->X_state_mat_storage[X_sd1] = My_Model->info->sd1;
+
 	
+
 	My_Model->X_info->X_state_mat_storage[X_thetal] = My_Model->info->thetal;
+
 	My_Model->X_info->X_state_mat_storage[X_thetald1] = My_Model->info->thetald1;
+
 	
+
 	My_Model->X_info->X_state_mat_storage[X_thetab] = My_Model->info->thetab;
+
 	My_Model->X_info->X_state_mat_storage[X_thetabd1] = My_Model->info->thetabd1;
-	/*Ä¿±ê¾ØÕó¸üÐÂ*/
+
+	/*ç›®æ ‡çŸ©é˜µæ›´æ–°*/
+
 	My_Model->X_info->X_target_mat_storage[X_s] = My_Model->info->target_s;
+
 	My_Model->X_info->X_target_mat_storage[X_sd1] = My_Model->info->target_sd1;
+
 	
+
 	My_Model->X_info->X_target_mat_storage[X_thetal] = My_Model->info->target_thetal;
+
 	My_Model->X_info->X_target_mat_storage[X_thetald1] = My_Model->info->target_thetald1;
+
 	
+
 	My_Model->X_info->X_target_mat_storage[X_thetab] = My_Model->info->target_thetab;
+
 	My_Model->X_info->X_target_mat_storage[X_thetabd1] = My_Model->info->target_thetabd1;
+
 }
 
+
+
 /**
-  * @brief  ×´Ì¬½á¹¹ÌåÎó²î¸üÐÂ,·½±ãdebug
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  çŠ¶æ€ç»“æž„ä½“è¯¯å·®æ›´æ–°,æ–¹ä¾¿debug
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static void Straight_Leg_Err_State_update(Straight_Leg_t* My_Model)
+
 {
+
 	My_Model->info->s_err  		=My_Model->X_info->X_err_mat_storage[X_s] ;
+
 	My_Model->info->sd1_err		=My_Model->X_info->X_err_mat_storage[X_sd1]  ;
+
 	
+
 	My_Model->info->thetal_err  =My_Model->X_info->X_err_mat_storage[X_thetal]  ;
+
 	My_Model->info->thetald1_err=My_Model->X_info->X_err_mat_storage[X_thetald1]  ;
+
 	
+
 	My_Model->info->thetab_err  =My_Model->X_info->X_err_mat_storage[X_thetab]  ;
+
 	My_Model->info->thetabd1_err=My_Model->X_info->X_err_mat_storage[X_thetabd1]  ;
+
 	
+
 }
 
 
 
+
+
+
+
 /**
-  * @brief  »ñÈ¡½á¹¹ÌåÀïµÄÇý¶¯ÂÖÁ¦¾ØTw£¬¼ÆËãÐèÒªÍâ²¿×Ô¼ºµ÷ÓÃ
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  èŽ·å–ç»“æž„ä½“é‡Œçš„é©±åŠ¨è½®åŠ›çŸ©Twï¼Œè®¡ç®—éœ€è¦å¤–éƒ¨è‡ªå·±è°ƒç”¨
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static float Get_LQR_Tw(Straight_Leg_t* My_Model)
+
 {
+
 	return My_Model->u->u_mat_storage[Tw];
+
 }
 
+
+
 /**
-  * @brief  »ñÈ¡½á¹¹ÌåÀïµÄ¹Ø½ÚÁ¦¾ØTp£¬¼ÆËãÐèÒªÍâ²¿×Ô¼ºµ÷ÓÃ
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  èŽ·å–ç»“æž„ä½“é‡Œçš„å…³èŠ‚åŠ›çŸ©Tpï¼Œè®¡ç®—éœ€è¦å¤–éƒ¨è‡ªå·±è°ƒç”¨
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static float Get_LQR_Tp(Straight_Leg_t* My_Model)
+
 {
+
 	return My_Model->u->u_mat_storage[Tp];
+
 }
 
+
+
 /**
-  * @brief  Ö±ÍÈÏà¹Ø¾ØÕó³õÊ¼»¯
-  * @param  Straight_Leg_t* model Ö±ÍÈ½á¹¹Ìå
+
+  * @brief  ç›´è…¿ç›¸å…³çŸ©é˜µåˆå§‹åŒ–
+
+  * @param  Straight_Leg_t* model ç›´è…¿ç»“æž„ä½“
+
   * @retval None
+
   */
+
 static void Straight_Leg_Mat_Init(Straight_Leg_t* My_Model)
+
 {
-	/*³õÊ¼»¯X²¿·ÖµÄ¾ØÕó*/
+
+	/*åˆå§‹åŒ–Xéƒ¨åˆ†çš„çŸ©é˜µ*/
+
 	Matrix_Init(&My_Model->X_info->X_state_mat, 6, 1, My_Model->X_info->X_state_mat_storage);
+
 	memset(My_Model->X_info->X_state_mat_storage, 0, 6*sizeof_float);
+
 	Matrix_Init(&My_Model->X_info->X_target_mat, 6, 1, My_Model->X_info->X_target_mat_storage);
+
 	memset(My_Model->X_info->X_target_mat_storage, 0, 6*sizeof_float);
+
 	Matrix_Init(&My_Model->X_info->X_err_mat, 6, 1, My_Model->X_info->X_err_mat_storage);
+
 	memset(My_Model->X_info->X_err_mat_storage, 0, 6*sizeof_float);
 
-	/*³õÊ¼»¯K²¿·ÖµÄ¾ØÕó*/
+
+
+	/*åˆå§‹åŒ–Kéƒ¨åˆ†çš„çŸ©é˜µ*/
+
 	Matrix_Init(&My_Model->K_info->K_mat, 2, 6, &My_Model->K_info->K_coefficient[0][0]);
 
+
+
 	Matrix_Init(&My_Model->K_info->K_fit_Tw_mat, 6, 4, &My_Model->K_info->K_coefficient_fit[0][0][0]);
+
 	
+
 	Matrix_Init(&My_Model->K_info->K_fit_Tp_mat, 6, 4, &My_Model->K_info->K_coefficient_fit[1][0][0]);
+
 	
-	/*³õÊ¼»¯u¿ØÖÆÁ¿¾ØÕó*/
+
+	/*åˆå§‹åŒ–uæŽ§åˆ¶é‡çŸ©é˜µ*/
+
 	Matrix_Init(&My_Model->u->u_mat,2,1,My_Model->u->u_mat_storage);
+
 	memset(&My_Model->u->u_mat_storage, 0, 2*sizeof_float);
+
 }
+
+
+
+
 
 
 

@@ -1,169 +1,240 @@
 #ifndef __STRAIGHT_LEG_CALC_H
+
 #define __STRAIGHT_LEG_CALC_H
 
 /* Includes ------------------------------------------------------------------*/
+
 #include "arm_math.h"
+
 #include "stdbool.h"
+
 #include "pid.h"
 
 /* Exported macro ------------------------------------------------------------*/
-#define mat arm_matrix_instance_f32
-#define Matrix_Init arm_mat_init_f32
-#define Matrix_Add arm_mat_add_f32
-#define Matrix_Subtract arm_mat_sub_f32
-#define Matrix_Multiply arm_mat_mult_f32
+
+#define mat              arm_matrix_instance_f32
+
+#define Matrix_Init      arm_mat_init_f32
+
+#define Matrix_Add       arm_mat_add_f32
+
+#define Matrix_Subtract  arm_mat_sub_f32
+
+#define Matrix_Multiply  arm_mat_mult_f32
+
 #define Matrix_Transpose arm_mat_trans_f32
-#define Matrix_Inverse arm_mat_inverse_f32
 
-#define STATE_NUM 6
-#define u_NUM 2
+#define Matrix_Inverse   arm_mat_inverse_f32
 
-#define sizeof_float sizeof(float)
+#define STATE_NUM        6
 
+#define u_NUM            2
+
+#define sizeof_float     sizeof(float)
 
 typedef struct State_info_struct_t
-{	
-	float thetal; //¸ËºÍÊúÖ±·½Ïò¼Ğ½Ç£¬Ë³Ê±ÕëÎªÕı£¬l±íÊ¾¸Ë
-	float thetald1;
-	float thetald2;
-	float s;	  //Î»ÒÆ£¬Õë¶ÔHGCÄ£ĞÍµÄÍ¼£¬ÍùÓÒÎªÕı
-	float sd1;
 
-	float thetab; //»úÌåpitch½Ç£¬ÍùÉÏÎªÕı£¬b±íÊ¾»úÌå
-	float thetabd1;
-	
-	/*ÖĞ¼ä±äÁ¿ÓÃ begin*/
-	float s_now;
+{
 
-	float s_last;
+    float thetal;        // æ†å’Œç«–ç›´æ–¹å‘å¤¹è§’ï¼Œé¡ºæ—¶é’ˆä¸ºæ­£ï¼Œlè¡¨ç¤ºæ†
+    float thetal_degree; // Â°ä¸ºå•ä½
+    float thetald1;
 
-	float thetal_now;
+    float thetald2;
 
-	float thetal_last;
-	
-	float thetald1_l_now;
-  
+    float s; // ä½ç§»ï¼Œé’ˆå¯¹HGCæ¨¡å‹çš„å›¾ï¼Œå¾€å³ä¸ºæ­£
+
+    float sd1;
+
+    float thetab; // æœºä½“pitchè§’ï¼Œå¾€ä¸Šä¸ºæ­£ï¼Œbè¡¨ç¤ºæœºä½“
+
+    float thetabd1;
+
+    /*ä¸­é—´å˜é‡ç”¨ begin*/
+
+    float s_now;
+
+    float s_last;
+
+    float thetal_now;
+
+    float thetal_last;
+
+    float thetald1_l_now;
+
     float thetald1_l_last;
-	/*ÖĞ¼ä±äÁ¿ÓÃ end*/
-	float target_thetal; //¸ËºÍÊúÖ±·½Ïò¼Ğ½Ç£¬Ë³Ê±ÕëÎªÕı£¬l±íÊ¾¸Ë
-	float target_thetald1;
 
-	float target_s;	  //Î»ÒÆ£¬ÍùÓÒÎªÕı
-	float target_sd1;
+    /*ä¸­é—´å˜é‡ç”¨ end*/
 
-	float target_thetab; //»úÌåpitch½Ç£¬ÍùÉÏÎªÕı£¬b±íÊ¾»úÌå
-	float target_thetabd1;
-	
-	
-	float thetal_err;	//Ä¿±ê-²âÁ¿
-	float thetald1_err; //Ä¿±ê-²âÁ¿
-	float s_err;		//Ä¿±ê-²âÁ¿
-	float sd1_err;		//Ä¿±ê-²âÁ¿
-	float thetab_err;	//Ä¿±ê-²âÁ¿
-	float thetabd1_err;	//Ä¿±ê-²âÁ¿
+    float target_thetal; // æ†å’Œç«–ç›´æ–¹å‘å¤¹è§’ï¼Œé¡ºæ—¶é’ˆä¸ºæ­£ï¼Œlè¡¨ç¤ºæ†
 
+    float target_thetald1;
 
-}State_info_t;
+    float target_s; // ä½ç§»ï¼Œå¾€å³ä¸ºæ­£
 
+    float target_sd1;
+
+    float target_thetab; // æœºä½“pitchè§’ï¼Œå¾€ä¸Šä¸ºæ­£ï¼Œbè¡¨ç¤ºæœºä½“
+
+    float target_thetabd1;
+
+    float thetal_err; // ç›®æ ‡-æµ‹é‡
+
+    float thetald1_err; // ç›®æ ‡-æµ‹é‡
+
+    float s_err; // ç›®æ ‡-æµ‹é‡
+
+    float sd1_err; // ç›®æ ‡-æµ‹é‡
+
+    float thetab_err; // ç›®æ ‡-æµ‹é‡
+
+    float thetabd1_err; // ç›®æ ‡-æµ‹é‡
+
+} State_info_t;
 
 typedef struct X_Matrix_struct_t
-{	
-	/*×´Ì¬¾ØÕó½á¹¹ÌåµÄ±äÁ¿Ãû
-	X_State_mat = [thetal thetald1 s sd1 thetab thetabd1]T */
-	float X_state_mat_storage[6];
-	mat X_state_mat;
-	
-	/*Ä¿±ê¾ØÕó½á¹¹ÌåµÄ±äÁ¿Ãû
-	X_target_mat = [thetal thetald1 s sd1 thetab thetabd1]T*/
-	float X_target_mat_storage[6];
-	mat X_target_mat;
-	
-	/*err¾ØÕó½á¹¹ÌåµÄ±äÁ¿Ãû
-	X_err_mat = [thetal thetald1 s sd1 thetab thetabd1]T*/
-	float X_err_mat_storage[6];
-	mat X_err_mat;
-}X_Matrix_t;
 
+{
 
-/*K¾ØÕó¡¢ÄâºÏÏµÊı¾ØÕó*/
+    /*çŠ¶æ€çŸ©é˜µç»“æ„ä½“çš„å˜é‡å
+
+    X_State_mat = [thetal thetald1 s sd1 thetab thetabd1]T */
+
+    float X_state_mat_storage[6];
+
+    mat X_state_mat;
+
+    /*ç›®æ ‡çŸ©é˜µç»“æ„ä½“çš„å˜é‡å
+
+    X_target_mat = [thetal thetald1 s sd1 thetab thetabd1]T*/
+
+    float X_target_mat_storage[6];
+
+    mat X_target_mat;
+
+    /*errçŸ©é˜µç»“æ„ä½“çš„å˜é‡å
+
+    X_err_mat = [thetal thetald1 s sd1 thetab thetabd1]T*/
+
+    float X_err_mat_storage[6];
+
+    mat X_err_mat;
+
+} X_Matrix_t;
+
+/*KçŸ©é˜µã€æ‹Ÿåˆç³»æ•°çŸ©é˜µ*/
+
 typedef struct K_Matrix_struct_t
+
 {
-	float K_coefficient[2][6]; // 2¸ö¿ØÖÆÁ¿£¬6¸ö×´Ì¬±äÁ¿
-	mat K_mat;
-	
-	float K_coefficient_fit[2][6][4]; // 2¸ö¿ØÖÆÁ¿£¬6¸ö×´Ì¬±äÁ¿£¬4¸ö¶àÏîÊ½ÏµÊı
-	mat K_fit_Tw_mat;
-	mat K_fit_Tp_mat;
 
-}K_Matrix_t;
+    float K_coefficient[2][6]; // 2ä¸ªæ§åˆ¶é‡ï¼Œ6ä¸ªçŠ¶æ€å˜é‡
 
-/*×´Ì¬Á¿Ã¶¾Ù*/
+    mat K_mat;
+
+    float K_coefficient_fit[2][6][4]; // 2ä¸ªæ§åˆ¶é‡ï¼Œ6ä¸ªçŠ¶æ€å˜é‡ï¼Œ4ä¸ªå¤šé¡¹å¼ç³»æ•°
+
+    mat K_fit_Tw_mat;
+
+    mat K_fit_Tp_mat;
+
+} K_Matrix_t;
+
+/*çŠ¶æ€é‡æšä¸¾*/
+
 typedef enum X_enum_e
-{
-	X_thetal,X_thetald1,
-	
-	X_s,X_sd1,
-	
-	X_thetab,X_thetabd1,
-	
-	X_Num,
-}X_e;
 
-/*¿ØÖÆÁ¿Ã¶¾Ù*/
+{
+
+    X_thetal,
+    X_thetald1,
+
+    X_s,
+    X_sd1,
+
+    X_thetab,
+    X_thetabd1,
+
+    X_Num,
+
+} X_e;
+
+/*æ§åˆ¶é‡æšä¸¾*/
+
 typedef enum u_enum_e
-{
-	Tw,
-	Tp,
-	u_Num,
-}u_e;
 
-/*¿ØÖÆÁ¿Êä³ö*/
-typedef struct u_struct_t
 {
-  float s_part;
-	float thetal_part;
-	float thetab_part;
-	
-	float u_mat_storage[2];//Tw£¨Ë³Ê±Õë£©¡¢Tp£¨Ë³Ê±Õë£©,Ê¹ÓÃÃ¶¾Ù»ñÈ¡
-	mat	  u_mat;
-	
-	
-}u_t;
+
+    Tw,
+
+    Tp,
+
+    u_Num,
+
+} u_e;
+
+/*æ§åˆ¶é‡è¾“å‡º*/
+
+typedef struct u_struct_t
+
+{
+
+    float s_part;
+
+    float thetal_part;
+
+    float thetab_part;
+
+    float u_mat_storage[2]; // Twï¼ˆé¡ºæ—¶é’ˆï¼‰ã€Tpï¼ˆé¡ºæ—¶é’ˆï¼‰,ä½¿ç”¨æšä¸¾è·å–
+
+    mat u_mat;
+
+} u_t;
 
 typedef struct ex_leg_data_struct_t
+
 {
-	float l0;//½ÓÊÕÍÈ³¤
-	
-}Ex_leg_data_t;
+
+    float l0; // æ¥æ”¶è…¿é•¿
+
+} Ex_leg_data_t;
 
 typedef struct Straight_Leg_struct_t
+
 {
-	State_info_t* info;
-	
-	K_Matrix_t* K_info;
-	
-	X_Matrix_t* X_info;
-	
-	u_t* u;
-	
-	Ex_leg_data_t *Ex_leg_data;
-	
-	void (*init)(struct Straight_Leg_struct_t *straight_leg);
-	
-	void(*target_state_update)(struct Straight_Leg_struct_t *straight_leg,float tar_thetal,float tar_thetald1,
-											float tar_s,float tar_sd1,
-											float tar_thetab,float tar_thetabd1);	
-	void (*ex_data_update)(struct Straight_Leg_struct_t *straight_leg,float l0);
-											
-	void (*K_fitting)(struct Straight_Leg_struct_t *straight_leg);
 
-	void (*LQR_cal)(struct Straight_Leg_struct_t *straight_leg);
-	float (*get_Tw)(struct Straight_Leg_struct_t *straight_leg);
-	float (*get_Tp)(struct Straight_Leg_struct_t *straight_leg);
+    State_info_t *info;
 
-}Straight_Leg_t;
+    K_Matrix_t *K_info;
+
+    X_Matrix_t *X_info;
+
+    u_t *u;
+
+    Ex_leg_data_t *Ex_leg_data;
+
+    void (*init)(struct Straight_Leg_struct_t *straight_leg);
+
+    void (*target_state_update)(struct Straight_Leg_struct_t *straight_leg, float tar_thetal, float tar_thetald1,
+
+                                float tar_s, float tar_sd1,
+
+                                float tar_thetab, float tar_thetabd1);
+
+    void (*ex_data_update)(struct Straight_Leg_struct_t *straight_leg, float l0);
+
+    void (*K_fitting)(struct Straight_Leg_struct_t *straight_leg);
+
+    void (*LQR_cal)(struct Straight_Leg_struct_t *straight_leg);
+
+    float (*get_Tw)(struct Straight_Leg_struct_t *straight_leg);
+
+    float (*get_Tp)(struct Straight_Leg_struct_t *straight_leg);
+
+} Straight_Leg_t;
 
 /* Exported functions --------------------------------------------------------*/
-void Straight_Leg_Init(Straight_Leg_t* My_Model);
+
+void Straight_Leg_Init(Straight_Leg_t *My_Model);
 
 #endif

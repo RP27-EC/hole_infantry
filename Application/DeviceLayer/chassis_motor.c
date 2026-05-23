@@ -1,19 +1,26 @@
 #include "Chassis_motor.h"
+
 #include "RM_Motor.h"
+
 #include "car_info.h"
-/*..........................................¬÷Ï±µÁª˙..........................................*/
-/*◊Û«˝∂Ø¬÷*/
-Motor_RM_Born_Info_t L_Wheel_Born = 
-{
-	.rxId = 1,
-	
-	.hcan = &hfdcan2,
-	
-	.type = _3508_Reduction,
-	
-	.stdId = 0x200,
-	
-	.order_correction = L_W_ANGLESUM_ORDER_CORRECT,
+
+/*........................ËΩÆÊØÇÁîµÊú∫ begin.......................*/
+
+/*Â∑¶È©±Âä®ËΩÆ*/
+
+Motor_RM_Born_Info_t L_Wheel_Born =
+
+    {
+
+        .rxId = L_Wheel_ID_Index,
+
+        .hcan = &hfdcan2,
+
+        .type = _3508_Reduction,
+
+        .stdId = 0x200,
+
+        .order_correction = L_W_ANGLESUM_ORDER_CORRECT,
 
 };
 
@@ -23,31 +30,38 @@ Motor_RM_State_t L_Wheel_State;
 
 Motor_RM_Rx_Info_t L_Wheel_Rx;
 
-Motor_RM_t L_Wheel = 
-{
-	.born_info = &L_Wheel_Born,
-	
-	.rx_info = &L_Wheel_Rx,
-	
-	.tx_info = &L_Wheel_Tx,
+Motor_RM_t L_Wheel =
 
-  .state = &L_Wheel_State,
-	
-	.single_init = RM_Motor_Init,
-	
+    {
+
+        .born_info = &L_Wheel_Born,
+
+        .rx_info = &L_Wheel_Rx,
+
+        .tx_info = &L_Wheel_Tx,
+
+        .state = &L_Wheel_State,
+
+        .single_init = RM_Motor_Init,
+
 };
-/*”“«˝∂Ø¬÷*/
-Motor_RM_Born_Info_t R_Wheel_Born = 
-{
-	.rxId = 0,
-	
-	.hcan = &hfdcan1,
-	
-	.type = _3508_Reduction,
-	
-	.stdId = 0x200,
-	
-	.order_correction = R_W_ANGLESUM_ORDER_CORRECT,
+
+/*---------------------------- Âè≥È©±Âä®ËΩÆ ---------------------------*/
+
+Motor_RM_Born_Info_t R_Wheel_Born =
+
+    {
+
+        .rxId = R_Wheel_ID_Index,
+
+        .hcan = &hfdcan1,
+
+        .type = _3508_Reduction,
+
+        .stdId = 0x200,
+
+        .order_correction = R_W_ANGLESUM_ORDER_CORRECT,
+
 };
 
 Motor_RM_Tx_Info_t R_Wheel_Tx;
@@ -56,42 +70,58 @@ Motor_RM_State_t R_Wheel_State;
 
 Motor_RM_Rx_Info_t R_Wheel_Rx;
 
-Motor_RM_t R_Wheel = 
-{
-	.born_info = &R_Wheel_Born,
-	
-	.rx_info = &R_Wheel_Rx,
-	
-	.tx_info = &R_Wheel_Tx,
+Motor_RM_t R_Wheel =
 
-  .state = &R_Wheel_State,
-	
-	.single_init = RM_Motor_Init,
-	
+    {
+
+        .born_info = &R_Wheel_Born,
+
+        .rx_info = &R_Wheel_Rx,
+
+        .tx_info = &R_Wheel_Tx,
+
+        .state = &R_Wheel_State,
+
+        .single_init = RM_Motor_Init,
+
 };
+
+// ‰∏ªË¶ÅÁî®‰ΩúÊñπ‰æøÈòÖËØªÂíåË∞ÉÁî®ÂøÉË∑≥ÂáΩÊï∞ÔºåÂõ†‰∏çÂú®‰∏ÄÊù°can‰∏ä‰∏çËÉΩ‰ΩøÁî®groupsetÊù•ÊâßË°åcanÂèëÈÄÅ
 
 Motor_RM_Group_t Wheel_Group =
-{
-	.motor[0] = &R_Wheel,
-	
-	.motor[1] = &L_Wheel,
-	
-	.motor[2] = NULL,
-	
-	.motor[3] = NULL,
-	.stdId=0x200,
-	.group_init = RM_Group_Motor_Init,
+
+    {
+
+        .motor[R_Leg] = &R_Wheel,
+
+        .motor[L_Leg] = &L_Wheel,
+
+        .motor[2] = NULL,
+
+        .motor[3] = NULL,
+
+        .stdId = 0x200,
+
+        .group_init = RM_Group_Motor_Init,
+
 };
 
-/*..........................................πÿΩ⁄µÁª˙..........................................*/
+/*........................ËΩÆÊØÇÁîµÊú∫ end.......................*/
 
-/*”“«∞πÿΩ⁄*/
+/*..........................................ÂÖ≥ËäÇÁîµÊú∫..........................................*/
+
+/*Âè≥ÂâçÂÖ≥ËäÇ*/
+
 Motor_DM_Born_Info_t R_F_Sd_Born_Info =
-{
-	.stdId = 0x004,
-	
-	.hcan = &hfdcan1,
-	.order_correction = R_F_SD_ANGLESUM_ORDER_CORRECT,
+
+    {
+
+        .txId = TXID_R_F_Sd_M,
+
+        .hcan = &hfdcan1,
+
+        .order_correction = R_F_SD_ANGLESUM_ORDER_CORRECT,
+
 };
 
 Motor_DM_Rx_Info_t R_F_Sd_Rx_Info_t;
@@ -100,27 +130,36 @@ Motor_DM_Tx_Info_t R_F_Sd_Tx_Info_t;
 
 Motor_DM_State_t R_F_Sd_State_t;
 
-Motor_DM_t R_F_Sd = 
-{
-	.born_info = &R_F_Sd_Born_Info,
-	
-	.rx_info = &R_F_Sd_Rx_Info_t,
-	
-	.tx_info = &R_F_Sd_Tx_Info_t,
-	
-	.state = &R_F_Sd_State_t,
-	
-	.single_init = &DM_Single_Motor_Init,
-	
-	.type = leg_8009,
+Motor_DM_t R_F_Sd =
+
+    {
+
+        .born_info = &R_F_Sd_Born_Info,
+
+        .rx_info = &R_F_Sd_Rx_Info_t,
+
+        .tx_info = &R_F_Sd_Tx_Info_t,
+
+        .state = &R_F_Sd_State_t,
+
+        .single_init = &DM_Single_Motor_Init,
+
+        .type = leg_8009,
+
 };
 
-/*”“∫ÛπÿΩ⁄*/
+/*Âè≥ÂêéÂÖ≥ËäÇ*/
+
 Motor_DM_Born_Info_t R_B_Sd_Born_Info =
-{
-	.stdId = 0x003,
-	.hcan = &hfdcan1,
-	.order_correction = R_B_SD_ANGLESUM_ORDER_CORRECT,
+
+    {
+
+        .txId = TXID_R_B_Sd_M,
+
+        .hcan = &hfdcan1,
+
+        .order_correction = R_B_SD_ANGLESUM_ORDER_CORRECT,
+
 };
 
 Motor_DM_Rx_Info_t R_B_Sd_Rx_Info_t;
@@ -129,84 +168,106 @@ Motor_DM_Tx_Info_t R_B_Sd_Tx_Info_t;
 
 Motor_DM_State_t R_B_Sd_State_t;
 
-Motor_DM_t R_B_Sd = 
-{
-	.born_info = &R_B_Sd_Born_Info,
-	
-	.rx_info = &R_B_Sd_Rx_Info_t,
-	
-	.tx_info = &R_B_Sd_Tx_Info_t,
-	
-	.state = &R_B_Sd_State_t,
-	
-	.single_init = &DM_Single_Motor_Init,
-	
-	.type = leg_8009,
+Motor_DM_t R_B_Sd =
+
+    {
+
+        .born_info = &R_B_Sd_Born_Info,
+        .rx_info = &R_B_Sd_Rx_Info_t,
+        .tx_info = &R_B_Sd_Tx_Info_t,
+        .state = &R_B_Sd_State_t,
+        .single_init = &DM_Single_Motor_Init,
+        .type = leg_8009,
 
 };
 
-/*◊Û«∞πÿΩ⁄*/
+/*Â∑¶ÂâçÂÖ≥ËäÇ*/
 Motor_DM_Born_Info_t L_F_Sd_Born_Info =
-{
-	.stdId = 0x001,        // 0x001, chuan≤‚ ‘
-	
-	.hcan = &hfdcan2,
-	.order_correction = L_F_SD_ANGLESUM_ORDER_CORRECT,
+
+    {
+
+        .txId = TXID_L_F_Sd_M,
+        .hcan = &hfdcan2,
+        .order_correction = L_F_SD_ANGLESUM_ORDER_CORRECT,
+
 };
 
 Motor_DM_Rx_Info_t L_F_Sd_Rx_Info_t;
+
 Motor_DM_Tx_Info_t L_F_Sd_Tx_Info_t;
+
 Motor_DM_State_t L_F_Sd_State_t;
-Motor_DM_t L_F_Sd = 
-{
-	.born_info = &L_F_Sd_Born_Info,
-	
-	.rx_info = &L_F_Sd_Rx_Info_t,
-	
-	.tx_info = &L_F_Sd_Tx_Info_t,
-	
-	.state = &L_F_Sd_State_t,
-	
-	.single_init = &DM_Single_Motor_Init,
-	
-	.type = leg_8009,
+
+Motor_DM_t L_F_Sd =
+
+    {
+
+        .born_info = &L_F_Sd_Born_Info,
+
+        .rx_info = &L_F_Sd_Rx_Info_t,
+
+        .tx_info = &L_F_Sd_Tx_Info_t,
+
+        .state = &L_F_Sd_State_t,
+
+        .single_init = &DM_Single_Motor_Init,
+
+        .type = leg_8009,
 
 };
 
-/*◊Û∫ÛπÿΩ⁄*/
+/*Â∑¶ÂêéÂÖ≥ËäÇ*/
+
 Motor_DM_Born_Info_t L_B_Sd_Born_Info =
-{
-	.stdId = 0x002,       //0x003,chuan≤‚ ‘      
-	
-	.hcan = &hfdcan2,
-	.order_correction = L_B_SD_ANGLESUM_ORDER_CORRECT,
+
+    {
+
+        .txId = TXID_L_B_Sd_M,
+
+        .hcan = &hfdcan2,
+
+        .order_correction = L_B_SD_ANGLESUM_ORDER_CORRECT,
+
 };
+
 Motor_DM_Rx_Info_t L_B_Sd_Rx_Info_t;
+
 Motor_DM_Tx_Info_t L_B_Sd_Tx_Info_t;
+
 Motor_DM_State_t L_B_Sd_State_t;
-Motor_DM_t L_B_Sd = 
-{
-	.born_info = &L_B_Sd_Born_Info,
-	
-	.rx_info = &L_B_Sd_Rx_Info_t,
-	
-	.tx_info = &L_B_Sd_Tx_Info_t,
-	
-	.state = &L_B_Sd_State_t,
-	
-	.single_init = &DM_Single_Motor_Init,
-	
-	.type = leg_8009,
+
+Motor_DM_t L_B_Sd =
+
+    {
+
+        .born_info = &L_B_Sd_Born_Info,
+
+        .rx_info = &L_B_Sd_Rx_Info_t,
+
+        .tx_info = &L_B_Sd_Tx_Info_t,
+
+        .state = &L_B_Sd_State_t,
+
+        .single_init = &DM_Single_Motor_Init,
+
+        .type = leg_8009,
 
 };
 
-/*πÿΩ⁄µÁª˙◊È*/
-Motor_DM_Group_t Sd_Group = 
-{
-	.motor[R_F_Sd_M] = &R_F_Sd,
-	.motor[R_B_Sd_M] = &R_B_Sd,
-	.motor[L_F_Sd_M] = &L_F_Sd,
-	.motor[L_B_Sd_M] = &L_B_Sd,
-	
-	.group_init = Group_Motor_Init,
+/*ÂÖ≥ËäÇÁîµÊú∫ÁªÑ*/
+
+Motor_DM_Group_t Sd_Group =
+
+    {
+
+        .motor[R_F_Sd_M] = &R_F_Sd,
+
+        .motor[R_B_Sd_M] = &R_B_Sd,
+
+        .motor[L_F_Sd_M] = &L_F_Sd,
+
+        .motor[L_B_Sd_M] = &L_B_Sd,
+
+        .group_init = Group_Motor_Init,
+
 };

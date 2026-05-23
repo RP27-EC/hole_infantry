@@ -5,7 +5,7 @@
 #include "cmsis_os.h"
 #include "imu_sensor.h"
 #include "Chassis.h"
-
+#include "RP_Log.h"
 void StartUpdataTask(void const * argument);
 
 #endif

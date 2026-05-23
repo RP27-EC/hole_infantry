@@ -1,244 +1,244 @@
-/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
- * @Files:WL_debug_uart.c/h
- * 
- * @Author: Ye Jinyi
- * 
- * @First  Edit Date: 2024.11.28
- * @Latest Edit Date: 2024.11.29
- * 
- * @illustrate: ÅäÌ×vofa+Ê¹ÓÃ£¬Ò²¿ÉÒÔ×Ô¼ºÓÃ±ğµÄ
- *              Ê¹ÓÃ·½·¨£¬µÚÒ»²½£ºÔÚWL_debug_uart.h°´ĞèÇóºê¶¨Òå
- *                        µÚ¶ş²½£ºÔÚmain.cµ÷ÓÃWL_UART_Init(void)³õÊ¼»¯
- *                        µÚÈı²½£ºÔÚÄ³¸öÈÎÎñµ÷ÓÃWL_UART_printf(char *format, ...)£¬ÈÎÎñÖ´ĞĞÆµÂÊ¾ö¶¨·¢ËÍÆµÂÊ
- * 
- * @attention: ²»ÓÃ×Ô¼ºÈ¥Åä´®¿Ú£¬¼ÓÉÏÕâÁ½¸öÎÄ¼ş¾Í¿ÉÒÔÓÃ¡£Èç¹ûÅäÁË¾ÍÒª°ÑÅäµÄ×¢ÊÍµô£¬·ñÔò»áÖØ¸´¶¨Òå¡£
- *             ²¨ÌØÂÊÎª115200£¬Ò²¿ÉÒÔ×Ô¼º¸Ä¡£
- *             Ê¹ÓÃvofa+¾ÍÒªÓÃÈí¼şÄÚµÄFireWaterÊı¾İĞ­Òé£¬ÔÚÈí¼şÄÚµã£¿¾Í¿ÉÒÔ¿´¡£
- * 
- *-------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
-
-/* Including Files  ------------------------------------------------------------------------------------------------------------------------------------------------- */
-#include "WL_debug_uart.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-
-/* Separated Code Blocks ------------------------------------------------------------------------------------------------------------------------------------------------- */
-/* Ê¹ÓÃ¶ÓÄÚÖ÷¿Ø¿ªÊ¼ */
-#ifdef OUR_BOARD
-  
-  /* Ê¹ÓÃ´®¿ÚÁù²¿·Ö¿ªÊ¼ */
-  #ifdef USE_USART6
-  
-  UART_HandleTypeDef huart6;
-  
-  void WL_UART_Init(void)
-  {
-      __HAL_RCC_USART6_CLK_ENABLE();
-      __HAL_RCC_GPIOC_CLK_ENABLE();
-      /**USART6 GPIO Configuration
-      PC6     ------> USART6_TX
-      PC7     ------> USART6_RX
-      */
-      GPIO_InitTypeDef GPIO_InitStruct = {0};
-      GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-      GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
-      
-      HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-    
-    
-    huart6.Instance = USART6;
-    huart6.Init.BaudRate = 115200;
-    huart6.Init.WordLength = UART_WORDLENGTH_8B;
-    huart6.Init.StopBits = UART_STOPBITS_1;
-    huart6.Init.Parity = UART_PARITY_NONE;
-    huart6.Init.Mode = UART_MODE_TX;
-    huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart6.Init.OverSampling = UART_OVERSAMPLING_16;
-    
-    HAL_UART_Init(&huart6);
-    
-  }
-  
-  void WL_UART_printf(char *format, ...)
-  {
-      char String[100];
-      va_list arg;
-      va_start(arg, format);
-      vsprintf(String, format, arg);
-      va_end(arg);
-      
-      HAL_UART_Transmit(&huart6, (uint8_t *)String, strlen(String), 1000);
-  }
-  #endif
-  /* Ê¹ÓÃ´®¿ÚÁù²¿·Ö½áÊø */
-  
-  /* Ê¹ÓÃ´®¿ÚÈı²¿·Ö¿ªÊ¼ */
-  #ifdef USE_USART3
-  
-  UART_HandleTypeDef huart3;
-  
-  void WL_UART_Init(void)
-  {
-      __HAL_RCC_USART3_CLK_ENABLE();
-      __HAL_RCC_GPIOB_CLK_ENABLE();
-      /**USART3 GPIO Configuration
-      PB10     ------> USART3_TX
-      PB11     ------> USART3_RX
-      */
-      GPIO_InitTypeDef GPIO_InitStruct = {0};
-      GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-      GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
-      
-      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-      
-    huart3.Instance = USART3;
-    huart3.Init.BaudRate = 115200;
-    huart3.Init.WordLength = UART_WORDLENGTH_8B;
-    huart3.Init.StopBits = UART_STOPBITS_1;
-    huart3.Init.Parity = UART_PARITY_NONE;
-    huart3.Init.Mode = UART_MODE_TX;
-    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
-    
-    HAL_UART_Init(&huart3);
-    
-  }
-  
-  void WL_UART_printf(char *format, ...)
-  {
-      char String[100];
-      va_list arg;
-      va_start(arg, format);
-      vsprintf(String, format, arg);
-      va_end(arg);
-      
-      HAL_UART_Transmit(&huart3, (uint8_t *)String, strlen(String), 1000);
-  }
-  #endif
-  /* Ê¹ÓÃ´®¿ÚÈı²¿·Ö½áÊø */
-  
-#endif
-/* Ê¹ÓÃ¶ÓÄÚÖ÷¿Ø½áÊø */
-
-
-/* Ê¹ÓÃC°å¿ªÊ¼ */
-#ifdef C_BOARD
-  
-  /* Ê¹ÓÃ´®¿ÚÒ»²¿·Ö¿ªÊ¼ */
-  #ifdef USE_USART1
-  
-  UART_HandleTypeDef huart1;
-  
-  void WL_UART_Init(void)
-  {
-      __HAL_RCC_USART1_CLK_ENABLE();
-      __HAL_RCC_GPIOB_CLK_ENABLE();
-      __HAL_RCC_GPIOA_CLK_ENABLE();
-      
-      /**USART1 GPIO Configuration
-      PB7     ------> USART1_RX
-      PA9     ------> USART1_TX
-      */
-      GPIO_InitTypeDef GPIO_InitStruct = {0};
-      GPIO_InitStruct.Pin = GPIO_PIN_7;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-      GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-      
-      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
-      
-      GPIO_InitStruct.Pin = GPIO_PIN_9;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-      GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
-      
-      HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-    
-    huart1.Instance = USART1;
-    huart1.Init.BaudRate = 115200;
-    huart1.Init.WordLength = UART_WORDLENGTH_8B;
-    huart1.Init.StopBits = UART_STOPBITS_1;
-    huart1.Init.Parity = UART_PARITY_NONE;
-    huart1.Init.Mode = UART_MODE_TX;
-    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-    
-    HAL_UART_Init(&huart1);
-  }
-  
-  void WL_UART_printf(char *format, ...)
-  {
-      char String[100];
-      va_list arg;
-      va_start(arg, format);
-      vsprintf(String, format, arg);
-      va_end(arg);
-      
-      HAL_UART_Transmit(&huart1, (uint8_t *)String, strlen(String), 1000);
-  }
-  
-  #endif
-  /* Ê¹ÓÃ´®¿ÚÒ»²¿·Ö½áÊø */
-  
-  /* Ê¹ÓÃ´®¿ÚÁù²¿·Ö¿ªÊ¼ */
-  #ifdef USE_USART7
-	
-  
-  UART_HandleTypeDef huart7;
-  
-  void WL_UART_Init(void)
-  {
-      __HAL_RCC_UART7_CLK_ENABLE();
-      __HAL_RCC_GPIOE_CLK_ENABLE();
-      
-      /**USART6 GPIO Configuration
-      PG14     ------> USART6_TX
-      PG9     ------> USART6_RX
-      */
-      GPIO_InitTypeDef GPIO_InitStruct = {0};
-      GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8;
-      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
-      GPIO_InitStruct.Pull = GPIO_NOPULL;
-      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-      GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
-      HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-      
-      
-    huart7.Instance = UART7;
-    huart7.Init.BaudRate = 115200;
-    huart7.Init.WordLength = UART_WORDLENGTH_8B;
-    huart7.Init.StopBits = UART_STOPBITS_1;
-    huart7.Init.Parity = UART_PARITY_NONE;
-    huart7.Init.Mode = UART_MODE_TX;
-    huart7.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    huart7.Init.OverSampling = UART_OVERSAMPLING_16;
-    
-    HAL_UART_Init(&huart7);
-    
-  }
-  
-  void WL_UART_printf(char *format, ...)
-  {
-      char String[100];
-      va_list arg;
-      va_start(arg, format);
-      vsprintf(String, format, arg);
-      va_end(arg);
-      
-      HAL_UART_Transmit(&huart7, (uint8_t *)String, strlen(String), 1000);
-  }
-  
-  #endif
-  /* Ê¹ÓÃ´®¿ÚÁù²¿·Ö½áÊø */
-  
-#endif
-/* Ê¹ÓÃC°å½áÊø */
+/* ------------------------------------------------------------------------------------------------------------------------------------------------------------------- 
+ * @Files:WL_debug_uart.c/h
+ * 
+ * @Author: Ye Jinyi
+ * 
+ * @First  Edit Date: 2024.11.28
+ * @Latest Edit Date: 2024.11.29
+ * 
+ * @illustrate: é…å¥—vofa+ä½¿ç”¨ï¼Œä¹Ÿå¯ä»¥è‡ªå·±ç”¨åˆ«çš„
+ *              ä½¿ç”¨æ–¹æ³•ï¼Œç¬¬ä¸€æ­¥ï¼šåœ¨WL_debug_uart.hæŒ‰éœ€æ±‚å®å®šä¹‰
+ *                        ç¬¬äºŒæ­¥ï¼šåœ¨main.cè°ƒç”¨WL_UART_Init(void)åˆå§‹åŒ–
+ *                        ç¬¬ä¸‰æ­¥ï¼šåœ¨æŸä¸ªä»»åŠ¡è°ƒç”¨WL_UART_printf(char *format, ...)ï¼Œä»»åŠ¡æ‰§è¡Œé¢‘ç‡å†³å®šå‘é€é¢‘ç‡
+ * 
+ * @attention: ä¸ç”¨è‡ªå·±å»é…ä¸²å£ï¼ŒåŠ ä¸Šè¿™ä¸¤ä¸ªæ–‡ä»¶å°±å¯ä»¥ç”¨ã€‚å¦‚æœé…äº†å°±è¦æŠŠé…çš„æ³¨é‡Šæ‰ï¼Œå¦åˆ™ä¼šé‡å¤å®šä¹‰ã€‚
+ *             æ³¢ç‰¹ç‡ä¸º115200ï¼Œä¹Ÿå¯ä»¥è‡ªå·±æ”¹ã€‚
+ *             ä½¿ç”¨vofa+å°±è¦ç”¨è½¯ä»¶å†…çš„FireWateræ•°æ®åè®®ï¼Œåœ¨è½¯ä»¶å†…ç‚¹ï¼Ÿå°±å¯ä»¥çœ‹ã€‚
+ * 
+ *-------------------------------------------------------------------------------------------------------------------------------------------------------------------*/
+
+/* Including Files  ------------------------------------------------------------------------------------------------------------------------------------------------- */
+#include "WL_debug_uart.h"
+#include <stdio.h>
+#include <stdarg.h>
+#include <string.h>
+
+/* Separated Code Blocks ------------------------------------------------------------------------------------------------------------------------------------------------- */
+/* ä½¿ç”¨é˜Ÿå†…ä¸»æ§å¼€å§‹ */
+#ifdef OUR_BOARD
+  
+  /* ä½¿ç”¨ä¸²å£å…­éƒ¨åˆ†å¼€å§‹ */
+  #ifdef USE_USART6
+  
+  UART_HandleTypeDef huart6;
+  
+  void WL_UART_Init(void)
+  {
+      __HAL_RCC_USART6_CLK_ENABLE();
+      __HAL_RCC_GPIOC_CLK_ENABLE();
+      /**USART6 GPIO Configuration
+      PC6     ------> USART6_TX
+      PC7     ------> USART6_RX
+      */
+      GPIO_InitTypeDef GPIO_InitStruct = {0};
+      GPIO_InitStruct.Pin = GPIO_PIN_6|GPIO_PIN_7;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Alternate = GPIO_AF8_USART6;
+      
+      HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+    
+    
+    huart6.Instance = USART6;
+    huart6.Init.BaudRate = 115200;
+    huart6.Init.WordLength = UART_WORDLENGTH_8B;
+    huart6.Init.StopBits = UART_STOPBITS_1;
+    huart6.Init.Parity = UART_PARITY_NONE;
+    huart6.Init.Mode = UART_MODE_TX;
+    huart6.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart6.Init.OverSampling = UART_OVERSAMPLING_16;
+    
+    HAL_UART_Init(&huart6);
+    
+  }
+  
+  void WL_UART_printf(char *format, ...)
+  {
+      char String[100];
+      va_list arg;
+      va_start(arg, format);
+      vsprintf(String, format, arg);
+      va_end(arg);
+      
+      HAL_UART_Transmit(&huart6, (uint8_t *)String, strlen(String), 1000);
+  }
+  #endif
+  /* ä½¿ç”¨ä¸²å£å…­éƒ¨åˆ†ç»“æŸ */
+  
+  /* ä½¿ç”¨ä¸²å£ä¸‰éƒ¨åˆ†å¼€å§‹ */
+  #ifdef USE_USART3
+  
+  UART_HandleTypeDef huart3;
+  
+  void WL_UART_Init(void)
+  {
+      __HAL_RCC_USART3_CLK_ENABLE();
+      __HAL_RCC_GPIOB_CLK_ENABLE();
+      /**USART3 GPIO Configuration
+      PB10     ------> USART3_TX
+      PB11     ------> USART3_RX
+      */
+      GPIO_InitTypeDef GPIO_InitStruct = {0};
+      GPIO_InitStruct.Pin = GPIO_PIN_10|GPIO_PIN_11;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Alternate = GPIO_AF7_USART3;
+      
+      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+      
+    huart3.Instance = USART3;
+    huart3.Init.BaudRate = 115200;
+    huart3.Init.WordLength = UART_WORDLENGTH_8B;
+    huart3.Init.StopBits = UART_STOPBITS_1;
+    huart3.Init.Parity = UART_PARITY_NONE;
+    huart3.Init.Mode = UART_MODE_TX;
+    huart3.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart3.Init.OverSampling = UART_OVERSAMPLING_16;
+    
+    HAL_UART_Init(&huart3);
+    
+  }
+  
+  void WL_UART_printf(char *format, ...)
+  {
+      char String[100];
+      va_list arg;
+      va_start(arg, format);
+      vsprintf(String, format, arg);
+      va_end(arg);
+      
+      HAL_UART_Transmit(&huart3, (uint8_t *)String, strlen(String), 1000);
+  }
+  #endif
+  /* ä½¿ç”¨ä¸²å£ä¸‰éƒ¨åˆ†ç»“æŸ */
+  
+#endif
+/* ä½¿ç”¨é˜Ÿå†…ä¸»æ§ç»“æŸ */
+
+
+/* ä½¿ç”¨Cæ¿å¼€å§‹ */
+#ifdef C_BOARD
+  
+  /* ä½¿ç”¨ä¸²å£ä¸€éƒ¨åˆ†å¼€å§‹ */
+  #ifdef USE_USART1
+  
+  UART_HandleTypeDef huart1;
+  
+  void WL_UART_Init(void)
+  {
+      __HAL_RCC_USART1_CLK_ENABLE();
+      __HAL_RCC_GPIOB_CLK_ENABLE();
+      __HAL_RCC_GPIOA_CLK_ENABLE();
+      
+      /**USART1 GPIO Configuration
+      PB7     ------> USART1_RX
+      PA9     ------> USART1_TX
+      */
+      GPIO_InitTypeDef GPIO_InitStruct = {0};
+      GPIO_InitStruct.Pin = GPIO_PIN_7;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+      
+      HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+      
+      GPIO_InitStruct.Pin = GPIO_PIN_9;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Alternate = GPIO_AF7_USART1;
+      
+      HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+    
+    huart1.Instance = USART1;
+    huart1.Init.BaudRate = 115200;
+    huart1.Init.WordLength = UART_WORDLENGTH_8B;
+    huart1.Init.StopBits = UART_STOPBITS_1;
+    huart1.Init.Parity = UART_PARITY_NONE;
+    huart1.Init.Mode = UART_MODE_TX;
+    huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+    
+    HAL_UART_Init(&huart1);
+  }
+  
+  void WL_UART_printf(char *format, ...)
+  {
+      char String[100];
+      va_list arg;
+      va_start(arg, format);
+      vsprintf(String, format, arg);
+      va_end(arg);
+      
+      HAL_UART_Transmit(&huart1, (uint8_t *)String, strlen(String), 1000);
+  }
+  
+  #endif
+  /* ä½¿ç”¨ä¸²å£ä¸€éƒ¨åˆ†ç»“æŸ */
+  
+  /* ä½¿ç”¨ä¸²å£å…­éƒ¨åˆ†å¼€å§‹ */
+  #ifdef USE_USART7
+	
+  
+  UART_HandleTypeDef huart7;
+  
+  void WL_UART_Init(void)
+  {
+      __HAL_RCC_UART7_CLK_ENABLE();
+      __HAL_RCC_GPIOE_CLK_ENABLE();
+      
+      /**USART6 GPIO Configuration
+      PG14     ------> USART6_TX
+      PG9     ------> USART6_RX
+      */
+      GPIO_InitTypeDef GPIO_InitStruct = {0};
+      GPIO_InitStruct.Pin = GPIO_PIN_7|GPIO_PIN_8;
+      GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+      GPIO_InitStruct.Pull = GPIO_NOPULL;
+      GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+      GPIO_InitStruct.Alternate = GPIO_AF7_UART7;
+      HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
+      
+      
+    huart7.Instance = UART7;
+    huart7.Init.BaudRate = 115200;
+    huart7.Init.WordLength = UART_WORDLENGTH_8B;
+    huart7.Init.StopBits = UART_STOPBITS_1;
+    huart7.Init.Parity = UART_PARITY_NONE;
+    huart7.Init.Mode = UART_MODE_TX;
+    huart7.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+    huart7.Init.OverSampling = UART_OVERSAMPLING_16;
+    
+    HAL_UART_Init(&huart7);
+    
+  }
+  
+  void WL_UART_printf(char *format, ...)
+  {
+      char String[100];
+      va_list arg;
+      va_start(arg, format);
+      vsprintf(String, format, arg);
+      va_end(arg);
+      
+      HAL_UART_Transmit(&huart7, (uint8_t *)String, strlen(String), 1000);
+  }
+  
+  #endif
+  /* ä½¿ç”¨ä¸²å£å…­éƒ¨åˆ†ç»“æŸ */
+  
+#endif
+/* ä½¿ç”¨Cæ¿ç»“æŸ */

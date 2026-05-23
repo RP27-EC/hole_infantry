@@ -1,65 +1,110 @@
 #ifndef __JUDGE_H
+
 #define __JUDGE_H
 
 /* Includes ------------------------------------------------------------------*/
+
 #include "stm32h7xx_hal.h"
+
 #include "rp_config.h"
+
 #include "judge_protocol.h"
+
 #include "communicate.h"
+
 /* Exported macro ------------------------------------------------------------*/
+
 #define JUDGE_OFFLINE_CNT_MAX 1000
 
-typedef struct Judge_Org_Info_struct_t
-{
-	ext_rfid_status_t rfid_status;
-	ext_game_status_t game_status;
-	ext_game_robot_status_t game_robot_status;
-	ext_power_heat_data_t power_heat_data;
-	ext_shoot_data_t shoot_data;
-	ext_game_robot_pos_t game_robot_pos;
-	ext_robot_hurt_t ext_robot_hurt;
-	ext_game_robot_HP_t ext_game_robot_HP;
-  ext_projectile_allowance_t projectile_allowance;
-}Judge_Org_Info_t;
+typedef struct Judge_Org_Info_struct_t {
+
+    ext_rfid_status_t rfid_status;
+
+    ext_game_status_t game_status;
+
+    ext_game_robot_status_t game_robot_status;
+
+    ext_power_heat_data_t power_heat_data;
+
+    ext_shoot_data_t shoot_data;
+
+    ext_game_robot_pos_t game_robot_pos;
+
+    ext_robot_hurt_t ext_robot_hurt;
+
+    ext_game_robot_HP_t ext_game_robot_HP;
+
+    ext_projectile_allowance_t projectile_allowance;
+
+    robot_interaction_data_t interactive_header_data;
+
+    radio_information_data_t radio_information_data;
+
+    dart_state_data_t radio_dart_state_data;
+} Judge_Org_Info_t; // åŸå§‹ä¿¡æ¯
 
 typedef struct
+
 {
-	int16_t chassis_power_buffer;           //µ×ÅÌ»º´æ¹¦ÂÊ
-	int32_t chassis_out_put_max;            //µ×ÅÌ×î´óÊä³ö
-	uint16_t shooter_cooling_limit;					//»úÆ÷ÈË 42mm Ç¹¿ÚÈÈÁ¿ÉÏÏŞ
-	uint16_t shooter_cooling_heat; 					//»úÆ÷ÈË 42mm Ç¹¿ÚÈÈÁ¿
-	uint8_t car_color;                      //2À¶É« 1ºìÉ«
-	uint8_t hurt_type;                      //ÉËº¦ÖÖÀà
-	uint16_t chassis_power_limit;           //µ×ÅÌ¹¦ÂÊÏŞÖÆ
-	uint16_t shooter_id1_17mm_speed_limit;  //ÉäËÙÉÏÏŞ
-	uint16_t remain_HP;                     //Ê£ÓàÑªÁ¿
-	uint8_t game_status;                    //±ÈÈü×´Ì¬
-	uint16_t remain_HP_now;
-	uint16_t remain_HP_last;
-	uint8_t rfid;
-	float shooting_speed;
-}Judge_Info_t;
+
+    int16_t chassis_power_buffer; // åº•ç›˜ç¼“å­˜åŠŸç‡
+
+    int32_t chassis_out_put_max; // åº•ç›˜æœ€å¤§è¾“å‡º
+
+    uint16_t shooter_cooling_limit; // æœºå™¨äºº 42mm æªå£çƒ­é‡ä¸Šé™
+
+    uint16_t shooter_cooling_heat; // æœºå™¨äºº 42mm æªå£çƒ­é‡
+
+    uint8_t my_color; //  0çº¢è‰² 1è“è‰²
+
+    uint8_t hurt_type; // ä¼¤å®³ç§ç±»
+
+    uint16_t chassis_power_limit; // åº•ç›˜åŠŸç‡é™åˆ¶
+
+    uint16_t shooter_id1_17mm_speed_limit; // å°„é€Ÿä¸Šé™
+
+    uint16_t remain_HP; // å‰©ä½™è¡€é‡
+
+    uint8_t game_progress; // æ¯”èµ›çŠ¶æ€
+
+    uint8_t rfid;
+
+    float shooting_speed;
+
+} Judge_Info_t;
 
 typedef struct
+
 {
-	uint16_t offline_cnt_max;
-	uint8_t status;
-	uint16_t offline_cnt;
-}Judge_Status_t;
+
+    uint16_t offline_cnt_max;
+
+    dev_work_state_t status;
+
+    uint16_t offline_cnt;
+
+} Judge_Status_t;
 
 typedef struct
+
 {
-	Judge_Org_Info_t* org_info;
-	Judge_Info_t* info;
-	Judge_Status_t* status;
-}My_Judge_t;
+
+    Judge_Org_Info_t *org_info;
+
+    Judge_Info_t *info;
+
+    Judge_Status_t *status;
+
+    uint32_t shoot_count; // å…¨å±€å‘å¼¹è®¡æ•°å™¨
+
+} My_Judge_t;
 
 extern My_Judge_t My_Judge;
 
-void My_Judge_Init(void);
-void My_Judge_Realtime_Task(My_Judge_t* my_judge);
-void My_Judge_Update(My_Judge_t * my_judge);
+void My_Judge_Realtime_Task(My_Judge_t *my_judge);
+
+void My_Judge_Update(My_Judge_t *my_judge);
+
 void judge_update(uint16_t id, uint8_t *rxBuf);
-uint8_t check_hero_revive(My_Judge_t * my_judge);
 
 #endif

@@ -3,7 +3,8 @@ name: DM-MC02
 type: ARM
 deviceName: null
 packDir: null
-srcDirs: []
+srcDirs:
+  - ../Middlewares/Segger_RTT
 virtualFolder:
   name: <virtual_root>
   files: []
@@ -40,6 +41,7 @@ virtualFolder:
         - path: ../Application/TaskLayer/monitor_task.c
         - path: ../Application/TaskLayer/observe_task.c
         - path: ../Application/TaskLayer/UI_Task.c
+        - path: ../Application/TaskLayer/RP_Log_task.c
       folders: []
     - name: Control
       files:
@@ -49,20 +51,15 @@ virtualFolder:
       files:
         - path: ../Application/ModuleLayer/Chassis.c
         - path: ../Application/ModuleLayer/gimbal.c
-        - path: ../Application/ModuleLayer/gimbal.h
         - path: ../Application/ModuleLayer/shoot.c
-        - path: ../Application/ModuleLayer/shoot.h
-        - path: ../Application/ModuleLayer/shoot_base.c
-        - path: ../Application/ModuleLayer/shoot_base.h
         - path: ../Application/ModuleLayer/ui.c
-        - path: ../Application/ModuleLayer/ui.h
       folders: []
     - name: Service
       files:
         - path: ../Application/ServiceLayer/Command.c
         - path: ../Application/ServiceLayer/Command_Instance.c
-        - path: ../Application/ServiceLayer/posture.h
-        - path: ../Application/ServiceLayer/posture.c
+        - path: ../Application/ServiceLayer/RP_Log.c
+        - path: ../Application/ServiceLayer/RP_Log.h
       folders: []
     - name: Parameter
       files:
@@ -108,6 +105,7 @@ virtualFolder:
         - path: ../Application/DeviceLayer/judge.c
         - path: ../Application/DeviceLayer/shoot_motor.c
         - path: ../Application/DeviceLayer/shoot_motor.h
+        - path: ../Application/DeviceLayer/buzzer.c
       folders: []
     - name: Protocol
       files:
@@ -137,6 +135,7 @@ virtualFolder:
         - path: ../Application/HardwareLayer/HT_Motor.c
         - path: ../Application/HardwareLayer/motor_def.c
         - path: ../Application/HardwareLayer/motor_def.h
+        - path: ../Application/HardwareLayer/KT_motor.c
       folders: []
     - name: Config
       files:
@@ -196,7 +195,18 @@ virtualFolder:
             - path: ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F/port.c
           folders: []
     - name: ::CMSIS
-      files: []
+      files:
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/CommonTables/arm_common_tables.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/FastMathFunctions/arm_atan2_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/FastMathFunctions/arm_cos_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/FastMathFunctions/arm_sin_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/MatrixFunctions/arm_mat_add_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/MatrixFunctions/arm_mat_init_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/MatrixFunctions/arm_mat_inverse_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/MatrixFunctions/arm_mat_mult_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/MatrixFunctions/arm_mat_sub_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/MatrixFunctions/arm_mat_trans_f32.c
+        - path: ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Source/QuaternionMathFunctions/arm_quaternion_normalize_f32.c
       folders: []
 dependenceList: []
 outDir: build
@@ -215,6 +225,9 @@ targets:
         - ../Drivers/STM32H7xx_HAL_Driver/Inc/Legacy
         - ../Drivers/CMSIS/Device/ST/STM32H7xx/Include
         - ../Drivers/CMSIS/Include
+        - ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Include
+        - ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/Include/dsp
+        - ../../../../../Keil5_MDK/ARM/PACK/ARM/CMSIS-DSP/1.16.2/PrivateInclude
         - ../Middlewares/Third_Party/FreeRTOS/Source/include
         - ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2
         - ../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F
@@ -235,8 +248,13 @@ targets:
         - ../Application/ControlLayer
         - .cmsis/include
         - ../MDK-ARM/RTE/_DM-MC02
+        - ../Middlewares/Segger_RTT
       libList: []
-    excludeList: []
+    excludeList:
+      - <virtual_root>/Service/posture.c
+      - <virtual_root>/Module/shoot_base.c
+    settings:
+      debugger: cortex-debug
     toolchain: AC6
     toolchainConfigMap:
       AC6:
@@ -355,4 +373,9 @@ targets:
         otherCmds: ""
         proType: 1
         speed: 8000
+      OpenOCD:
+        baseAddr: "0x08000000"
+        bin: ""
+        interface: ftdi/openocd-usb
+        target: stm32h7x
     uploader: JLink

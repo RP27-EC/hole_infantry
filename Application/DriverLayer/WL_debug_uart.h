@@ -1,54 +1,54 @@
-#ifndef WL_DEBUG_UART
-#define WL_DEBUG_UART
-
-/* Including Files -------------------------------------------------------------------------------------------------------------------------------------------------- */
-
-#include "stm32h7xx_hal.h"
-
-/* Macro ------------------------------------------------------------------------------------------------------------------------------------------------- */
-/*Ñ¡Ôñ¶¨Òå£º¶ÓÄÚÂÌÉ«Ğ¡Ö÷¿Ø¶¨Òå -- OUR_BOARD £¬²¢¸ù¾İĞèÒª¶¨Òå USE_USART3 »ò USE_USART6 */
-/*Ñ¡Ôñ¶¨Òå£ºC°å¶¨Òå ------------- C_BOARD   £¬²¢¸ù¾İĞèÒª¶¨Òå USE_USART1 »ò USE_USART6 */
-#define C_BOARD
-#define USE_USART7
-
-/* Define Exported Variables Type ----------------------------------------------------------------------------------------------------------------------------------- */
-
-
-/* Define Privated Variables Type ----------------------------------------------------------------------------------------------------------------------------------- */
-
-
-/* Exported Variables Declarations ---------------------------------------------------------------------------------------------------------------------------------- */
-/* Ê¹ÓÃ¶ÓÄÚÖ÷¿Ø¿ªÊ¼ */
-#ifdef OUR_BOARD
-  
-  #ifdef USE_USART6
-      extern UART_HandleTypeDef huart6;
-  #endif
-  
-  #ifdef USE_USART3
-      extern UART_HandleTypeDef huart3;
-  #endif
-  
-#endif
-/* Ê¹ÓÃ¶ÓÄÚÖ÷¿Ø½áÊø */
-
-
-/* Ê¹ÓÃC°å¿ªÊ¼ */
-#ifdef C_BOARD
-  
-  #ifdef USE_USART1
-      extern UART_HandleTypeDef huart1;
-  #endif
-  
-  #ifdef USE_USART6
-      extern UART_HandleTypeDef huart6;
-  #endif
-  
-#endif
-/* Ê¹ÓÃC°å½áÊø */
-
-/* Exported Functions Declarations ---------------------------------------------------------------------------------------------------------------------------------- */
-void WL_UART_Init(void);
-void WL_UART_printf(char *format, ...);
-
-#endif
+#ifndef WL_DEBUG_UART
+#define WL_DEBUG_UART
+
+/* Including Files -------------------------------------------------------------------------------------------------------------------------------------------------- */
+
+#include "stm32h7xx_hal.h"
+
+/* Macro ------------------------------------------------------------------------------------------------------------------------------------------------- */
+/*é€‰æ‹©å®šä¹‰ï¼šé˜Ÿå†…ç»¿è‰²å°ä¸»æ§å®šä¹‰ -- OUR_BOARD ï¼Œå¹¶æ ¹æ®éœ€è¦å®šä¹‰ USE_USART3 æˆ– USE_USART6 */
+/*é€‰æ‹©å®šä¹‰ï¼šCæ¿å®šä¹‰ ------------- C_BOARD   ï¼Œå¹¶æ ¹æ®éœ€è¦å®šä¹‰ USE_USART1 æˆ– USE_USART6 */
+#define C_BOARD
+#define USE_USART7
+
+/* Define Exported Variables Type ----------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* Define Privated Variables Type ----------------------------------------------------------------------------------------------------------------------------------- */
+
+
+/* Exported Variables Declarations ---------------------------------------------------------------------------------------------------------------------------------- */
+/* ä½¿ç”¨é˜Ÿå†…ä¸»æ§å¼€å§‹ */
+#ifdef OUR_BOARD
+  
+  #ifdef USE_USART6
+      extern UART_HandleTypeDef huart6;
+  #endif
+  
+  #ifdef USE_USART3
+      extern UART_HandleTypeDef huart3;
+  #endif
+  
+#endif
+/* ä½¿ç”¨é˜Ÿå†…ä¸»æ§ç»“æŸ */
+
+
+/* ä½¿ç”¨Cæ¿å¼€å§‹ */
+#ifdef C_BOARD
+  
+  #ifdef USE_USART1
+      extern UART_HandleTypeDef huart1;
+  #endif
+  
+  #ifdef USE_USART6
+      extern UART_HandleTypeDef huart6;
+  #endif
+  
+#endif
+/* ä½¿ç”¨Cæ¿ç»“æŸ */
+
+/* Exported Functions Declarations ---------------------------------------------------------------------------------------------------------------------------------- */
+void WL_UART_Init(void);
+void WL_UART_printf(char *format, ...);
+
+#endif

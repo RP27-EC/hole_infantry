@@ -1,956 +1,8 @@
-///**
-// * @file priority_ui.c
-// * @author Isaac (1812924685@qq.com)
-// * @brief Í¨¹ıÓÅÏÈ¶ÓÁĞÊµÏÖUIÓÅÏÈ¼¶µ÷¶È
-// * @version 1.1.1
-// * @date 2024-04-14
-// * 
-// * @copyright Copyright (c) 2024
-// * 
-// */
-///* Includes ------------------------------------------------------------------*/
-//#include "ui_priority.h"
-//#include <stdio.h>
-//#include "communicate.h"
-///*ÓÃ»§ÅäÖÃÇø******************************************************************************************/
-///*¹¦ÄÜ---------------------------------------------------*/
-//#define AUTO_UI_NAME_ENABLE  // ×Ô¶¯ÃüÃû
-///*²ÎÊı---------------------------------------------------*/
-//#define HIGH_PRIORITY_WEIGHT 1000 // ¸ßÓÅÏÈ¼¶È¨ÖØ
-//#define MID_PRIORITY_WEIGHT  500  // ÖĞÓÅÏÈ¼¶È¨ÖØ
-//#define LOW_PRIORITY_WEIGHT  0    // µÍÓÅÏÈ¼¶È¨ÖØ
-
-//#define HIGH_CHAR_PRIORITY_LEVEL 7  // ¸ßÓÅÏÈ¼¶×Ö·ûÇÀÕ¼Í¼ĞÎUIµÄµÈ¼¶
-//#define MID_CHAR_PRIORITY_LEVEL  5  // ÖĞÓÅÏÈ¼¶×Ö·ûÇÀÕ¼Í¼ĞÎUIµÄµÈ¼¶
-
-//#define SEND_INTERVAL        100 // ·¢ËÍ¼ä¸ôÊ±¼ä(MS) [²ÃÅĞÏµÍ³ÉÏÏŞÊÇ10HZ]
-//#define PER_INIT_UI_TIMES    1   // Ã¿´Î³õÊ¼»¯µÄUI´ÎÊı
-
-///**
-// * @brief ÓÃ»§¶¨Òå³õÊ¼»¯UIµÄÌõ¼ş(ËùÓĞ·¢ADD)
-// * 
-// * @return true ¿ªÊ¼³õÊ¼»¯
-// * @return false Õı³£·¢ËÍ
-// */
-//uint8_t init_test;
-//bool Init_Ui_Condition()
-//{
-//  static uint8_t last_ctrl_mode = DEV_OFFLINE;
-//  uint8_t current_ctrl_mode = rc_sensor.work_state;   //communicate.car_data0_rx_info->car_state.bit.is_key_ctrl;
-//  if (last_ctrl_mode != current_ctrl_mode)
-//  {
-//    last_ctrl_mode = current_ctrl_mode;
-//    return true; 
-//  }
-//  else
-//  {
-//    last_ctrl_mode = current_ctrl_mode;
-//    return false;
-//  }
-//}
-
-///*Ä¿Â¼******************************************************************************************/
-
-//// ÅÅÁĞÏà¹Øº¯Êı
-//    /*¼ÆËãÏûÏ¢µÄÓÅÏÈ¼¶*/uint32_t Calculate_Priority(ui_info_t *msg);                                     
-//    /*ºÏ²¢Á½¸öÓĞĞòÁ´±í*/Node_u *SortedMerge(Node_u *a, Node_u *b);     
-//    /*½«Á´±í·Ö³ÉÁ½°ë*/void FrontBackSplit(Node_u *source, Node_u **frontRef, Node_u **backRef);
-//    /*Ê¹ÓÃ·ÖÖÎËã·¨À´¶ÔÁ´±í½øĞĞÅÅĞò*/void mergeSort(Node_u **headRef);    
-//    /*½«Á´±íÖĞÓÅÏÈ¼¶¸ßµÄui½á¹¹Ìå´æ´¢µ½Ò»¸öÊı×éÖĞ*/ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_head,ui_info_t* graphic_priority_buffer, ui_info_t* character_priority_buffer, uint8_t* ui_graphic_buffer_num,ui_send_mode_e *ui_send_mode);
-
-
-//// ³õÊ¼»¯Á´±íº¯Êı
-//    /*³õÊ¼»¯ÓÅÏÈ¶ÓÁĞ*/ui_status_e Init_Priority_LinkedList(Node_u** headRef, ui_info_t *ui_input, uint8_t num); 
-//    /*³õÊ¼»¯Á½¸öÁ´±í*/ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_info_t *dynamic_ui_info, ui_info_t *const_ui_info, uint8_t dynamic_num, uint8_t const_num); 
-
-//// ÅäÖÃ·¢ËÍ½á¹¹Ìåº¯Êı
-//    /*ÅäÖÃ×Ö·ûĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå*/ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uint8_t add_operate_enable); 
-//    /*ÅäÖÃÍ¼ĞÎĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå*/ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, uint8_t ui_info_size, uint8_t add_operate_enable);
-
-//// UI·¢ËÍº¯Êı
-//    /*UIÕı³£·¢ËÍ*/ui_status_e Ui_Send_Normal();
-//    /*UIÇ¿ĞĞ·¢ËÍADD*/ui_status_e Ui_Send_Add();
-
-//// ÓÃ»§º¯Êı
-//    /*³õÊ¼»¯UIÁ´±í*/ui_status_e Init_Ui_List(ui_info_t *dynamic_ui_info, uint8_t dynamic_ui_num, ui_info_t *const_ui_info, uint8_t const_ui_num);
-//    /*UI·¢ËÍº¯Êı*/void Ui_Send();
-//    /*Ìí¼Ó¶ÔÓ¦UIµ½´ı·¢ËÍ*/ ui_status_e Enqueue_Ui_For_Sending(ui_info_t *ui_info);
-
-//  
-
-
-
-
-
-///*µ×²ãº¯Êı*************************************************************************************************************/
-
-///**
-// * @brief ¼ÆËãÏûÏ¢µÄÓÅÏÈ¼¶
-// * 
-// * @param msg 
-// * @note Î´¸üĞÂµÍÓÅÏÈ¼¶×èÈû1000msµÈÓÚÎ´±»×èÈû¸ßÓÅÏÈ¼¶
-// * @return priority_value 
-// */
-//uint32_t Calculate_Priority(ui_info_t *msg) 
-//{
-//  uint32_t priority_value = 0;
-//  uint32_t currentTick = HAL_GetTick();
-//  uint32_t age = currentTick - msg->updateTick;//ÏûÏ¢µÄÄêÁä
-
-//  // ¸ù¾İÏûÏ¢µÄÓÅÏÈ¼¶¼ÆËãÓÅÏÈ¼¶Öµ
-//  if(msg->ui_config.priority == HIGH_PRIORITY)
-//  {
-//	 
-//    priority_value = HIGH_PRIORITY_WEIGHT;
-//  }
-//  else if(msg->ui_config.priority == MID_PRIORITY)
-//  {
-//    priority_value = MID_PRIORITY_WEIGHT;
-//  }
-//  else
-//  {
-//    priority_value = LOW_PRIORITY_WEIGHT;
-//  }
-
-//  // Î´·¢ËÍµÄÏûÏ¢¼ÓÉÏµÈ´ıÊ±¼ä¼ÓÈ¨
-//  if(msg->sent_state == MESSAGE_NOT_SENT)
-//  {
-//    priority_value += age ;
-//  }
-
-//  return priority_value;
-//}
-///**
-// * @brief 
-// * @note µ±Á½¸öÁ´±íÖĞÈÎÒâÒ»¸öÎª¿ÕÊ± µİ¹éÍ£Ö¹£¬Ö±½Ó·µ»ØÁíÒ»¸öÁ´±íµÄÊ£Óà²¿·Ö
-// * @param a 
-// * @param b 
-// * @return Node* 
-// */
-//Node_u* SortedMerge(Node_u* a, Node_u* b)
-//{
-//  Node_u* res = NULL;
-
-//  if (a == NULL)
-//    return (b);
-//  else if (b == NULL)
-//    return (a);
-
-//  a->ui->priority_value = Calculate_Priority(a->ui);
-//  b->ui->priority_value = Calculate_Priority(b->ui);
-
-////ÓÅÏÈÅĞ¶ÏÏûÏ¢ÊÇ·ñ·¢ËÍ(Î´·¢ËÍµÄÏûÏ¢ÓÅÏÈ¼¶×î¸ß)
-//  if (a->ui->sent_state == MESSAGE_NOT_SENT && b->ui->sent_state == MESSAGE_SENT)
-//  {
-//    res = a;
-//    res->next = SortedMerge(a->next, b);
-//  }
-//  else if (a->ui->sent_state == MESSAGE_SENT && b->ui->sent_state == MESSAGE_NOT_SENT)
-//  {
-//    res = b;
-//    res->next = SortedMerge(a, b->next);
-//  }
-////·¢ËÍ×´Ì¬ÏàÍ¬£¬ÅĞ¶ÏÓÅÏÈ¼¶
-//  else if (a->ui->priority_value >= b->ui->priority_value) 
-//  {
-//    res = a;
-//    res->next = SortedMerge(a->next, b);
-//  }
-//  else 
-//  {
-//    res = b;
-//    res->next = SortedMerge(a, b->next);
-//  }
-
-//  return res;
-//}
-
-///**
-// * @brief ÓÃÓÚ½«Ò»¸öÁ´±í·Ö³ÉÁ½°ë,ÔÚmergeSortÖĞµ÷ÓÃ
-// * 
-// * @param source ±íÍ·µØÖ·
-// * @param frontRef ÓÃÓÚ´¢´æÇ°°ë¶ÎµÄ¿ªÊ¼µØÖ·
-// * @param backRef ÓÃÓÚ´¢´æºó°ë¶ÎµÄ¿ªÊ¼µØÖ·
-// */
-//void FrontBackSplit(Node_u* source, Node_u** frontRef, Node_u** backRef)
-//{
-//   Node_u* fast;
-//   Node_u* slow;
-//   slow = source;
-//   fast = source->next;
-// 
-//   // Ê¹ÓÃ¿ìÂıÖ¸Õë·¨À´ÕÒµ½Á´±íµÄÖĞµã
-//   // ¿ìÖ¸ÕëÃ¿´ÎÒÆ¶¯Á½¸ö½Úµã£¬ÂıÖ¸ÕëÃ¿´ÎÒÆ¶¯Ò»¸ö½Úµã
-//   // µ±¿ìÖ¸Õëµ½´ïÁ´±íµÄÄ©Î²Ê±£¬ÂıÖ¸Õë¾ÍÔÚÁ´±íµÄÖĞµã
-//   while (fast != NULL) {
-//      fast = fast->next;
-//      if (fast != NULL) {
-//        slow = slow->next;
-//        fast = fast->next;
-//      }
-//   }
-// 
-//   // ½«Á´±í·Ö³ÉÁ½°ë
-//   // Ç°°ë²¿·ÖµÄÍ·½ÚµãÊÇsource£¬ºó°ë²¿·ÖµÄÍ·½ÚµãÊÇslow->next
-//   *frontRef = source;
-//   *backRef = slow->next;
-//   slow->next = NULL;
-//}
-
-///**
-// * @brief Ê¹ÓÃ·ÖÖÎËã·¨À´¶ÔÁ´±í½øĞĞÅÅĞò
-// * @note  ¸ù¾İµİ¹éµÄÌØĞÔ£¬Ö»ÓĞ·ÖÁÑµ½Ò»¸ö½Úµã»òÕßÁ´±íÎª¿ÕÊ±²Å¿ªÊ¼ÅÅĞòºÍºÏ²¢
-// * @param headRef 
-// */
-//void mergeSort(Node_u** headRef)
-//{
-//   Node_u* head = *headRef;
-//   Node_u* a;
-//   Node_u* b;
-// 
-//   // Èç¹ûÁ´±íÎª¿Õ£¬»òÕßÁ´±íÖ»ÓĞÒ»¸ö½Úµã£¬ÄÇÃ´Á´±íÒÑ¾­ÊÇÅÅĞòµÄ£¬Ö±½Ó·µ»Ø
-//   if ((head == NULL) || (head->next == NULL)) {
-//      return;
-//   }
-// 
-//   // Ê¹ÓÃFrontBackSplitº¯Êı½«Á´±í·Ö³ÉÁ½°ë
-//   FrontBackSplit(head, &a, &b);
-// 
-//   // ·ÖÁÑºó¸øÃ¿Ò»°ëÔÙ·ÖÁÑ£¬²¢ÏÂÒ»¸öÅÅĞòºÍºÏ²¢µÄÖ¸Áî£¬µÈµİ¹é»ØÀ´µÄÊ±ºò¾ÍÖ´ĞĞÖ¸Áî
-//   mergeSort(&a);
-//   mergeSort(&b);
-// 
-//   // SortedMergeÄÚ²¿ÏÈÅÅĞòºóºÏ²¢£¬·µ»ØºÏ²¢ºóµÄ±íÍ·
-//   *headRef = SortedMerge(a, b);
-//}
-
-///**
-// * @brief 
-// * 
-// * @param headRef Á´±íÍ·Ö¸ÕëµÄµØÖ·
-// * @param ui_input Òª´æ½øÈ¥µÄUIĞÅÏ¢
-// * @param num ui_infoÊı×é³ÉÔ±¸öÊı
-// */
-//ui_status_e Init_Priority_LinkedList(Node_u** headRef, ui_info_t *ui_input, uint8_t num)
-//{
-//  // Èç¹ûheadRefÎª¿Õ£¬Ö±½Ó·µ»Ø
-//  if (headRef == NULL)
-//  {
-//    return UI_ERROR; // Ã»ÓĞÉùÃ÷Á´±íÍ·Ö¸Õë
-//  }
-//  
-//  Node_u* newNode = NULL;
-//  Node_u* cursor = *headRef;
-//  ui_info_t *ui_ptr = ui_input;
-//  // ´´½¨Ò»¸öÁã½á¹¹Ìå
-//  ui_info_t zero_struct;
-//  memset(&zero_struct, 0, sizeof(ui_info_t));
-//  // ±éÀúui_inputÊı×éµÄÆäÓàÔªËØ£¬²¢½«Ã¿¸öÔªËØÌí¼Óµ½Á´±íÖĞ
-//  for (uint8_t i = 0; i < num; i++) 
-//  {
-//    if (memcmp(ui_ptr, &zero_struct, sizeof(ui_info_t)) != 0)//·ÀÖ¹Ä³Ğ©Éµ±Æ×¢ÊÍµôÁË£¬½á¹¹Ìå²»È«¶¼ÊÇÓĞ¶«Î÷
-//    {
-//      // ´´½¨Ò»¸öĞÂµÄ½Úµã
-//      newNode = (Node_u*)malloc(sizeof(Node_u));
-//      if (newNode == NULL)
-//      {
-//        return UI_ERROR; // heapÌ«Ğ¡£¬ÉêÇë²»ÁËÄÚ´æ
-//      }
-//      newNode->ui = ui_ptr;
-//      newNode->next = NULL;
-
-//      if (*headRef == NULL)//Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
-//      {
-//        *headRef = newNode;
-//      }
-//      else
-//      {
-//        // ½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
-//        cursor->next = newNode;
-//      }
-//      cursor = newNode;
-//    }
-//    // Ôö¼ÓÖ¸ÕëÒÔ·ÃÎÊÏÂÒ»¸öÔªËØ
-//    ui_ptr++;
-//  }
-//  return UI_OK;
-//}
-
-///**
-// * @brief ³õÊ¼»¯Á½¸öÁ´±í£¬½«dynamic_ui_infoºÍconst_ui_infoÁ½¸öÊı×éÖĞ²»ÊÇCHARÀàĞÍµÄUI´æ½øÆäÖĞÒ»¸öÁ´±í£¬ÆäËûÀàĞÍµÄUI´æ½øÁíÒ»¸öÁ´±í
-// * 
-// * @param graphic_link ´æ·ÅÍ¼ÏñÁ´±íÍ·Ö¸ÕëµÄµØÖ·
-// * @param char_link ´æ·Å×Ö·ûÁ´±íÍ·Ö¸ÕëµÄµØÖ·
-// * @param dynamic_ui_info ¶¯Ì¬UIĞÅÏ¢Êı×é
-// * @param const_ui_info ¾²Ì¬UIĞÅÏ¢Êı×é
-// * @param dynamic_num ¶¯Ì¬UIĞÅÏ¢Êı×é³ÉÔ±¸öÊı
-// * @param const_num ¾²Ì¬UIĞÅÏ¢Êı×é³ÉÔ±¸öÊı
-// */
-//ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_info_t *dynamic_ui_info, ui_info_t *const_ui_info, uint8_t dynamic_num, uint8_t const_num)
-//{
-//  if (graphic_link == NULL || char_link == NULL)
-//  {
-//    return UI_ERROR; // Ã»ÓĞÉùÃ÷Á´±íÍ·Ö¸Õë
-//  }
-
-//  Node_u* graphic_link_cursor = NULL;
-//  Node_u* char_link_cursor = NULL;
-//  
-//  // ´´½¨Ò»¸öÁã½á¹¹Ìå
-//  ui_info_t zero_struct;
-//  memset(&zero_struct, 0, sizeof(ui_info_t));
-
-//  // ±éÀúdynamic_ui_infoÊı×é£¬½«²»ÊÇCHARÀàĞÍµÄUIÌí¼Óµ½µÚÒ»¸öÁ´±íÖĞ£¬ÆäËûÀàĞÍµÄUIÌí¼Óµ½µÚ¶ş¸öÁ´±íÖĞ
-//  ui_info_t *dynamic_ptr = dynamic_ui_info;
-//  for (uint8_t i = 0; i < dynamic_num; i++) 
-//  {
-//    if (memcmp(dynamic_ptr, &zero_struct, sizeof(ui_info_t)) == 0)
-//    {
-//      dynamic_ptr++;
-//      continue;
-//    }
-//    //·ÖÅäÄÚ´æ´æÈëµ±Ç°µÄUIĞÅÏ¢
-//    Node_u* newNode = (Node_u*)malloc(sizeof(Node_u));
-//    if (newNode == NULL)
-//    {
-//      return UI_ERROR; // heapÌ«Ğ¡£¬ÉêÇë²»ÁËÄÚ´æ
-//    }
-//    newNode->ui = dynamic_ptr;
-//    newNode->next = NULL;
-//    //¸øµ±Ç°UIÃüÃû
-//    #ifdef AUTO_UI_NAME_ENABLE
-//      char *name = dynamic_ptr->ui_config.name;
-//      sprintf(name, "%d", i);
-//    #endif
-//    //ÅĞ¶Ïµ±Ç°UIÊÇ·ñÎªCHARÀàĞÍ
-//    if (dynamic_ptr->ui_config.ui_type != CHAR && dynamic_ptr->ui_config.operate_type != DELETE ) 
-//    {
-//      if (*graphic_link == NULL)//Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
-//      {
-//        *graphic_link = newNode;
-//      } 
-//      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
-//      {
-//        graphic_link_cursor->next = newNode;
-//      }
-//      graphic_link_cursor = newNode;//¹â±êÖ¸ÏòĞÂ½Úµã
-//    } 
-//    else if (dynamic_ptr->ui_config.operate_type != DELETE)//Èç¹ûµ±Ç°UIÎªCHARÀàĞÍ
-//    {
-//      if (*char_link == NULL) //Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
-//      {
-//        *char_link = newNode; //½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
-//      } 
-//      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
-//      {
-//        char_link_cursor->next = newNode;
-//      }
-//      char_link_cursor = newNode; //¹â±êÖ¸ÏòĞÂ½Úµã
-//    }
-//    dynamic_ptr++;
-//  }
-
-//  // ±éÀúconst_ui_infoÊı×é£¬½«²»ÊÇCHARÀàĞÍµÄUIÌí¼Óµ½µÚÒ»¸öÁ´±íÖĞ£¬ÆäËûÀàĞÍµÄUIÌí¼Óµ½µÚ¶ş¸öÁ´±íÖĞ
-//  ui_info_t *const_ptr = const_ui_info;
-//  for (uint8_t i = 0; i < const_num; i++) 
-//  {
-//    if (memcmp(const_ptr, &zero_struct, sizeof(ui_info_t)) == 0)
-//    {
-//      const_ptr++;
-//      continue;
-//    }
-//    //·ÖÅäÄÚ´æ´æÈëµ±Ç°µÄUIĞÅÏ¢
-//    Node_u* newNode = (Node_u*)malloc(sizeof(Node_u));
-//    if (newNode == NULL)
-//    {
-//      return UI_ERROR;// heapÌ«Ğ¡£¬ÉêÇë²»ÁËÄÚ´æ
-//    }
-//    newNode->ui = const_ptr;
-//    newNode->next = NULL;
-//    //¸øµ±Ç°UIÃüÃû
-//    #ifdef AUTO_UI_NAME_ENABLE
-//      char *name = const_ptr->ui_config.name;
-//      sprintf(name, "%d", i + dynamic_num + 1);
-//    #endif
-//    //ÅĞ¶Ïµ±Ç°UIÊÇ·ñÎªCHARÀàĞÍ
-//    if (const_ptr->ui_config.ui_type != CHAR && const_ptr->ui_config.operate_type != DELETE) 
-//    {
-//      if (*graphic_link == NULL)//Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
-//      {
-//        *graphic_link = newNode;
-//      } 
-//      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
-//      {
-//        graphic_link_cursor->next = newNode;
-//      }
-//      graphic_link_cursor = newNode;
-//    } 
-//    else if(const_ptr->ui_config.operate_type != DELETE)//Èç¹ûµ±Ç°UIÎªCHARÀàĞÍ
-//    {
-//      if (*char_link == NULL) //Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
-//      {
-//        *char_link = newNode;
-//      }
-//      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
-//      {
-//        char_link_cursor->next = newNode;
-//      }
-//      char_link_cursor = newNode;
-//    }
-//    const_ptr++;
-//  }
-//  return UI_OK;
-//}
-
-
-///**
-// * @brief ½«Á´±íÖĞÓÅÏÈ¼¶¸ßµÄui½á¹¹Ìå´æ´¢µ½Ò»¸öÊı×éÖĞ£¬
-// *        ÔÚµ÷ÓÃ´Ëº¯ÊıÇ°Ó¦¸ÃÏÈµ÷ÓÃmergeSortº¯Êı¶ÔÁ´±í½øĞĞÅÅĞò
-// *
-// * @param dynamic_list_head ¶¯Ì¬UIÁ´±íµÄÍ·½Úµã
-// * @param const_list_head ²»±äUIÁ´±íµÄÍ·½Úµã
-// * @param graphic_buffer ´æ´¢ui½á¹¹ÌåµÄÊı×é
-// * @param character_buffer ´æ´¢×Ö·ûui½á¹¹ÌåµÄÊı×é
-// * @param ui_graphic_buffer_num Í¼ĞÎUI»º´æ¸öÊı
-// * @param ui_send_mode ·¢ËÍÄ£Ê½ 
-// * @return ui_status_e UI_ERROR£ºÁ´±íÎª¿Õ,Ã»ÓĞ³õÊ¼»¯Á´±í
-// */
-//ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_head,ui_info_t* graphic_priority_buffer, ui_info_t* character_priority_buffer, uint8_t* ui_graphic_buffer_num,ui_send_mode_e *ui_send_mode)
-//{
-//  *ui_graphic_buffer_num = 0;//Í¼ĞÎUI»º´æ¸öÊıÇåÁã
-
-//  uint8_t graphic_cnt = 0;
-//  uint8_t buffer_size = 7;
-//  Node_u* dynamic_list_cursor = dynamic_list_head;
-//  static Node_u* const_list_cursor = NULL;
-//  if (const_list_cursor == NULL)
-//  {
-//    const_list_cursor = const_list_head;
-//  }
-//  
-
-//  if (dynamic_list_cursor == NULL && const_list_cursor == NULL)
-//  {
-//    return UI_ERROR; // ÅÜµ½ÕâÀïÖ¤Ã÷Ã»ÓĞ³õÊ¼»¯Á´±í
-//  }
-
-//  //µÚÒ»¸ö½ÚµãÎª×Ö·û£¬·¢ËÍ×Ö·û PRIORITY_LOWµÄ×Ö·û»áÔÚµÚÒ»µÄÊ±ºò·¢ËÍ
-//  if (dynamic_list_cursor != NULL && dynamic_list_cursor->ui->ui_config.ui_type == CHAR)
-//  {
-//    if (dynamic_list_cursor != NULL)
-//    {
-//      *character_priority_buffer = *dynamic_list_cursor->ui;
-//      dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
-//      *ui_send_mode = SEND_CHAR_MODE;
-//      return UI_OK;
-//    }
-//  }
-//  
-//  // Ö¸ÏòÁ´±íµÄÍ·½Úµã²»Îª¿Õ ÇÒ Êı×éÏÂ±êĞ¡ÓÚÊı×é´óĞ¡ ÇÒ µ±Ç°½ÚµãµÄ·¢ËÍ×´Ì¬ÎªÎ´·¢ËÍ
-//  if (dynamic_list_cursor != NULL)
-//  {
-//    while (graphic_cnt < buffer_size && dynamic_list_cursor->ui->sent_state == MESSAGE_NOT_SENT) 
-//    {
-//      if (dynamic_list_cursor->ui->ui_config.ui_type != CHAR)
-//      {
-//        graphic_priority_buffer[graphic_cnt] = *(dynamic_list_cursor->ui);//½«µ±Ç°½ÚµãµÄuiĞÅÏ¢´æ´¢µ½Êı×éÖĞ
-//        dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
-//        graphic_cnt++;//Êı×éÏÂ±ê×ÔÔö
-//        (*ui_graphic_buffer_num)++;//Í¼ĞÎUI»º´æ¸öÊı×ÔÔö
-//      }
-//      else if (dynamic_list_cursor->ui->ui_config.priority == HIGH_PRIORITY)//Èç¹ûµ±Ç°½ÚµãÎª×Ö·ûÇÒÓÅÏÈ¼¶Îª¸ß
-//      {
-//        if (graphic_cnt <= HIGH_CHAR_PRIORITY_LEVEL)
-//        {
-//          //½«Ö®Ç°´æÈëµÄÍ¼ĞÎĞÅÏ¢µÄ·¢ËÍ×´Ì¬±ä»ØÎ´·¢ËÍ
-//          dynamic_list_cursor = dynamic_list_head;
-//          for (uint8_t i = 0; i < graphic_cnt && dynamic_list_cursor->next != NULL; i++)
-//          {
-//            dynamic_list_cursor->ui->sent_state = MESSAGE_NOT_SENT;
-//            dynamic_list_cursor = dynamic_list_cursor->next;
-//          }
-//          //°ÑÒª·¢ËÍµÄ×Ö·ûĞÅÏ¢´æÈëbuffer
-//          *character_priority_buffer = *dynamic_list_cursor->ui;
-//          dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
-//          *ui_send_mode = SEND_CHAR_MODE;
-//          return UI_OK;//·¢ËÍ×Ö·û
-//        }
-//      }
-//      else if (dynamic_list_cursor->ui->ui_config.priority == MID_PRIORITY)//Èç¹ûµ±Ç°½ÚµãÎª×Ö·ûÇÒÓÅÏÈ¼¶ÎªÖĞ
-//      {
-//        if (graphic_cnt <= MID_CHAR_PRIORITY_LEVEL)//´æÈëÍ¼ĞÎbufferµÄ¸öÊıĞ¡ÓÚ5¾Í·¢ËÍ×Ö·û
-//        {
-//          //½«Ö®Ç°´æÈëµÄÍ¼ĞÎĞÅÏ¢µÄ·¢ËÍ×´Ì¬±ä»ØÎ´·¢ËÍ
-//          dynamic_list_cursor = dynamic_list_head;
-//          for (uint8_t i = 0; i < graphic_cnt && dynamic_list_cursor->next != NULL; i++)
-//          {
-//            dynamic_list_cursor->ui->sent_state = MESSAGE_NOT_SENT;
-//            dynamic_list_cursor = dynamic_list_cursor->next;
-//          }
-//          //°ÑÒª·¢ËÍµÄ×Ö·ûĞÅÏ¢´æÈëbuffer
-//          *character_priority_buffer = *dynamic_list_cursor->ui;
-//          dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
-//          *ui_send_mode = SEND_CHAR_MODE;
-//          return UI_OK;//·¢ËÍ×Ö·û
-//        }
-//      }
-
-//      //Èç¹ûÏÂÒ»¸ö½ÚµãÎª¿Õ£¬ÍË³öÑ­»·
-//      if(dynamic_list_cursor->next == NULL)
-//      {
-//        break;
-//      }
-//      dynamic_list_cursor = dynamic_list_cursor->next;//Ö¸ÏòÏÂÒ»¸ö½Úµã
-//    }
-//  }
-//// Ê£ÏÂ²¿·ÖÌîÈë²»±äUI
-//  if (const_list_cursor != NULL)
-//  {
-//    while (graphic_cnt < buffer_size)
-//    {
-//      if (const_list_cursor->ui->ui_config.ui_type != CHAR)
-//      {
-//        graphic_priority_buffer[graphic_cnt] = *(const_list_cursor->ui);//½«µ±Ç°½ÚµãµÄuiĞÅÏ¢´æ´¢µ½Êı×éÖĞ
-//        graphic_priority_buffer[graphic_cnt].ui_config.operate_type = ADD;
-//        graphic_cnt++;//Êı×éÏÂ±ê×ÔÔö
-//        (*ui_graphic_buffer_num)++;//Í¼ĞÎUI»º´æ¸öÊı×ÔÔö
-//      }
-//      //Èç¹ûÏÂÒ»¸ö½ÚµãÎª¿Õ£¬ÍË³öÑ­»·
-//      if(const_list_cursor->next == NULL)
-//      {
-//        const_list_cursor = const_list_head;
-//        break;
-//      }
-//      const_list_cursor = const_list_cursor->next;//Ö¸ÏòÏÂÒ»¸ö½Úµã
-//    }
-//  }
-//  *ui_send_mode = SEND_GRAPHIC_MODE;
-//  return UI_OK;//·¢ËÍÍ¼ĞÎ
-//}
-
-
-///**
-// * @brief ÅäÖÃ×Ö·ûĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå
-// * 
-// * @param ui_info UIĞÅÏ¢½á¹¹Ìå
-// * @param add_operate_enable 1£ºÇ¿ĞĞADD 0£º°´ÕÕUIÅäÖÃµÄoperate_type
-// * @return ext_client_custom_character_t ÅäÖÃºÃµÄ·¢ËÍ½á¹¹Ìå
-// */
-//ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uint8_t add_operate_enable)
-//{
-//  operate_tpye_e operate_tpye;
-//  if (add_operate_enable == 0)
-//  {
-//    operate_tpye = ui_info.ui_config.operate_type;
-//  }
-//  else
-//  {
-//    operate_tpye = ADD;
-//  }
-//  //»ñÈ¡UIÅäÖÃĞÅÏ¢
-//  char *name = ui_info.ui_config.name;
-//  uint8_t layer = ui_info.ui_config.layer;
-//  uint8_t color = ui_info.ui_config.color;
-//  uint16_t size = ui_info.ui_config.size;
-//  uint16_t length = strlen(ui_info.ui_config.text);
-//  uint16_t width = ui_info.ui_config.width;
-//  uint16_t start_x = ui_info.ui_config.start_x;
-//  uint16_t start_y = ui_info.ui_config.start_y;
-//  //ÅäÖÃĞÅÏ¢½ø½á¹¹Ìå
-//  graphic_data_struct_t char_buff;
-//	char_buff = draw_char(name,  //Í¼ĞÎÃû
-//	                      operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                        layer,  //Í¼²ãÊı£¬0~9
-//                        color,  //ÑÕÉ«
-//                        size,  //×ÖÌå´óĞ¡
-//                        length,  //×Ö·û³¤¶È
-//                        width,  //ÏßÌõ¿í¶È
-//                        start_x,  //Æğµã x ×ø±ê
-//                        start_y);  //Æğµã y ×ø±ê
-
-//  //ÅäÖÃ·¢ËÍ½á¹¹Ìå
-//  ext_client_custom_character_t res;
-//  res.grapic_data_struct = char_buff;
-//  memcpy(&res.data,&ui_info.ui_config.text,sizeof(ui_info.ui_config.text));
-
-//  return res;
-//}
-
-///**
-// * @brief ÅäÖÃÍ¼ĞÎĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå
-// * 
-// * @param ui_info UIĞÅÏ¢½á¹¹Ìå
-// * @param add_operate_enable 1£ºÇ¿ĞĞADD 0£º°´ÕÕUIÅäÖÃµÄoperate_type
-// * @return ext_client_custom_graphic_seven_t ÅäÖÃºÃµÄ·¢ËÍ½á¹¹Ìå
-// */
-//ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, uint8_t ui_info_size, uint8_t add_operate_enable)
-//{
-//  ext_client_custom_graphic_seven_t res;
-//  ui_info_t *ui_ptr = ui_info;
-//  for(uint8_t i = 0; i < 7; i++)
-//  {
-//    //ÅĞ¶ÏÊÇ·ñ»áÔ½½ç
-//    if (i >= ui_info_size)
-//    {
-//      return res;
-//    }
-//    //ÅäÖÃ²Ù×÷ÀàĞÍ
-//    operate_tpye_e operate_tpye;
-//    if (add_operate_enable == 0)
-//    {
-//      operate_tpye = ui_ptr->ui_config.operate_type;
-//    }
-//    else
-//    {
-//      operate_tpye = ADD;
-//    }
-//    //»ñÈ¡UIÅäÖÃĞÅÏ¢
-//    char *name = ui_ptr->ui_config.name;
-//    uint8_t layer = ui_ptr->ui_config.layer;
-//    uint8_t color = ui_ptr->ui_config.color;
-//    uint16_t width = ui_ptr->ui_config.width;
-//    uint16_t start_x = ui_ptr->ui_config.start_x;
-//    uint16_t start_y = ui_ptr->ui_config.start_y;
-//    uint16_t end_x = ui_ptr->ui_config.end_x;        
-//    uint16_t end_y = ui_ptr->ui_config.end_y;       
-//    uint16_t radius = ui_ptr->ui_config.radius;      
-//    uint16_t start_angel = ui_ptr->ui_config.start_angel; 
-//    uint16_t end_angel = ui_ptr->ui_config.end_angel;   
-//    uint16_t size = ui_ptr->ui_config.size;
-//    float float_num = ui_ptr->ui_config.float_num; 
-//    uint16_t decimal = ui_ptr->ui_config.decimal;
-//    int32_t int_num = ui_ptr->ui_config.int_num;      
-//    //ÅĞ¶ÏUIÀàĞÍÅäÖÃĞÅÏ¢
-//    switch (ui_ptr->ui_config.ui_type)
-//    {
-//    case LINE:
-//      res.grapic_data_struct[i] = draw_line(name,  //Í¼ĞÎÃû
-//                                            operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                            layer,  //Í¼²ãÊı£¬0~9
-//                                            color,  //ÑÕÉ«
-//                                            width,  //ÏßÌõ¿í¶È
-//                                            start_x,  //Æğµã x ×ø±ê
-//                                            start_y,  //Æğµã y ×ø±ê
-//                                            end_x,  //ÖÕµã x ×ø±ê
-//                                            end_y);  //ÖÕµã y ×ø±ê
-//      break;
-//    case CIRCLE:
-//      res.grapic_data_struct[i] = draw_circle(name,  //Í¼ĞÎÃû
-//                                              operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                              layer,  //Í¼²ãÊı£¬0~9
-//                                              color,  //ÑÕÉ«
-//                                              width,  //ÏßÌõ¿í¶È
-//                                              start_x,  //Ô²ĞÄ x ×ø±ê
-//                                              start_y,  //Ô²ĞÄ y ×ø±ê
-//                                              radius);  //°ë¾¶
-//      break;
-//    case RECTANGEL:
-//      res.grapic_data_struct[i] = draw_rectangle(name,  //Í¼ĞÎÃû
-//                                                 operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                                 layer,  //Í¼²ãÊı£¬0~9
-//                                                 color,  //ÑÕÉ«
-//                                                 width,  //ÏßÌõ¿í¶È
-//                                                 start_x,  //×óÉÏ½Ç x ×ø±ê
-//                                                 start_y,  //×óÉÏ½Ç y ×ø±ê
-//                                                 end_x,  //ÓÒÏÂ½Ç x ×ø±ê
-//                                                 end_y);  //ÓÒÏÂ½Ç y ×ø±ê
-//      break;
-//    case ELLIPSE:
-//      res.grapic_data_struct[i] = draw_ellipse(name,  //Í¼ĞÎÃû
-//                                               operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                               layer,  //Í¼²ãÊı£¬0~9
-//                                               color,  //ÑÕÉ«
-//                                               width,  //ÏßÌõ¿í¶È
-//                                               start_x,  //Ô²ĞÄ x ×ø±ê
-//                                               start_y,  //Ô²ĞÄ y ×ø±ê
-//                                               end_x,  //x °ëÖá³¤¶È
-//                                               end_y);  //y °ëÖá³¤¶È
-//      break;
-//    case ARC:
-//      res.grapic_data_struct[i] = draw_arc(name,  //Í¼ĞÎÃû
-//                                           operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                           layer,  //Í¼²ãÊı£¬0~9
-//                                           color,  //ÑÕÉ«
-//                                           start_angel,  //ÆğÊ¼½Ç¶È
-//                                           end_angel,  //ÖÕÖ¹½Ç¶È
-//                                           width,  //ÏßÌõ¿í¶È
-//                                           start_x,  //Ô²ĞÄ x ×ø±ê
-//                                           start_y,  //Ô²ĞÄ y ×ø±ê
-//                                           end_x,  //x °ëÖá³¤¶È
-//                                           end_y);  //y °ëÖá³¤¶È
-//      break;
-//    case FLOAT:
-//      res.grapic_data_struct[i] = draw_float(name,  //Í¼ĞÎÃû
-//                                             operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                             layer,  //Í¼²ãÊı£¬0~9
-//                                             color,  //ÑÕÉ«
-//                                             size,  //×ÖÌå´óĞ¡
-//                                             decimal,  //¸¡µãÊı
-//                                             width,  //ÏßÌõ¿í¶È
-//                                             start_x,  //Æğµã x ×ø±ê
-//                                             start_y, //Æğµã y ×ø±ê
-//                                             (int32_t) (float_num *1000));//³ËÒÔ 1000 ºó£¬ÒÔ 32 Î»ÕûĞÍÊı£¬int32_t  
-//      break;
-//    case INT:
-//      res.grapic_data_struct[i] = draw_int(name,  //Í¼ĞÎÃû
-//                                           operate_tpye,  //Í¼ĞÎ²Ù×÷
-//                                           layer,  //Í¼²ãÊı£¬0~9
-//                                           color,  //ÑÕÉ«
-//                                           size,  //×ÖÌå´óĞ¡
-//                                           width,  //ÏßÌõ¿í¶È
-//                                           start_x,  //Æğµã x ×ø±ê
-//                                           start_y,  //Æğµã y ×ø±ê
-//                                           int_num);  //ÕûÊı
-//      break;
-//    default:
-//      break;
-//    }
-//    ui_ptr ++;
-//  }
-//  return res;
-//}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-///*UI¹¦ÄÜº¯Êı**************************************************************************************************************/
-//Node_u *dynamic_list_head = NULL; // ¶¯Ì¬UIÁ´±íÍ·
-//Node_u *const_list_head   = NULL; // ²»±äUIÁ´±íÍ·
-//Node_u *graphic_list_head = NULL; // Í¼ĞÎUIÁ´±íÍ·
-//Node_u *char_list_head    = NULL; // ×Ö·ûUIÁ´±íÍ·
-
-//ui_info_t graphic_priority_buffer[7]; // ÓÅÏÈ¼¶×î¸ßµÄ7¸öÍ¼ĞÎ
-//ui_info_t character_priority_buffer;  // ÓÅÏÈ¼¶×î¸ßµÄ×Ö·û
-
-//ui_send_mode_e ui_send_mode; // ·¢ËÍÄ£Ê½
-//uint8_t ui_graphic_buffer_num = 0;   // Í¼ĞÎUI»º´æ¸öÊı
-
-///**
-// * @brief ³õÊ¼»¯UIÁ´±í ÔÚÍâ²¿µ÷ÓÃ Ò»¶¨ÒªÔÚUi_SendÖ®Ç°µ÷ÓÃ
-// * 
-// * @param dynamic_ui_info 
-// * @param dynamic_ui_num 
-// * @param const_ui_info 
-// * @param const_ui_num 
-// */
-//ui_status_e Init_Ui_List(ui_info_t *dynamic_ui_info, uint8_t dynamic_ui_num, ui_info_t *const_ui_info, uint8_t const_ui_num)
-//{
-//  ui_status_e res1,res2,res3;
-//  // ³õÊ¼»¯¶¯Ì¬UIÁ´±í
-//  res1 = Init_Priority_LinkedList(&dynamic_list_head, dynamic_ui_info, dynamic_ui_num);
-//  // ³õÊ¼»¯²»±äUIÁ´±í
-//  res2 = Init_Priority_LinkedList(&const_list_head, const_ui_info, const_ui_num);
-//  // ³õÊ¼»¯Á½¸öÁ´±í£¬½«dynamic_ui_infoºÍconst_ui_infoÁ½¸öÊı×éÖĞ²»ÊÇCHARÀàĞÍµÄUI´æ½øÆäÖĞÒ»¸öÁ´±í£¬ÆäËûÀàĞÍµÄUI´æ½øÁíÒ»¸öÁ´±í
-//  res3 = Init_Type_LinkedLists(&graphic_list_head, &char_list_head, dynamic_ui_info, const_ui_info, dynamic_ui_num, const_ui_num);
-
-//  if (res1*res2*res3 == UI_ERROR)
-//  {
-//    return UI_ERROR;
-//  }
-//  else
-//  {
-//    return UI_OK;
-//  }
-//}
-
-///**
-// * @brief Õı³£·¢ËÍUI
-// * 
-// */
-//ui_status_e Ui_Send_Normal()
-//{
-//  ext_client_custom_graphic_seven_t graphic_tx_buffer;   // Í¼Ïñ·¢ËÍ»º´æ
-//  ext_client_custom_character_t     character_tx_buffer; // ×Ö·û·¢ËÍ»º´æ
-//  //¶Ô¶¯Ì¬UIÁ´±í½øĞĞÅÅĞò
-//  mergeSort(&dynamic_list_head);
-//  //½«ÓÅÏÈ¼¶×î¸ßµÄUIĞÅÏ¢´æ´¢µ½Êı×éÖĞ
-//  
-//  if (Store_High_Priority_UI(dynamic_list_head, const_list_head, graphic_priority_buffer, &character_priority_buffer, &ui_graphic_buffer_num,&ui_send_mode) == UI_ERROR)
-//  {
-//    return UI_ERROR; // Ã»ÓĞ³õÊ¼»¯Á´±í
-//  }
-//  //¸ù¾İ·¢ËÍÄ£Ê½½øĞĞ·¢ËÍ
-//  switch (ui_send_mode)
-//  {
-//  case SEND_CHAR_MODE:
-//    character_tx_buffer = Process_Char_Info_To_Buffer(character_priority_buffer, 0);
-//    client_send_char(character_tx_buffer);
-//    break;
-//  case SEND_GRAPHIC_MODE:
-//    graphic_tx_buffer = Process_Graphic_To_Buffer(graphic_priority_buffer, ui_graphic_buffer_num, 0);
-//    client_send_seven_graphic(graphic_tx_buffer);
-//    break;
-//  default:
-//    break;
-//  }  
-//  return UI_OK;
-//}
-
-///**
-// * @brief UIÇ¿ĞĞ·¢ËÍADD        
-// * @return ui_status_e 0£ºerror 1:·¢ËÍÍêÁË 2:Ã»·¢ËÍÍê
-// */
-//ui_status_e Ui_Send_Add()
-//{
-//  static uint8_t is_send_char_finish_flag = false;
-//  static uint8_t is_send_graphic_finish_flag = false;
-
-//  static Node_u* graphic_list_cursor = NULL;
-//  static Node_u* char_list_cursor = NULL;
-
-///*ÅĞ¶Ïgraphic_listºÍchar_list_headÓĞÄ³¶«Î÷*******************************/
-//  if (graphic_list_head == NULL)
-//  {
-//    is_send_graphic_finish_flag = true;//Ä³‡S¾Íµ±·¢ÍêÁË†ª
-//  }
-//  if (char_list_head == NULL)
-//  {
-//    is_send_char_finish_flag = true;//Ä³‡S¾Íµ±·¢ÍêÁË†ª
-//  }
-///*ÅĞ¶ÏÊÇµÚÒ»´Î½øÀ´£¬³õÊ¼»¯¹â±ê******************************************/
-//  if (graphic_list_cursor == NULL && graphic_list_head != NULL)
-//  {
-//    graphic_list_cursor = graphic_list_head;
-//  }
-//  if (char_list_cursor == NULL && char_list_head != NULL)
-//  {
-//    char_list_cursor = char_list_head;
-//  }
-///*³õÊ¼»¯·¢ËÍ»º´æ******************************************/
-//  ext_client_custom_graphic_seven_t graphic_tx_buffer;   // Í¼Ïñ·¢ËÍ»º´æ
-//  ext_client_custom_character_t     character_tx_buffer; // ×Ö·û·¢ËÍ»º´æ
-//  ui_info_t graphic_info_buffer[7];                      // 7¸ö´ı·¢ËÍÍ¼ĞÎĞÅÏ¢
-///*ÓÅÏÈ·¢ËÍ×Ö·û******************************************/
-//  if (char_list_cursor != NULL && is_send_char_finish_flag == false)
-//  {
-//    if (char_list_cursor->next == NULL)//Èç¹ûµ½ÁËÁ´±íÎ²²¿£¬¾Í·¢ËÍ×îºóÒ»´Î
-//    {
-//      character_tx_buffer = Process_Char_Info_To_Buffer(*char_list_cursor->ui, 1);
-//      client_send_char(character_tx_buffer);
-//      is_send_char_finish_flag = true;
-//      return UI_BUSY;
-//    }
-//    character_tx_buffer = Process_Char_Info_To_Buffer(*char_list_cursor->ui, 1);
-//    client_send_char(character_tx_buffer);
-//		char_list_cursor = char_list_cursor->next;
-//    return UI_BUSY;
-
-//  }
-///*·¢ËÍÍ¼ĞÎ******************************************/
-//  if (graphic_list_cursor != NULL && is_send_graphic_finish_flag == false)
-//  {
-//    //´ÓÁ´±íÖĞÈ¡³ö7¸öÍ¼ĞÎĞÅÏ¢
-//    for (uint8_t i = 0; i < 7 ; i++)
-//    {
-//      if (graphic_list_cursor->next == NULL)//Èç¹ûµ½ÁËÁ´±íÎ²²¿£¬¾Í·¢ËÍÍêÁË
-//      {
-//        graphic_info_buffer[i] = *graphic_list_cursor->ui;
-//        is_send_graphic_finish_flag = true;
-//        ui_graphic_buffer_num = i + 1;
-//        break;
-//      }
-//      graphic_info_buffer[i] = *graphic_list_cursor->ui;
-//      graphic_list_cursor = graphic_list_cursor->next;
-//      ui_graphic_buffer_num = i + 1;
-//    }
-//    graphic_tx_buffer = Process_Graphic_To_Buffer(graphic_info_buffer, ui_graphic_buffer_num, 1);
-//    client_send_seven_graphic(graphic_tx_buffer);
-//    return UI_BUSY;
-//  }
-//	/*ÅĞ¶ÏÊÇ·ñ¶¼·¢ÍêÁË******************************************/
-//	if (is_send_char_finish_flag == true && is_send_graphic_finish_flag == true)//¶¼·¢ÍêÁË
-//  {
-//    //¸´Î»£¬µÈ´ıÏÂÒ»´Î·¢ËÍ
-//    char_list_cursor = char_list_head;//»Øµ½Í·½Úµã
-//    graphic_list_cursor = graphic_list_head;//»Øµ½Í·½Úµã
-//    is_send_char_finish_flag = false;
-//    is_send_graphic_finish_flag = false;
-//    return UI_OK;//·µ»Ø1£¬Ö¤Ã÷·¢ËÍÍêÁË
-//  }
-//  
-//  return UI_ERROR;//ßíÓ¦¸ÃÅÜµ½Äáµ½
-//}
-
-///**
-// * @brief ·¢ËÍUI ÔÚÍâ²¿µ÷ÓÃ
-// * 
-// */
-//void Ui_Send()
-//{
-//  /*ÅĞ¶ÏÊÇ·ñµ½ÁË·¢ËÍÊ±¼ä****************************/
-//  uint32_t currentTick = HAL_GetTick();
-//  static uint32_t lastTick = 0;
-//  if (currentTick - lastTick < SEND_INTERVAL)
-//  {
-//    return;
-//  }
-//  /*ÊÕµ½³õÊ¼»¯Ö¸ÁîÇĞ»»±êÖ¾Î»**********************/
-//  static uint8_t is_initing_ui = 0;
-//  if (Init_Ui_Condition())
-//  {
-//    if (is_initing_ui == 0)
-//    {
-//      is_initing_ui = 1;
-//    }
-//  }
-//  /*ÅĞ¶ÏÊÇ·ñÕıÔÚ³õÊ¼»¯****************************/
-//  static uint8_t init_times = 0;
-//  if (is_initing_ui == 1)//ÕıÔÚ³õÊ¼»¯UI
-//  {
-//    if (Ui_Send_Add() == 1)
-//    {
-//      init_times++; // ³õÊ¼»¯ÍêÒ»´Î£¬´ÎÊı¼ÓÒ»
-//    }
-//    if (init_times >= PER_INIT_UI_TIMES)//³õÊ¼»¯ÍêPER_INIT_UI_TIMES´Î
-//    {
-//      is_initing_ui = 0;//³õÊ¼»¯Íê±Ï
-//      init_times = 0;
-//    }
-//  }
-//	else/*Õı³£·¢ËÍUI*/
-//	{		
-//    Ui_Send_Normal();
-//	}
-//	lastTick = HAL_GetTick();
-//}
-
-///**
-// * @brief ¸üĞÂÍêUIĞÅÏ¢ºóµ÷ÓÃ´Ëº¯Êı½«UIÉèÎª×¼±¸·¢ËÍ×´Ì¬
-// * 
-// * @param ui_info 
-// */
-//ui_status_e Enqueue_Ui_For_Sending(ui_info_t *ui_info)
-//{
-//  if (ui_info == NULL)
-//  {
-//    return UI_ERROR;
-//  }
-
-//  if (ui_info->sent_state == MESSAGE_SENT)//·¢¹ıÏÈ¸üĞÂÊ±¼ä£¬Î´ÏÈÖ®Ç°Ò»Ö±Ä³·¢ÓÖ¸üĞÂ¾Í»áÒ»Ö±·¢ßí³öÈ¥
-//  {
-//    ui_info->updateTick = HAL_GetTick();
-//  }
-//  
-//  ui_info->sent_state = MESSAGE_NOT_SENT;
-
-//  return UI_OK;
-//}
 /**
  * @file priority_ui.c
  * @author Isaac (1812924685@qq.com)
- * @brief Í¨¹ıÓÅÏÈ¶ÓÁĞÊµÏÖUIÓÅÏÈ¼¶µ÷¶È
- * @version 0.1
+ * @brief é€šè¿‡ä¼˜å…ˆé˜Ÿåˆ—å®ç°UIä¼˜å…ˆçº§è°ƒåº¦
+ * @version 1.1.1
  * @date 2024-04-14
  * 
  * @copyright Copyright (c) 2024
@@ -958,101 +10,110 @@
  */
 /* Includes ------------------------------------------------------------------*/
 #include "ui_priority.h"
+#include <stdio.h>
 #include "rc_sensor.h"
-#include "rp_config.h"
+/*ç”¨æˆ·é…ç½®åŒº******************************************************************************************/
+/*åŠŸèƒ½---------------------------------------------------*/
+#define AUTO_UI_NAME_ENABLE  // è‡ªåŠ¨å‘½å
+/*å‚æ•°---------------------------------------------------*/
+#define HIGH_PRIORITY_WEIGHT 1000 // é«˜ä¼˜å…ˆçº§æƒé‡
+#define MID_PRIORITY_WEIGHT  500  // ä¸­ä¼˜å…ˆçº§æƒé‡
+#define LOW_PRIORITY_WEIGHT  0    // ä½ä¼˜å…ˆçº§æƒé‡
 
-/*ÓÃ»§ÅäÖÃÇø******************************************************************************************/
-#define HIGH_PRIORITY_WEIGHT 1000 // ¸ßÓÅÏÈ¼¶È¨ÖØ
-#define MID_PRIORITY_WEIGHT  500  // ÖĞÓÅÏÈ¼¶È¨ÖØ
-#define LOW_PRIORITY_WEIGHT  0    // µÍÓÅÏÈ¼¶È¨ÖØ
+#define HIGH_CHAR_PRIORITY_LEVEL 7  // é«˜ä¼˜å…ˆçº§å­—ç¬¦æŠ¢å å›¾å½¢UIçš„ç­‰çº§
+#define MID_CHAR_PRIORITY_LEVEL  5  // ä¸­ä¼˜å…ˆçº§å­—ç¬¦æŠ¢å å›¾å½¢UIçš„ç­‰çº§
 
-#define HIGH_CHAR_PRIORITY_LEVEL 7  // ¸ßÓÅÏÈ¼¶×Ö·ûÇÀÕ¼Í¼ĞÎUIµÄµÈ¼¶
-#define MID_CHAR_PRIORITY_LEVEL  5  // ÖĞÓÅÏÈ¼¶×Ö·ûÇÀÕ¼Í¼ĞÎUIµÄµÈ¼¶
-
-#define SEND_INTERVAL        100 // ·¢ËÍ¼ä¸ôÊ±¼ä(MS) [²ÃÅĞÏµÍ³ÉÏÏŞÊÇ10HZ]
-#define PER_INIT_UI_TIMES    1   // Ã¿´Î³õÊ¼»¯µÄUI´ÎÊı
+#define SEND_INTERVAL        100 // å‘é€é—´éš”æ—¶é—´(MS) [è£åˆ¤ç³»ç»Ÿä¸Šé™æ˜¯10HZ]
+#define PER_INIT_UI_TIMES    1   // æ¯æ¬¡åˆå§‹åŒ–çš„UIæ¬¡æ•°
 
 /**
- * @brief ÓÃ»§¶¨Òå³õÊ¼»¯UIµÄÌõ¼ş(ËùÓĞ·¢ADD)
+ * @brief ç”¨æˆ·å®šä¹‰åˆå§‹åŒ–UIçš„æ¡ä»¶(æ‰€æœ‰å‘ADD)
  * 
- * @return true ¿ªÊ¼³õÊ¼»¯
- * @return false Õı³£·¢ËÍ
+ * @return true å¼€å§‹åˆå§‹åŒ–
+ * @return false æ­£å¸¸å‘é€
  */
+uint8_t init_test;
 bool Init_Ui_Condition()
 {
-//	static uint8_t s1_value_last = 0;	
-//	
-//  if (s1_value_last != rc.base_info->s1.value)
-//  {
-//    return false;
-//  }
-//  else
-//  {
-//    return true;
-//  }
-//	
-//	s1_value_last = rc.base_info->s1.value;
-	
-	  static uint8_t rc_status_last = DEV_OFFLINE;
-	  
-	  if(rc_sensor.work_state == DEV_ONLINE && rc_status_last == DEV_OFFLINE)
-		{
-			rc_status_last = rc_sensor.work_state;
-			return true;
-		}
-		else
-		{
-			rc_status_last = rc_sensor.work_state;
-			return false;
-		}
+    static uint8_t rc_status_last = DEV_OFFLINE;
+    static uint8_t s1_value_last;
+    static uint32_t last_rc_offline_time = 0;
 
-//    static uint16_t refresh_time = 0;
-//		
-//		refresh_time++;
-//		if(refresh_time >= 1500)//3s³õÊ¼»¯Ò»´Î
-//		{
-//			refresh_time = 0;
-//			return true;
-//		}
-//		else
-//		{
-//			return false;
-//		}
+    uint8_t rc_online_rising_edge = 0;
+    uint8_t s1_changed = 0;
+
+    // é¥æ§ä»ç¦»çº¿åˆ°ä¸Šçº¿æ—¶ï¼Œè§¦å‘ä¸€æ¬¡å…¨é‡ADDåˆå§‹åŒ–
+    if (rc_sensor.work_state == DEV_ONLINE && rc_status_last == DEV_OFFLINE)
+    {
+        rc_online_rising_edge = 1;
+        last_rc_offline_time = 0; // é‡ç½®ç¦»çº¿è®¡æ—¶
+    }
+
+    // é¥æ§ç¦»çº¿æ—¶ï¼Œæ¯éš”10sè§¦å‘ä¸€æ¬¡å…¨é‡ADDåˆå§‹åŒ–
+    if (rc_sensor.work_state == DEV_OFFLINE)
+    {
+        if (last_rc_offline_time == 0)
+        {
+            last_rc_offline_time = HAL_GetTick();
+        }
+        else if ((HAL_GetTick() - last_rc_offline_time) >= 10000) // 10s = 10000ms
+        {
+            last_rc_offline_time = HAL_GetTick();
+            return true;
+        }
+        if (HAL_GetTick() == 100)
+        {
+            return true;
+        }
+    }
+    else
+    {
+        last_rc_offline_time = 0;
+    }
+
+    // S1æ‹¨æ†çŠ¶æ€å˜åŒ–æ—¶ï¼Œè§¦å‘ä¸€æ¬¡å…¨é‡ADDåˆå§‹åŒ–
+    if (s1_value_last != rc_sensor.info->s1)
+    {
+        s1_changed = 1;
+    }
+
+    rc_status_last = rc_sensor.work_state;
+    s1_value_last = rc_sensor.info->s1;
+
+    if (rc_online_rising_edge || s1_changed)
+    {
+        return true;
+    }
+
+    return false;
 }
 
+/*ç›®å½•******************************************************************************************/
+
+// æ’åˆ—ç›¸å…³å‡½æ•°
+    /*è®¡ç®—æ¶ˆæ¯çš„ä¼˜å…ˆçº§*/uint32_t Calculate_Priority(ui_info_t *msg);                                     
+    /*åˆå¹¶ä¸¤ä¸ªæœ‰åºé“¾è¡¨*/Node_u *SortedMerge(Node_u *a, Node_u *b);     
+    /*å°†é“¾è¡¨åˆ†æˆä¸¤åŠ*/void FrontBackSplit(Node_u *source, Node_u **frontRef, Node_u **backRef);
+    /*ä½¿ç”¨åˆ†æ²»ç®—æ³•æ¥å¯¹é“¾è¡¨è¿›è¡Œæ’åº*/void mergeSort(Node_u **headRef);    
+    /*å°†é“¾è¡¨ä¸­ä¼˜å…ˆçº§é«˜çš„uiç»“æ„ä½“å­˜å‚¨åˆ°ä¸€ä¸ªæ•°ç»„ä¸­*/ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_head,ui_info_t* graphic_priority_buffer, ui_info_t* character_priority_buffer, uint8_t* ui_graphic_buffer_num,ui_send_mode_e *ui_send_mode);
 
 
+// åˆå§‹åŒ–é“¾è¡¨å‡½æ•°
+    /*åˆå§‹åŒ–ä¼˜å…ˆé˜Ÿåˆ—*/ui_status_e Init_Priority_LinkedList(Node_u** headRef, ui_info_t *ui_input, uint8_t num); 
+    /*åˆå§‹åŒ–ä¸¤ä¸ªé“¾è¡¨*/ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_info_t *dynamic_ui_info, ui_info_t *const_ui_info, uint8_t dynamic_num, uint8_t const_num); 
 
+// é…ç½®å‘é€ç»“æ„ä½“å‡½æ•°
+    /*é…ç½®å­—ç¬¦ä¿¡æ¯è¿›å‘é€ç»“æ„ä½“*/ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uint8_t add_operate_enable); 
+    /*é…ç½®å›¾å½¢ä¿¡æ¯è¿›å‘é€ç»“æ„ä½“*/ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, uint8_t ui_info_size, uint8_t add_operate_enable);
 
+// UIå‘é€å‡½æ•°
+    /*UIæ­£å¸¸å‘é€*/ui_status_e Ui_Send_Normal();
+    /*UIå¼ºè¡Œå‘é€ADD*/ui_status_e Ui_Send_Add();
 
-
-
-
-/*Ä¿Â¼******************************************************************************************/
-
-// ÅÅÁĞÏà¹Øº¯Êı
-    /*¼ÆËãÏûÏ¢µÄÓÅÏÈ¼¶*/uint32_t Calculate_Priority(ui_info_t *msg);                                     
-    /*ºÏ²¢Á½¸öÓĞĞòÁ´±í*/Node_u *SortedMerge(Node_u *a, Node_u *b);     
-    /*½«Á´±í·Ö³ÉÁ½°ë*/void FrontBackSplit(Node_u *source, Node_u **frontRef, Node_u **backRef);
-    /*Ê¹ÓÃ·ÖÖÎËã·¨À´¶ÔÁ´±í½øĞĞÅÅĞò*/void mergeSort(Node_u **headRef);    
-    /*½«Á´±íÖĞÓÅÏÈ¼¶¸ßµÄui½á¹¹Ìå´æ´¢µ½Ò»¸öÊı×éÖĞ*/ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_head,ui_info_t* graphic_priority_buffer, ui_info_t* character_priority_buffer, ui_send_mode_e *ui_send_mode); 
-
-// ³õÊ¼»¯Á´±íº¯Êı
-    /*³õÊ¼»¯ÓÅÏÈ¶ÓÁĞ*/ui_status_e Init_Priority_LinkedList(Node_u** headRef, ui_info_t *ui_input, uint8_t num); 
-    /*³õÊ¼»¯Á½¸öÁ´±í*/ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_info_t *dynamic_ui_info, ui_info_t *const_ui_info, uint8_t dynamic_num, uint8_t const_num); 
-
-// ÅäÖÃ·¢ËÍ½á¹¹Ìåº¯Êı
-    /*ÅäÖÃ×Ö·ûĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå*/ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uint8_t add_operate_enable); 
-    /*ÅäÖÃÍ¼ĞÎĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå*/ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, uint8_t ui_info_size, uint8_t add_operate_enable);
-
-// UI·¢ËÍº¯Êı
-    /*UIÕı³£·¢ËÍ*/ui_status_e Ui_Send_Normal(void);
-    /*UIÇ¿ĞĞ·¢ËÍADD*/ui_status_e Ui_Send_Add(void);
-
-// ÓÃ»§º¯Êı
-    /*³õÊ¼»¯UIÁ´±í*/ui_status_e Init_Ui_List(ui_info_t *dynamic_ui_info, uint8_t dynamic_ui_num, ui_info_t *const_ui_info, uint8_t const_ui_num);
-    /*UI·¢ËÍº¯Êı*/void Ui_Send(void);
-    /*Ìí¼Ó¶ÔÓ¦UIµ½´ı·¢ËÍ*/ ui_status_e Enqueue_Ui_For_Sending(ui_info_t *ui_info);
+// ç”¨æˆ·å‡½æ•°
+    /*åˆå§‹åŒ–UIé“¾è¡¨*/ui_status_e Init_Ui_List(ui_info_t *dynamic_ui_info, uint8_t dynamic_ui_num, ui_info_t *const_ui_info, uint8_t const_ui_num);
+    /*UIå‘é€å‡½æ•°*/void Ui_Send();
+    /*æ·»åŠ å¯¹åº”UIåˆ°å¾…å‘é€*/ ui_status_e Enqueue_Ui_For_Sending(ui_info_t *ui_info);
 
   
 
@@ -1060,24 +121,25 @@ bool Init_Ui_Condition()
 
 
 
-/*µ×²ãº¯Êı*************************************************************************************************************/
+/*åº•å±‚å‡½æ•°*************************************************************************************************************/
 
 /**
- * @brief ¼ÆËãÏûÏ¢µÄÓÅÏÈ¼¶
+ * @brief è®¡ç®—æ¶ˆæ¯çš„ä¼˜å…ˆçº§
  * 
  * @param msg 
- * @note Î´¸üĞÂµÍÓÅÏÈ¼¶×èÈû1000msµÈÓÚÎ´±»×èÈû¸ßÓÅÏÈ¼¶
+ * @note æœªæ›´æ–°ä½ä¼˜å…ˆçº§é˜»å¡1000msç­‰äºæœªè¢«é˜»å¡é«˜ä¼˜å…ˆçº§
  * @return priority_value 
  */
 uint32_t Calculate_Priority(ui_info_t *msg) 
 {
   uint32_t priority_value = 0;
   uint32_t currentTick = HAL_GetTick();
-  uint32_t age = currentTick - msg->updateTick;//ÏûÏ¢µÄÄêÁä
+  uint32_t age = currentTick - msg->updateTick;//æ¶ˆæ¯çš„å¹´é¾„
 
-  // ¸ù¾İÏûÏ¢µÄÓÅÏÈ¼¶¼ÆËãÓÅÏÈ¼¶Öµ
+  // æ ¹æ®æ¶ˆæ¯çš„ä¼˜å…ˆçº§è®¡ç®—ä¼˜å…ˆçº§å€¼
   if(msg->ui_config.priority == HIGH_PRIORITY)
   {
+	 
     priority_value = HIGH_PRIORITY_WEIGHT;
   }
   else if(msg->ui_config.priority == MID_PRIORITY)
@@ -1089,7 +151,7 @@ uint32_t Calculate_Priority(ui_info_t *msg)
     priority_value = LOW_PRIORITY_WEIGHT;
   }
 
-  // Î´·¢ËÍµÄÏûÏ¢¼ÓÉÏµÈ´ıÊ±¼ä¼ÓÈ¨
+  // æœªå‘é€çš„æ¶ˆæ¯åŠ ä¸Šç­‰å¾…æ—¶é—´åŠ æƒ
   if(msg->sent_state == MESSAGE_NOT_SENT)
   {
     priority_value += age ;
@@ -1099,7 +161,7 @@ uint32_t Calculate_Priority(ui_info_t *msg)
 }
 /**
  * @brief 
- * 
+ * @note å½“ä¸¤ä¸ªé“¾è¡¨ä¸­ä»»æ„ä¸€ä¸ªä¸ºç©ºæ—¶ é€’å½’åœæ­¢ï¼Œç›´æ¥è¿”å›å¦ä¸€ä¸ªé“¾è¡¨çš„å‰©ä½™éƒ¨åˆ†
  * @param a 
  * @param b 
  * @return Node* 
@@ -1116,7 +178,7 @@ Node_u* SortedMerge(Node_u* a, Node_u* b)
   a->ui->priority_value = Calculate_Priority(a->ui);
   b->ui->priority_value = Calculate_Priority(b->ui);
 
-//ÓÅÏÈÅĞ¶ÏÏûÏ¢ÊÇ·ñ·¢ËÍ(Î´·¢ËÍµÄÏûÏ¢ÓÅÏÈ¼¶×î¸ß)
+//ä¼˜å…ˆåˆ¤æ–­æ¶ˆæ¯æ˜¯å¦å‘é€(æœªå‘é€çš„æ¶ˆæ¯ä¼˜å…ˆçº§æœ€é«˜)
   if (a->ui->sent_state == MESSAGE_NOT_SENT && b->ui->sent_state == MESSAGE_SENT)
   {
     res = a;
@@ -1127,7 +189,7 @@ Node_u* SortedMerge(Node_u* a, Node_u* b)
     res = b;
     res->next = SortedMerge(a, b->next);
   }
-//·¢ËÍ×´Ì¬ÏàÍ¬£¬ÅĞ¶ÏÓÅÏÈ¼¶
+//å‘é€çŠ¶æ€ç›¸åŒï¼Œåˆ¤æ–­ä¼˜å…ˆçº§
   else if (a->ui->priority_value >= b->ui->priority_value) 
   {
     res = a;
@@ -1143,11 +205,11 @@ Node_u* SortedMerge(Node_u* a, Node_u* b)
 }
 
 /**
- * @brief ÓÃÓÚ½«Ò»¸öÁ´±í·Ö³ÉÁ½°ë,ÔÚmergeSortÖĞµ÷ÓÃ
+ * @brief ç”¨äºå°†ä¸€ä¸ªé“¾è¡¨åˆ†æˆä¸¤åŠ,åœ¨mergeSortä¸­è°ƒç”¨
  * 
- * @param source ±íÍ·µØÖ·
- * @param frontRef ÓÃÓÚ´¢´æÇ°°ë¶ÎµÄ¿ªÊ¼µØÖ·
- * @param backRef ÓÃÓÚ´¢´æºó°ë¶ÎµÄ¿ªÊ¼µØÖ·
+ * @param source è¡¨å¤´åœ°å€
+ * @param frontRef ç”¨äºå‚¨å­˜å‰åŠæ®µçš„å¼€å§‹åœ°å€
+ * @param backRef ç”¨äºå‚¨å­˜ååŠæ®µçš„å¼€å§‹åœ°å€
  */
 void FrontBackSplit(Node_u* source, Node_u** frontRef, Node_u** backRef)
 {
@@ -1156,9 +218,9 @@ void FrontBackSplit(Node_u* source, Node_u** frontRef, Node_u** backRef)
    slow = source;
    fast = source->next;
  
-   // Ê¹ÓÃ¿ìÂıÖ¸Õë·¨À´ÕÒµ½Á´±íµÄÖĞµã
-   // ¿ìÖ¸ÕëÃ¿´ÎÒÆ¶¯Á½¸ö½Úµã£¬ÂıÖ¸ÕëÃ¿´ÎÒÆ¶¯Ò»¸ö½Úµã
-   // µ±¿ìÖ¸Õëµ½´ïÁ´±íµÄÄ©Î²Ê±£¬ÂıÖ¸Õë¾ÍÔÚÁ´±íµÄÖĞµã
+   // ä½¿ç”¨å¿«æ…¢æŒ‡é’ˆæ³•æ¥æ‰¾åˆ°é“¾è¡¨çš„ä¸­ç‚¹
+   // å¿«æŒ‡é’ˆæ¯æ¬¡ç§»åŠ¨ä¸¤ä¸ªèŠ‚ç‚¹ï¼Œæ…¢æŒ‡é’ˆæ¯æ¬¡ç§»åŠ¨ä¸€ä¸ªèŠ‚ç‚¹
+   // å½“å¿«æŒ‡é’ˆåˆ°è¾¾é“¾è¡¨çš„æœ«å°¾æ—¶ï¼Œæ…¢æŒ‡é’ˆå°±åœ¨é“¾è¡¨çš„ä¸­ç‚¹
    while (fast != NULL) {
       fast = fast->next;
       if (fast != NULL) {
@@ -1167,16 +229,16 @@ void FrontBackSplit(Node_u* source, Node_u** frontRef, Node_u** backRef)
       }
    }
  
-   // ½«Á´±í·Ö³ÉÁ½°ë
-   // Ç°°ë²¿·ÖµÄÍ·½ÚµãÊÇsource£¬ºó°ë²¿·ÖµÄÍ·½ÚµãÊÇslow->next
+   // å°†é“¾è¡¨åˆ†æˆä¸¤åŠ
+   // å‰åŠéƒ¨åˆ†çš„å¤´èŠ‚ç‚¹æ˜¯sourceï¼ŒååŠéƒ¨åˆ†çš„å¤´èŠ‚ç‚¹æ˜¯slow->next
    *frontRef = source;
    *backRef = slow->next;
    slow->next = NULL;
 }
 
 /**
- * @brief Ê¹ÓÃ·ÖÖÎËã·¨À´¶ÔÁ´±í½øĞĞÅÅĞò
- * 
+ * @brief ä½¿ç”¨åˆ†æ²»ç®—æ³•æ¥å¯¹é“¾è¡¨è¿›è¡Œæ’åº
+ * @note  æ ¹æ®é€’å½’çš„ç‰¹æ€§ï¼Œåªæœ‰åˆ†è£‚åˆ°ä¸€ä¸ªèŠ‚ç‚¹æˆ–è€…é“¾è¡¨ä¸ºç©ºæ—¶æ‰å¼€å§‹æ’åºå’Œåˆå¹¶
  * @param headRef 
  */
 void mergeSort(Node_u** headRef)
@@ -1185,99 +247,99 @@ void mergeSort(Node_u** headRef)
    Node_u* a;
    Node_u* b;
  
-   // Èç¹ûÁ´±íÎª¿Õ£¬»òÕßÁ´±íÖ»ÓĞÒ»¸ö½Úµã£¬ÄÇÃ´Á´±íÒÑ¾­ÊÇÅÅĞòµÄ£¬Ö±½Ó·µ»Ø
+   // å¦‚æœé“¾è¡¨ä¸ºç©ºï¼Œæˆ–è€…é“¾è¡¨åªæœ‰ä¸€ä¸ªèŠ‚ç‚¹ï¼Œé‚£ä¹ˆé“¾è¡¨å·²ç»æ˜¯æ’åºçš„ï¼Œç›´æ¥è¿”å›
    if ((head == NULL) || (head->next == NULL)) {
       return;
    }
  
-   // Ê¹ÓÃFrontBackSplitº¯Êı½«Á´±í·Ö³ÉÁ½°ë
+   // ä½¿ç”¨FrontBackSplitå‡½æ•°å°†é“¾è¡¨åˆ†æˆä¸¤åŠ
    FrontBackSplit(head, &a, &b);
  
-   // ¶ÔÃ¿Ò»°ëµİ¹éµØ½øĞĞ¹é²¢ÅÅĞò
+   // åˆ†è£‚åç»™æ¯ä¸€åŠå†åˆ†è£‚ï¼Œå¹¶ä¸‹ä¸€ä¸ªæ’åºå’Œåˆå¹¶çš„æŒ‡ä»¤ï¼Œç­‰é€’å½’å›æ¥çš„æ—¶å€™å°±æ‰§è¡ŒæŒ‡ä»¤
    mergeSort(&a);
    mergeSort(&b);
  
-   // Ê¹ÓÃSortedMergeº¯Êı½«Á½¸öÒÑÅÅĞòµÄ²¿·ÖºÏ²¢³ÉÒ»¸öÍêÕûµÄÅÅĞòÁ´±í
+   // SortedMergeå†…éƒ¨å…ˆæ’åºååˆå¹¶ï¼Œè¿”å›åˆå¹¶åçš„è¡¨å¤´
    *headRef = SortedMerge(a, b);
 }
 
 /**
  * @brief 
  * 
- * @param headRef Á´±íÍ·Ö¸ÕëµÄµØÖ·
- * @param ui_input Òª´æ½øÈ¥µÄUIĞÅÏ¢
- * @param num ui_infoÊı×é³ÉÔ±¸öÊı
+ * @param headRef é“¾è¡¨å¤´æŒ‡é’ˆçš„åœ°å€
+ * @param ui_input è¦å­˜è¿›å»çš„UIä¿¡æ¯
+ * @param num ui_infoæ•°ç»„æˆå‘˜ä¸ªæ•°
  */
 ui_status_e Init_Priority_LinkedList(Node_u** headRef, ui_info_t *ui_input, uint8_t num)
 {
-  // Èç¹ûheadRefÎª¿Õ£¬Ö±½Ó·µ»Ø
+  // å¦‚æœheadRefä¸ºç©ºï¼Œç›´æ¥è¿”å›
   if (headRef == NULL)
   {
-    return UI_ERROR; // Ã»ÓĞÉùÃ÷Á´±íÍ·Ö¸Õë
+    return UI_ERROR; // æ²¡æœ‰å£°æ˜é“¾è¡¨å¤´æŒ‡é’ˆ
   }
   
   Node_u* newNode = NULL;
   Node_u* cursor = *headRef;
   ui_info_t *ui_ptr = ui_input;
-  // ´´½¨Ò»¸öÁã½á¹¹Ìå
+  // åˆ›å»ºä¸€ä¸ªé›¶ç»“æ„ä½“
   ui_info_t zero_struct;
   memset(&zero_struct, 0, sizeof(ui_info_t));
-  // ±éÀúui_inputÊı×éµÄÆäÓàÔªËØ£¬²¢½«Ã¿¸öÔªËØÌí¼Óµ½Á´±íÖĞ
+  // éå†ui_inputæ•°ç»„çš„å…¶ä½™å…ƒç´ ï¼Œå¹¶å°†æ¯ä¸ªå…ƒç´ æ·»åŠ åˆ°é“¾è¡¨ä¸­
   for (uint8_t i = 0; i < num; i++) 
   {
-    if (memcmp(ui_ptr, &zero_struct, sizeof(ui_info_t)) != 0)//·ÀÖ¹Ä³Ğ©Éµ±Æ×¢ÊÍµôÁË£¬½á¹¹Ìå²»È«¶¼ÊÇÓĞ¶«Î÷
+    if (memcmp(ui_ptr, &zero_struct, sizeof(ui_info_t)) != 0)//é˜²æ­¢æŸäº›å‚»é€¼æ³¨é‡Šæ‰äº†ï¼Œç»“æ„ä½“ä¸å…¨éƒ½æ˜¯æœ‰ä¸œè¥¿
     {
-      // ´´½¨Ò»¸öĞÂµÄ½Úµã
+      // åˆ›å»ºä¸€ä¸ªæ–°çš„èŠ‚ç‚¹
       newNode = (Node_u*)malloc(sizeof(Node_u));
       if (newNode == NULL)
       {
-        return UI_ERROR; // heapÌ«Ğ¡£¬ÉêÇë²»ÁËÄÚ´æ
+        return UI_ERROR; // heapå¤ªå°ï¼Œç”³è¯·ä¸äº†å†…å­˜
       }
       newNode->ui = ui_ptr;
       newNode->next = NULL;
 
-      if (*headRef == NULL)//Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
+      if (*headRef == NULL)//å¦‚æœé“¾è¡¨ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹è®¾ç½®ä¸ºé“¾è¡¨çš„å¤´èŠ‚ç‚¹
       {
         *headRef = newNode;
       }
       else
       {
-        // ½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
+        // å°†æ–°èŠ‚ç‚¹æ·»åŠ åˆ°é“¾è¡¨çš„æœ«å°¾
         cursor->next = newNode;
       }
       cursor = newNode;
     }
-    // Ôö¼ÓÖ¸ÕëÒÔ·ÃÎÊÏÂÒ»¸öÔªËØ
+    // å¢åŠ æŒ‡é’ˆä»¥è®¿é—®ä¸‹ä¸€ä¸ªå…ƒç´ 
     ui_ptr++;
   }
   return UI_OK;
 }
 
 /**
- * @brief ³õÊ¼»¯Á½¸öÁ´±í£¬½«dynamic_ui_infoºÍconst_ui_infoÁ½¸öÊı×éÖĞ²»ÊÇCHARÀàĞÍµÄUI´æ½øÆäÖĞÒ»¸öÁ´±í£¬ÆäËûÀàĞÍµÄUI´æ½øÁíÒ»¸öÁ´±í
+ * @brief åˆå§‹åŒ–ä¸¤ä¸ªé“¾è¡¨ï¼Œå°†dynamic_ui_infoå’Œconst_ui_infoä¸¤ä¸ªæ•°ç»„ä¸­ä¸æ˜¯CHARç±»å‹çš„UIå­˜è¿›å…¶ä¸­ä¸€ä¸ªé“¾è¡¨ï¼Œå…¶ä»–ç±»å‹çš„UIå­˜è¿›å¦ä¸€ä¸ªé“¾è¡¨
  * 
- * @param graphic_link ´æ·ÅÍ¼ÏñÁ´±íÍ·Ö¸ÕëµÄµØÖ·
- * @param char_link ´æ·Å×Ö·ûÁ´±íÍ·Ö¸ÕëµÄµØÖ·
- * @param dynamic_ui_info ¶¯Ì¬UIĞÅÏ¢Êı×é
- * @param const_ui_info ¾²Ì¬UIĞÅÏ¢Êı×é
- * @param dynamic_num ¶¯Ì¬UIĞÅÏ¢Êı×é³ÉÔ±¸öÊı
- * @param const_num ¾²Ì¬UIĞÅÏ¢Êı×é³ÉÔ±¸öÊı
+ * @param graphic_link å­˜æ”¾å›¾åƒé“¾è¡¨å¤´æŒ‡é’ˆçš„åœ°å€
+ * @param char_link å­˜æ”¾å­—ç¬¦é“¾è¡¨å¤´æŒ‡é’ˆçš„åœ°å€
+ * @param dynamic_ui_info åŠ¨æ€UIä¿¡æ¯æ•°ç»„
+ * @param const_ui_info é™æ€UIä¿¡æ¯æ•°ç»„
+ * @param dynamic_num åŠ¨æ€UIä¿¡æ¯æ•°ç»„æˆå‘˜ä¸ªæ•°
+ * @param const_num é™æ€UIä¿¡æ¯æ•°ç»„æˆå‘˜ä¸ªæ•°
  */
 ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_info_t *dynamic_ui_info, ui_info_t *const_ui_info, uint8_t dynamic_num, uint8_t const_num)
 {
   if (graphic_link == NULL || char_link == NULL)
   {
-    return UI_ERROR; // Ã»ÓĞÉùÃ÷Á´±íÍ·Ö¸Õë
+    return UI_ERROR; // æ²¡æœ‰å£°æ˜é“¾è¡¨å¤´æŒ‡é’ˆ
   }
 
   Node_u* graphic_link_cursor = NULL;
   Node_u* char_link_cursor = NULL;
   
-  // ´´½¨Ò»¸öÁã½á¹¹Ìå
+  // åˆ›å»ºä¸€ä¸ªé›¶ç»“æ„ä½“
   ui_info_t zero_struct;
   memset(&zero_struct, 0, sizeof(ui_info_t));
 
-  // ±éÀúdynamic_ui_infoÊı×é£¬½«²»ÊÇCHARÀàĞÍµÄUIÌí¼Óµ½µÚÒ»¸öÁ´±íÖĞ£¬ÆäËûÀàĞÍµÄUIÌí¼Óµ½µÚ¶ş¸öÁ´±íÖĞ
+  // éå†dynamic_ui_infoæ•°ç»„ï¼Œå°†ä¸æ˜¯CHARç±»å‹çš„UIæ·»åŠ åˆ°ç¬¬ä¸€ä¸ªé“¾è¡¨ä¸­ï¼Œå…¶ä»–ç±»å‹çš„UIæ·»åŠ åˆ°ç¬¬äºŒä¸ªé“¾è¡¨ä¸­
   ui_info_t *dynamic_ptr = dynamic_ui_info;
   for (uint8_t i = 0; i < dynamic_num; i++) 
   {
@@ -1286,43 +348,48 @@ ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_
       dynamic_ptr++;
       continue;
     }
-    //·ÖÅäÄÚ´æ´æÈëµ±Ç°µÄUIĞÅÏ¢
+    //åˆ†é…å†…å­˜å­˜å…¥å½“å‰çš„UIä¿¡æ¯
     Node_u* newNode = (Node_u*)malloc(sizeof(Node_u));
     if (newNode == NULL)
     {
-      return UI_ERROR; // heapÌ«Ğ¡£¬ÉêÇë²»ÁËÄÚ´æ
+      return UI_ERROR; // heapå¤ªå°ï¼Œç”³è¯·ä¸äº†å†…å­˜
     }
     newNode->ui = dynamic_ptr;
     newNode->next = NULL;
-    //ÅĞ¶Ïµ±Ç°UIÊÇ·ñÎªCHARÀàĞÍ
+    //ç»™å½“å‰UIå‘½å
+    #ifdef AUTO_UI_NAME_ENABLE
+      char *name = dynamic_ptr->ui_config.name;
+      sprintf(name, "%d", i);
+    #endif
+    //åˆ¤æ–­å½“å‰UIæ˜¯å¦ä¸ºCHARç±»å‹
     if (dynamic_ptr->ui_config.ui_type != CHAR && dynamic_ptr->ui_config.operate_type != DELETE ) 
     {
-      if (*graphic_link == NULL)//Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
+      if (*graphic_link == NULL)//å¦‚æœé“¾è¡¨ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹è®¾ç½®ä¸ºé“¾è¡¨çš„å¤´èŠ‚ç‚¹
       {
         *graphic_link = newNode;
       } 
-      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
+      else //å¦‚æœé“¾è¡¨ä¸ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹æ·»åŠ åˆ°é“¾è¡¨çš„æœ«å°¾
       {
         graphic_link_cursor->next = newNode;
       }
-      graphic_link_cursor = newNode;//¹â±êÖ¸ÏòĞÂ½Úµã
+      graphic_link_cursor = newNode;//å…‰æ ‡æŒ‡å‘æ–°èŠ‚ç‚¹
     } 
-    else if (dynamic_ptr->ui_config.operate_type != DELETE)//Èç¹ûµ±Ç°UIÎªCHARÀàĞÍ
+    else if (dynamic_ptr->ui_config.operate_type != DELETE)//å¦‚æœå½“å‰UIä¸ºCHARç±»å‹
     {
-      if (*char_link == NULL) //Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
+      if (*char_link == NULL) //å¦‚æœé“¾è¡¨ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹è®¾ç½®ä¸ºé“¾è¡¨çš„å¤´èŠ‚ç‚¹
       {
-        *char_link = newNode; //½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
+        *char_link = newNode; //å°†æ–°èŠ‚ç‚¹è®¾ç½®ä¸ºé“¾è¡¨çš„å¤´èŠ‚ç‚¹
       } 
-      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
+      else //å¦‚æœé“¾è¡¨ä¸ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹æ·»åŠ åˆ°é“¾è¡¨çš„æœ«å°¾
       {
         char_link_cursor->next = newNode;
       }
-      char_link_cursor = newNode; //¹â±êÖ¸ÏòĞÂ½Úµã
+      char_link_cursor = newNode; //å…‰æ ‡æŒ‡å‘æ–°èŠ‚ç‚¹
     }
     dynamic_ptr++;
   }
 
-  // ±éÀúconst_ui_infoÊı×é£¬½«²»ÊÇCHARÀàĞÍµÄUIÌí¼Óµ½µÚÒ»¸öÁ´±íÖĞ£¬ÆäËûÀàĞÍµÄUIÌí¼Óµ½µÚ¶ş¸öÁ´±íÖĞ
+  // éå†const_ui_infoæ•°ç»„ï¼Œå°†ä¸æ˜¯CHARç±»å‹çš„UIæ·»åŠ åˆ°ç¬¬ä¸€ä¸ªé“¾è¡¨ä¸­ï¼Œå…¶ä»–ç±»å‹çš„UIæ·»åŠ åˆ°ç¬¬äºŒä¸ªé“¾è¡¨ä¸­
   ui_info_t *const_ptr = const_ui_info;
   for (uint8_t i = 0; i < const_num; i++) 
   {
@@ -1331,34 +398,39 @@ ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_
       const_ptr++;
       continue;
     }
-    //·ÖÅäÄÚ´æ´æÈëµ±Ç°µÄUIĞÅÏ¢
+    //åˆ†é…å†…å­˜å­˜å…¥å½“å‰çš„UIä¿¡æ¯
     Node_u* newNode = (Node_u*)malloc(sizeof(Node_u));
     if (newNode == NULL)
     {
-      return UI_ERROR;// heapÌ«Ğ¡£¬ÉêÇë²»ÁËÄÚ´æ
+      return UI_ERROR;// heapå¤ªå°ï¼Œç”³è¯·ä¸äº†å†…å­˜
     }
     newNode->ui = const_ptr;
     newNode->next = NULL;
-    //ÅĞ¶Ïµ±Ç°UIÊÇ·ñÎªCHARÀàĞÍ
+    //ç»™å½“å‰UIå‘½å
+    #ifdef AUTO_UI_NAME_ENABLE
+      char *name = const_ptr->ui_config.name;
+      sprintf(name, "%d", i + dynamic_num + 1);
+    #endif
+    //åˆ¤æ–­å½“å‰UIæ˜¯å¦ä¸ºCHARç±»å‹
     if (const_ptr->ui_config.ui_type != CHAR && const_ptr->ui_config.operate_type != DELETE) 
     {
-      if (*graphic_link == NULL)//Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
+      if (*graphic_link == NULL)//å¦‚æœé“¾è¡¨ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹è®¾ç½®ä¸ºé“¾è¡¨çš„å¤´èŠ‚ç‚¹
       {
         *graphic_link = newNode;
       } 
-      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
+      else //å¦‚æœé“¾è¡¨ä¸ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹æ·»åŠ åˆ°é“¾è¡¨çš„æœ«å°¾
       {
         graphic_link_cursor->next = newNode;
       }
       graphic_link_cursor = newNode;
     } 
-    else if(const_ptr->ui_config.operate_type != DELETE)//Èç¹ûµ±Ç°UIÎªCHARÀàĞÍ
+    else if(const_ptr->ui_config.operate_type != DELETE)//å¦‚æœå½“å‰UIä¸ºCHARç±»å‹
     {
-      if (*char_link == NULL) //Èç¹ûÁ´±íÎª¿Õ£¬½«ĞÂ½ÚµãÉèÖÃÎªÁ´±íµÄÍ·½Úµã
+      if (*char_link == NULL) //å¦‚æœé“¾è¡¨ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹è®¾ç½®ä¸ºé“¾è¡¨çš„å¤´èŠ‚ç‚¹
       {
         *char_link = newNode;
-      } 
-      else //Èç¹ûÁ´±í²»Îª¿Õ£¬½«ĞÂ½ÚµãÌí¼Óµ½Á´±íµÄÄ©Î²
+      }
+      else //å¦‚æœé“¾è¡¨ä¸ä¸ºç©ºï¼Œå°†æ–°èŠ‚ç‚¹æ·»åŠ åˆ°é“¾è¡¨çš„æœ«å°¾
       {
         char_link_cursor->next = newNode;
       }
@@ -1371,16 +443,21 @@ ui_status_e Init_Type_LinkedLists(Node_u** graphic_link, Node_u** char_link, ui_
 
 
 /**
- * @brief ½«Á´±íÖĞÓÅÏÈ¼¶¸ßµÄui½á¹¹Ìå´æ´¢µ½Ò»¸öÊı×éÖĞ£¬
- *        ÔÚµ÷ÓÃ´Ëº¯ÊıÇ°Ó¦¸ÃÏÈµ÷ÓÃmergeSortº¯Êı¶ÔÁ´±í½øĞĞÅÅĞò
+ * @brief å°†é“¾è¡¨ä¸­ä¼˜å…ˆçº§é«˜çš„uiç»“æ„ä½“å­˜å‚¨åˆ°ä¸€ä¸ªæ•°ç»„ä¸­ï¼Œ
+ *        åœ¨è°ƒç”¨æ­¤å‡½æ•°å‰åº”è¯¥å…ˆè°ƒç”¨mergeSortå‡½æ•°å¯¹é“¾è¡¨è¿›è¡Œæ’åº
  *
- * @param dynamic_list_head ¶¯Ì¬UIÁ´±íµÄÍ·½Úµã
- * @param const_list_head ²»±äUIÁ´±íµÄÍ·½Úµã
- * @param graphic_buffer ´æ´¢ui½á¹¹ÌåµÄÊı×é
- * @return ui_status_e UI_ERROR£ºÁ´±íÎª¿Õ,Ã»ÓĞ³õÊ¼»¯Á´±í
+ * @param dynamic_list_head åŠ¨æ€UIé“¾è¡¨çš„å¤´èŠ‚ç‚¹
+ * @param const_list_head ä¸å˜UIé“¾è¡¨çš„å¤´èŠ‚ç‚¹
+ * @param graphic_buffer å­˜å‚¨uiç»“æ„ä½“çš„æ•°ç»„
+ * @param character_buffer å­˜å‚¨å­—ç¬¦uiç»“æ„ä½“çš„æ•°ç»„
+ * @param ui_graphic_buffer_num å›¾å½¢UIç¼“å­˜ä¸ªæ•°
+ * @param ui_send_mode å‘é€æ¨¡å¼ 
+ * @return ui_status_e UI_ERRORï¼šé“¾è¡¨ä¸ºç©º,æ²¡æœ‰åˆå§‹åŒ–é“¾è¡¨
  */
-ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_head,ui_info_t* graphic_priority_buffer, ui_info_t* character_priority_buffer, ui_send_mode_e *ui_send_mode)
+ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_head,ui_info_t* graphic_priority_buffer, ui_info_t* character_priority_buffer, uint8_t* ui_graphic_buffer_num,ui_send_mode_e *ui_send_mode)
 {
+  *ui_graphic_buffer_num = 0;//å›¾å½¢UIç¼“å­˜ä¸ªæ•°æ¸…é›¶
+
   uint8_t graphic_cnt = 0;
   uint8_t buffer_size = 7;
   Node_u* dynamic_list_cursor = dynamic_list_head;
@@ -1393,108 +470,110 @@ ui_status_e Store_High_Priority_UI(Node_u* dynamic_list_head,Node_u* const_list_
 
   if (dynamic_list_cursor == NULL && const_list_cursor == NULL)
   {
-    return UI_ERROR; // ÅÜµ½ÕâÀïÖ¤Ã÷Ã»ÓĞ³õÊ¼»¯Á´±í
+    return UI_ERROR; // è·‘åˆ°è¿™é‡Œè¯æ˜æ²¡æœ‰åˆå§‹åŒ–é“¾è¡¨
   }
 
-  //µÚÒ»¸ö½ÚµãÎª×Ö·û£¬·¢ËÍ×Ö·û PRIORITY_LOWµÄ×Ö·û»áÔÚµÚÒ»µÄÊ±ºò·¢ËÍ
+  //ç¬¬ä¸€ä¸ªèŠ‚ç‚¹ä¸ºå­—ç¬¦ï¼Œå‘é€å­—ç¬¦ PRIORITY_LOWçš„å­—ç¬¦ä¼šåœ¨ç¬¬ä¸€çš„æ—¶å€™å‘é€
   if (dynamic_list_cursor->ui->ui_config.ui_type == CHAR)
   {
     if (dynamic_list_cursor != NULL)
     {
-      character_priority_buffer = dynamic_list_cursor->ui;
+      *character_priority_buffer = *dynamic_list_cursor->ui;
       dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
       *ui_send_mode = SEND_CHAR_MODE;
       return UI_OK;
     }
   }
   
-  // Ö¸ÏòÁ´±íµÄÍ·½Úµã²»Îª¿Õ ÇÒ Êı×éÏÂ±êĞ¡ÓÚÊı×é´óĞ¡ ÇÒ µ±Ç°½ÚµãµÄ·¢ËÍ×´Ì¬ÎªÎ´·¢ËÍ
+  // æŒ‡å‘é“¾è¡¨çš„å¤´èŠ‚ç‚¹ä¸ä¸ºç©º ä¸” æ•°ç»„ä¸‹æ ‡å°äºæ•°ç»„å¤§å° ä¸” å½“å‰èŠ‚ç‚¹çš„å‘é€çŠ¶æ€ä¸ºæœªå‘é€
   if (dynamic_list_cursor != NULL)
   {
     while (graphic_cnt < buffer_size && dynamic_list_cursor->ui->sent_state == MESSAGE_NOT_SENT) 
     {
       if (dynamic_list_cursor->ui->ui_config.ui_type != CHAR)
       {
-        graphic_priority_buffer[graphic_cnt] = *(dynamic_list_cursor->ui);//½«µ±Ç°½ÚµãµÄuiĞÅÏ¢´æ´¢µ½Êı×éÖĞ
+        graphic_priority_buffer[graphic_cnt] = *(dynamic_list_cursor->ui);//å°†å½“å‰èŠ‚ç‚¹çš„uiä¿¡æ¯å­˜å‚¨åˆ°æ•°ç»„ä¸­
         dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
-        graphic_cnt++;//Êı×éÏÂ±ê×ÔÔö
+        graphic_cnt++;//æ•°ç»„ä¸‹æ ‡è‡ªå¢
+        (*ui_graphic_buffer_num)++;//å›¾å½¢UIç¼“å­˜ä¸ªæ•°è‡ªå¢
       }
-      else if (dynamic_list_cursor->ui->ui_config.priority == HIGH_PRIORITY)//Èç¹ûµ±Ç°½ÚµãÎª×Ö·ûÇÒÓÅÏÈ¼¶Îª¸ß
+      else if (dynamic_list_cursor->ui->ui_config.priority == HIGH_PRIORITY)//å¦‚æœå½“å‰èŠ‚ç‚¹ä¸ºå­—ç¬¦ä¸”ä¼˜å…ˆçº§ä¸ºé«˜
       {
         if (graphic_cnt <= HIGH_CHAR_PRIORITY_LEVEL)
         {
-          //½«Ö®Ç°´æÈëµÄÍ¼ĞÎĞÅÏ¢µÄ·¢ËÍ×´Ì¬±ä»ØÎ´·¢ËÍ
+          //å°†ä¹‹å‰å­˜å…¥çš„å›¾å½¢ä¿¡æ¯çš„å‘é€çŠ¶æ€å˜å›æœªå‘é€
           dynamic_list_cursor = dynamic_list_head;
           for (uint8_t i = 0; i < graphic_cnt && dynamic_list_cursor->next != NULL; i++)
           {
             dynamic_list_cursor->ui->sent_state = MESSAGE_NOT_SENT;
             dynamic_list_cursor = dynamic_list_cursor->next;
           }
-          //°ÑÒª·¢ËÍµÄ×Ö·ûĞÅÏ¢´æÈëbuffer
-          character_priority_buffer = dynamic_list_cursor->ui;
+          //æŠŠè¦å‘é€çš„å­—ç¬¦ä¿¡æ¯å­˜å…¥buffer
+          *character_priority_buffer = *dynamic_list_cursor->ui;
           dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
           *ui_send_mode = SEND_CHAR_MODE;
-          return UI_OK;//·¢ËÍ×Ö·û
+          return UI_OK;//å‘é€å­—ç¬¦
         }
       }
-      else if (dynamic_list_cursor->ui->ui_config.priority == MID_PRIORITY)//Èç¹ûµ±Ç°½ÚµãÎª×Ö·ûÇÒÓÅÏÈ¼¶ÎªÖĞ
+      else if (dynamic_list_cursor->ui->ui_config.priority == MID_PRIORITY)//å¦‚æœå½“å‰èŠ‚ç‚¹ä¸ºå­—ç¬¦ä¸”ä¼˜å…ˆçº§ä¸ºä¸­
       {
-        if (graphic_cnt <= MID_CHAR_PRIORITY_LEVEL)//´æÈëÍ¼ĞÎbufferµÄ¸öÊıĞ¡ÓÚ5¾Í·¢ËÍ×Ö·û
+        if (graphic_cnt <= MID_CHAR_PRIORITY_LEVEL)//å­˜å…¥å›¾å½¢bufferçš„ä¸ªæ•°å°äº5å°±å‘é€å­—ç¬¦
         {
-          //½«Ö®Ç°´æÈëµÄÍ¼ĞÎĞÅÏ¢µÄ·¢ËÍ×´Ì¬±ä»ØÎ´·¢ËÍ
+          //å°†ä¹‹å‰å­˜å…¥çš„å›¾å½¢ä¿¡æ¯çš„å‘é€çŠ¶æ€å˜å›æœªå‘é€
           dynamic_list_cursor = dynamic_list_head;
           for (uint8_t i = 0; i < graphic_cnt && dynamic_list_cursor->next != NULL; i++)
           {
             dynamic_list_cursor->ui->sent_state = MESSAGE_NOT_SENT;
             dynamic_list_cursor = dynamic_list_cursor->next;
           }
-          //°ÑÒª·¢ËÍµÄ×Ö·ûĞÅÏ¢´æÈëbuffer
-          character_priority_buffer = dynamic_list_cursor->ui;
+          //æŠŠè¦å‘é€çš„å­—ç¬¦ä¿¡æ¯å­˜å…¥buffer
+          *character_priority_buffer = *dynamic_list_cursor->ui;
           dynamic_list_cursor->ui->sent_state = MESSAGE_SENT;
           *ui_send_mode = SEND_CHAR_MODE;
-          return UI_OK;//·¢ËÍ×Ö·û
+          return UI_OK;//å‘é€å­—ç¬¦
         }
       }
 
-      //Èç¹ûÏÂÒ»¸ö½ÚµãÎª¿Õ£¬ÍË³öÑ­»·
+      //å¦‚æœä¸‹ä¸€ä¸ªèŠ‚ç‚¹ä¸ºç©ºï¼Œé€€å‡ºå¾ªç¯
       if(dynamic_list_cursor->next == NULL)
       {
         break;
       }
-      dynamic_list_cursor = dynamic_list_cursor->next;//Ö¸ÏòÏÂÒ»¸ö½Úµã
+      dynamic_list_cursor = dynamic_list_cursor->next;//æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
     }
   }
-// Ê£ÏÂ²¿·ÖÌîÈë²»±äUI
+// å‰©ä¸‹éƒ¨åˆ†å¡«å…¥ä¸å˜UI
   if (const_list_cursor != NULL)
   {
     while (graphic_cnt < buffer_size)
     {
       if (const_list_cursor->ui->ui_config.ui_type != CHAR)
       {
-        graphic_priority_buffer[graphic_cnt] = *(const_list_cursor->ui);//½«µ±Ç°½ÚµãµÄuiĞÅÏ¢´æ´¢µ½Êı×éÖĞ
+        graphic_priority_buffer[graphic_cnt] = *(const_list_cursor->ui);//å°†å½“å‰èŠ‚ç‚¹çš„uiä¿¡æ¯å­˜å‚¨åˆ°æ•°ç»„ä¸­
         graphic_priority_buffer[graphic_cnt].ui_config.operate_type = ADD;
-        graphic_cnt++;//Êı×éÏÂ±ê×ÔÔö
+        graphic_cnt++;//æ•°ç»„ä¸‹æ ‡è‡ªå¢
+        (*ui_graphic_buffer_num)++;//å›¾å½¢UIç¼“å­˜ä¸ªæ•°è‡ªå¢
       }
-      //Èç¹ûÏÂÒ»¸ö½ÚµãÎª¿Õ£¬ÍË³öÑ­»·
+      //å¦‚æœä¸‹ä¸€ä¸ªèŠ‚ç‚¹ä¸ºç©ºï¼Œé€€å‡ºå¾ªç¯
       if(const_list_cursor->next == NULL)
       {
         const_list_cursor = const_list_head;
         break;
       }
-      const_list_cursor = const_list_cursor->next;//Ö¸ÏòÏÂÒ»¸ö½Úµã
+      const_list_cursor = const_list_cursor->next;//æŒ‡å‘ä¸‹ä¸€ä¸ªèŠ‚ç‚¹
     }
   }
   *ui_send_mode = SEND_GRAPHIC_MODE;
-  return UI_OK;//·¢ËÍÍ¼ĞÎ
+  return UI_OK;//å‘é€å›¾å½¢
 }
 
 
 /**
- * @brief ÅäÖÃ×Ö·ûĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå
+ * @brief é…ç½®å­—ç¬¦ä¿¡æ¯è¿›å‘é€ç»“æ„ä½“
  * 
- * @param ui_info UIĞÅÏ¢½á¹¹Ìå
- * @param add_operate_enable 1£ºÇ¿ĞĞADD 0£º°´ÕÕUIÅäÖÃµÄoperate_type
- * @return ext_client_custom_character_t ÅäÖÃºÃµÄ·¢ËÍ½á¹¹Ìå
+ * @param ui_info UIä¿¡æ¯ç»“æ„ä½“
+ * @param add_operate_enable 1ï¼šå¼ºè¡ŒADD 0ï¼šæŒ‰ç…§UIé…ç½®çš„operate_type
+ * @return ext_client_custom_character_t é…ç½®å¥½çš„å‘é€ç»“æ„ä½“
  */
 ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uint8_t add_operate_enable)
 {
@@ -1507,7 +586,7 @@ ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uin
   {
     operate_tpye = ADD;
   }
-  //»ñÈ¡UIÅäÖÃĞÅÏ¢
+  //è·å–UIé…ç½®ä¿¡æ¯
   char *name = ui_info.ui_config.name;
   uint8_t layer = ui_info.ui_config.layer;
   uint8_t color = ui_info.ui_config.color;
@@ -1516,19 +595,19 @@ ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uin
   uint16_t width = ui_info.ui_config.width;
   uint16_t start_x = ui_info.ui_config.start_x;
   uint16_t start_y = ui_info.ui_config.start_y;
-  //ÅäÖÃĞÅÏ¢½ø½á¹¹Ìå
+  //é…ç½®ä¿¡æ¯è¿›ç»“æ„ä½“
   graphic_data_struct_t char_buff;
-	char_buff = draw_char(name,  //Í¼ĞÎÃû
-	                      operate_tpye,  //Í¼ĞÎ²Ù×÷
-                        layer,  //Í¼²ãÊı£¬0~9
-                        color,  //ÑÕÉ«
-                        size,  //×ÖÌå´óĞ¡
-                        length,  //×Ö·û³¤¶È
-                        width,  //ÏßÌõ¿í¶È
-                        start_x,  //Æğµã x ×ø±ê
-                        start_y);  //Æğµã y ×ø±ê
+	char_buff = draw_char(name,  //å›¾å½¢å
+	                      operate_tpye,  //å›¾å½¢æ“ä½œ
+                        layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                        color,  //é¢œè‰²
+                        size,  //å­—ä½“å¤§å°
+                        length,  //å­—ç¬¦é•¿åº¦
+                        width,  //çº¿æ¡å®½åº¦
+                        start_x,  //èµ·ç‚¹ x åæ ‡
+                        start_y);  //èµ·ç‚¹ y åæ ‡
 
-  //ÅäÖÃ·¢ËÍ½á¹¹Ìå
+  //é…ç½®å‘é€ç»“æ„ä½“
   ext_client_custom_character_t res;
   res.grapic_data_struct = char_buff;
   memcpy(&res.data,&ui_info.ui_config.text,sizeof(ui_info.ui_config.text));
@@ -1537,11 +616,11 @@ ext_client_custom_character_t Process_Char_Info_To_Buffer(ui_info_t ui_info, uin
 }
 
 /**
- * @brief ÅäÖÃÍ¼ĞÎĞÅÏ¢½ø·¢ËÍ½á¹¹Ìå
+ * @brief é…ç½®å›¾å½¢ä¿¡æ¯è¿›å‘é€ç»“æ„ä½“
  * 
- * @param ui_info UIĞÅÏ¢½á¹¹Ìå
- * @param add_operate_enable 1£ºÇ¿ĞĞADD 0£º°´ÕÕUIÅäÖÃµÄoperate_type
- * @return ext_client_custom_graphic_seven_t ÅäÖÃºÃµÄ·¢ËÍ½á¹¹Ìå
+ * @param ui_info UIä¿¡æ¯ç»“æ„ä½“
+ * @param add_operate_enable 1ï¼šå¼ºè¡ŒADD 0ï¼šæŒ‰ç…§UIé…ç½®çš„operate_type
+ * @return ext_client_custom_graphic_seven_t é…ç½®å¥½çš„å‘é€ç»“æ„ä½“
  */
 ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, uint8_t ui_info_size, uint8_t add_operate_enable)
 {
@@ -1549,12 +628,12 @@ ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, 
   ui_info_t *ui_ptr = ui_info;
   for(uint8_t i = 0; i < 7; i++)
   {
-    //ÅĞ¶ÏÊÇ·ñ»áÔ½½ç
+    //åˆ¤æ–­æ˜¯å¦ä¼šè¶Šç•Œ
     if (i >= ui_info_size)
     {
       return res;
     }
-    //ÅäÖÃ²Ù×÷ÀàĞÍ
+    //é…ç½®æ“ä½œç±»å‹
     operate_tpye_e operate_tpye;
     if (add_operate_enable == 0)
     {
@@ -1564,7 +643,7 @@ ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, 
     {
       operate_tpye = ADD;
     }
-    //»ñÈ¡UIÅäÖÃĞÅÏ¢
+    //è·å–UIé…ç½®ä¿¡æ¯
     char *name = ui_ptr->ui_config.name;
     uint8_t layer = ui_ptr->ui_config.layer;
     uint8_t color = ui_ptr->ui_config.color;
@@ -1580,87 +659,87 @@ ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, 
     float float_num = ui_ptr->ui_config.float_num; 
     uint16_t decimal = ui_ptr->ui_config.decimal;
     int32_t int_num = ui_ptr->ui_config.int_num;      
-    //ÅĞ¶ÏUIÀàĞÍÅäÖÃĞÅÏ¢
+    //åˆ¤æ–­UIç±»å‹é…ç½®ä¿¡æ¯
     switch (ui_ptr->ui_config.ui_type)
     {
     case LINE:
-      res.grapic_data_struct[i] = draw_line(name,  //Í¼ĞÎÃû
-                                            operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                            layer,  //Í¼²ãÊı£¬0~9
-                                            color,  //ÑÕÉ«
-                                            width,  //ÏßÌõ¿í¶È
-                                            start_x,  //Æğµã x ×ø±ê
-                                            start_y,  //Æğµã y ×ø±ê
-                                            end_x,  //ÖÕµã x ×ø±ê
-                                            end_y);  //ÖÕµã y ×ø±ê
+      res.grapic_data_struct[i] = draw_line(name,  //å›¾å½¢å
+                                            operate_tpye,  //å›¾å½¢æ“ä½œ
+                                            layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                            color,  //é¢œè‰²
+                                            width,  //çº¿æ¡å®½åº¦
+                                            start_x,  //èµ·ç‚¹ x åæ ‡
+                                            start_y,  //èµ·ç‚¹ y åæ ‡
+                                            end_x,  //ç»ˆç‚¹ x åæ ‡
+                                            end_y);  //ç»ˆç‚¹ y åæ ‡
       break;
     case CIRCLE:
-      res.grapic_data_struct[i] = draw_circle(name,  //Í¼ĞÎÃû
-                                              operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                              layer,  //Í¼²ãÊı£¬0~9
-                                              color,  //ÑÕÉ«
-                                              width,  //ÏßÌõ¿í¶È
-                                              start_x,  //Ô²ĞÄ x ×ø±ê
-                                              start_y,  //Ô²ĞÄ y ×ø±ê
-                                              radius);  //°ë¾¶
+      res.grapic_data_struct[i] = draw_circle(name,  //å›¾å½¢å
+                                              operate_tpye,  //å›¾å½¢æ“ä½œ
+                                              layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                              color,  //é¢œè‰²
+                                              width,  //çº¿æ¡å®½åº¦
+                                              start_x,  //åœ†å¿ƒ x åæ ‡
+                                              start_y,  //åœ†å¿ƒ y åæ ‡
+                                              radius);  //åŠå¾„
       break;
     case RECTANGEL:
-      res.grapic_data_struct[i] = draw_rectangle(name,  //Í¼ĞÎÃû
-                                                 operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                                 layer,  //Í¼²ãÊı£¬0~9
-                                                 color,  //ÑÕÉ«
-                                                 width,  //ÏßÌõ¿í¶È
-                                                 start_x,  //×óÉÏ½Ç x ×ø±ê
-                                                 start_y,  //×óÉÏ½Ç y ×ø±ê
-                                                 end_x,  //ÓÒÏÂ½Ç x ×ø±ê
-                                                 end_y);  //ÓÒÏÂ½Ç y ×ø±ê
+      res.grapic_data_struct[i] = draw_rectangle(name,  //å›¾å½¢å
+                                                 operate_tpye,  //å›¾å½¢æ“ä½œ
+                                                 layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                                 color,  //é¢œè‰²
+                                                 width,  //çº¿æ¡å®½åº¦
+                                                 start_x,  //å·¦ä¸Šè§’ x åæ ‡
+                                                 start_y,  //å·¦ä¸Šè§’ y åæ ‡
+                                                 end_x,  //å³ä¸‹è§’ x åæ ‡
+                                                 end_y);  //å³ä¸‹è§’ y åæ ‡
       break;
     case ELLIPSE:
-      res.grapic_data_struct[i] = draw_ellipse(name,  //Í¼ĞÎÃû
-                                               operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                               layer,  //Í¼²ãÊı£¬0~9
-                                               color,  //ÑÕÉ«
-                                               width,  //ÏßÌõ¿í¶È
-                                               start_x,  //Ô²ĞÄ x ×ø±ê
-                                               start_y,  //Ô²ĞÄ y ×ø±ê
-                                               end_x,  //x °ëÖá³¤¶È
-                                               end_y);  //y °ëÖá³¤¶È
+      res.grapic_data_struct[i] = draw_ellipse(name,  //å›¾å½¢å
+                                               operate_tpye,  //å›¾å½¢æ“ä½œ
+                                               layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                               color,  //é¢œè‰²
+                                               width,  //çº¿æ¡å®½åº¦
+                                               start_x,  //åœ†å¿ƒ x åæ ‡
+                                               start_y,  //åœ†å¿ƒ y åæ ‡
+                                               end_x,  //x åŠè½´é•¿åº¦
+                                               end_y);  //y åŠè½´é•¿åº¦
       break;
     case ARC:
-      res.grapic_data_struct[i] = draw_arc(name,  //Í¼ĞÎÃû
-                                           operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                           layer,  //Í¼²ãÊı£¬0~9
-                                           color,  //ÑÕÉ«
-                                           start_angel,  //ÆğÊ¼½Ç¶È
-                                           end_angel,  //ÖÕÖ¹½Ç¶È
-                                           width,  //ÏßÌõ¿í¶È
-                                           start_x,  //Ô²ĞÄ x ×ø±ê
-                                           start_y,  //Ô²ĞÄ y ×ø±ê
-                                           end_x,  //x °ëÖá³¤¶È
-                                           end_y);  //y °ëÖá³¤¶È
+      res.grapic_data_struct[i] = draw_arc(name,  //å›¾å½¢å
+                                           operate_tpye,  //å›¾å½¢æ“ä½œ
+                                           layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                           color,  //é¢œè‰²
+                                           start_angel,  //èµ·å§‹è§’åº¦
+                                           end_angel,  //ç»ˆæ­¢è§’åº¦
+                                           width,  //çº¿æ¡å®½åº¦
+                                           start_x,  //åœ†å¿ƒ x åæ ‡
+                                           start_y,  //åœ†å¿ƒ y åæ ‡
+                                           end_x,  //x åŠè½´é•¿åº¦
+                                           end_y);  //y åŠè½´é•¿åº¦
       break;
     case FLOAT:
-      res.grapic_data_struct[i] = draw_float(name,  //Í¼ĞÎÃû
-                                             operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                             layer,  //Í¼²ãÊı£¬0~9
-                                             color,  //ÑÕÉ«
-                                             size,  //×ÖÌå´óĞ¡
-                                             decimal,  //¸¡µãÊı
-                                             width,  //ÏßÌõ¿í¶È
-                                             start_x,  //Æğµã x ×ø±ê
-                                             start_y, //Æğµã y ×ø±ê
-                                             (int32_t) (float_num *1000));//³ËÒÔ 1000 ºó£¬ÒÔ 32 Î»ÕûĞÍÊı£¬int32_t  
+      res.grapic_data_struct[i] = draw_float(name,  //å›¾å½¢å
+                                             operate_tpye,  //å›¾å½¢æ“ä½œ
+                                             layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                             color,  //é¢œè‰²
+                                             size,  //å­—ä½“å¤§å°
+                                             decimal,  //æµ®ç‚¹æ•°
+                                             width,  //çº¿æ¡å®½åº¦
+                                             start_x,  //èµ·ç‚¹ x åæ ‡
+                                             start_y, //èµ·ç‚¹ y åæ ‡
+                                             (int32_t) (float_num *1000));//ä¹˜ä»¥ 1000 åï¼Œä»¥ 32 ä½æ•´å‹æ•°ï¼Œint32_t  
       break;
     case INT:
-      res.grapic_data_struct[i] = draw_int(name,  //Í¼ĞÎÃû
-                                           operate_tpye,  //Í¼ĞÎ²Ù×÷
-                                           layer,  //Í¼²ãÊı£¬0~9
-                                           color,  //ÑÕÉ«
-                                           size,  //×ÖÌå´óĞ¡
-                                           width,  //ÏßÌõ¿í¶È
-                                           start_x,  //Æğµã x ×ø±ê
-                                           start_y,  //Æğµã y ×ø±ê
-                                           int_num);  //ÕûÊı
+      res.grapic_data_struct[i] = draw_int(name,  //å›¾å½¢å
+                                           operate_tpye,  //å›¾å½¢æ“ä½œ
+                                           layer,  //å›¾å±‚æ•°ï¼Œ0~9
+                                           color,  //é¢œè‰²
+                                           size,  //å­—ä½“å¤§å°
+                                           width,  //çº¿æ¡å®½åº¦
+                                           start_x,  //èµ·ç‚¹ x åæ ‡
+                                           start_y,  //èµ·ç‚¹ y åæ ‡
+                                           int_num);  //æ•´æ•°
       break;
     default:
       break;
@@ -1684,19 +763,20 @@ ext_client_custom_graphic_seven_t Process_Graphic_To_Buffer(ui_info_t *ui_info, 
 
 
 
-/*UI¹¦ÄÜº¯Êı**************************************************************************************************************/
-Node_u *dynamic_list_head = NULL; // ¶¯Ì¬UIÁ´±íÍ·
-Node_u *const_list_head   = NULL; // ²»±äUIÁ´±íÍ·
-Node_u *graphic_list_head = NULL; // Í¼ĞÎUIÁ´±íÍ·
-Node_u *char_list_head    = NULL; // ×Ö·ûUIÁ´±íÍ·
+/*UIåŠŸèƒ½å‡½æ•°**************************************************************************************************************/
+Node_u *dynamic_list_head = NULL; // åŠ¨æ€UIé“¾è¡¨å¤´
+Node_u *const_list_head   = NULL; // ä¸å˜UIé“¾è¡¨å¤´
+Node_u *graphic_list_head = NULL; // å›¾å½¢UIé“¾è¡¨å¤´
+Node_u *char_list_head    = NULL; // å­—ç¬¦UIé“¾è¡¨å¤´
 
-ui_info_t graphic_priority_buffer[7]; // ÓÅÏÈ¼¶×î¸ßµÄ7¸öÍ¼ĞÎ
-ui_info_t character_priority_buffer;  // ÓÅÏÈ¼¶×î¸ßµÄ×Ö·û
+ui_info_t graphic_priority_buffer[7]; // ä¼˜å…ˆçº§æœ€é«˜çš„7ä¸ªå›¾å½¢
+ui_info_t character_priority_buffer;  // ä¼˜å…ˆçº§æœ€é«˜çš„å­—ç¬¦
 
-ui_send_mode_e ui_send_mode; // ·¢ËÍÄ£Ê½
+ui_send_mode_e ui_send_mode; // å‘é€æ¨¡å¼
+uint8_t ui_graphic_buffer_num = 0;   // å›¾å½¢UIç¼“å­˜ä¸ªæ•°
 
 /**
- * @brief ³õÊ¼»¯UIÁ´±í ÔÚÍâ²¿µ÷ÓÃ Ò»¶¨ÒªÔÚUi_SendÖ®Ç°µ÷ÓÃ
+ * @brief åˆå§‹åŒ–UIé“¾è¡¨ åœ¨å¤–éƒ¨è°ƒç”¨ ä¸€å®šè¦åœ¨Ui_Sendä¹‹å‰è°ƒç”¨
  * 
  * @param dynamic_ui_info 
  * @param dynamic_ui_num 
@@ -1706,11 +786,11 @@ ui_send_mode_e ui_send_mode; // ·¢ËÍÄ£Ê½
 ui_status_e Init_Ui_List(ui_info_t *dynamic_ui_info, uint8_t dynamic_ui_num, ui_info_t *const_ui_info, uint8_t const_ui_num)
 {
   ui_status_e res1,res2,res3;
-  // ³õÊ¼»¯¶¯Ì¬UIÁ´±í
+  // åˆå§‹åŒ–åŠ¨æ€UIé“¾è¡¨
   res1 = Init_Priority_LinkedList(&dynamic_list_head, dynamic_ui_info, dynamic_ui_num);
-  // ³õÊ¼»¯²»±äUIÁ´±í
+  // åˆå§‹åŒ–ä¸å˜UIé“¾è¡¨
   res2 = Init_Priority_LinkedList(&const_list_head, const_ui_info, const_ui_num);
-  // ³õÊ¼»¯Á½¸öÁ´±í£¬½«dynamic_ui_infoºÍconst_ui_infoÁ½¸öÊı×éÖĞ²»ÊÇCHARÀàĞÍµÄUI´æ½øÆäÖĞÒ»¸öÁ´±í£¬ÆäËûÀàĞÍµÄUI´æ½øÁíÒ»¸öÁ´±í
+  // åˆå§‹åŒ–ä¸¤ä¸ªé“¾è¡¨ï¼Œå°†dynamic_ui_infoå’Œconst_ui_infoä¸¤ä¸ªæ•°ç»„ä¸­ä¸æ˜¯CHARç±»å‹çš„UIå­˜è¿›å…¶ä¸­ä¸€ä¸ªé“¾è¡¨ï¼Œå…¶ä»–ç±»å‹çš„UIå­˜è¿›å¦ä¸€ä¸ªé“¾è¡¨
   res3 = Init_Type_LinkedLists(&graphic_list_head, &char_list_head, dynamic_ui_info, const_ui_info, dynamic_ui_num, const_ui_num);
 
   if (res1*res2*res3 == UI_ERROR)
@@ -1724,23 +804,22 @@ ui_status_e Init_Ui_List(ui_info_t *dynamic_ui_info, uint8_t dynamic_ui_num, ui_
 }
 
 /**
- * @brief Õı³£·¢ËÍUI
+ * @brief æ­£å¸¸å‘é€UI
  * 
  */
-uint8_t i_test;
-ui_status_e Ui_Send_Normal(void)
+ui_status_e Ui_Send_Normal()
 {
-  ext_client_custom_graphic_seven_t graphic_tx_buffer;   // Í¼Ïñ·¢ËÍ»º´æ
-  ext_client_custom_character_t     character_tx_buffer; // ×Ö·û·¢ËÍ»º´æ
-  //¶Ô¶¯Ì¬UIÁ´±í½øĞĞÅÅĞò
+  ext_client_custom_graphic_seven_t graphic_tx_buffer;   // å›¾åƒå‘é€ç¼“å­˜
+  ext_client_custom_character_t     character_tx_buffer; // å­—ç¬¦å‘é€ç¼“å­˜
+  //å¯¹åŠ¨æ€UIé“¾è¡¨è¿›è¡Œæ’åº
   mergeSort(&dynamic_list_head);
-  //½«ÓÅÏÈ¼¶×î¸ßµÄUIĞÅÏ¢´æ´¢µ½Êı×éÖĞ
+  //å°†ä¼˜å…ˆçº§æœ€é«˜çš„UIä¿¡æ¯å­˜å‚¨åˆ°æ•°ç»„ä¸­
   
-  if (Store_High_Priority_UI(dynamic_list_head, const_list_head, graphic_priority_buffer, &character_priority_buffer, &ui_send_mode) == UI_ERROR)
+  if (Store_High_Priority_UI(dynamic_list_head, const_list_head, graphic_priority_buffer, &character_priority_buffer, &ui_graphic_buffer_num,&ui_send_mode) == UI_ERROR)
   {
-    return UI_ERROR; // Ã»ÓĞ³õÊ¼»¯Á´±í
+    return UI_ERROR; // æ²¡æœ‰åˆå§‹åŒ–é“¾è¡¨
   }
-  //¸ù¾İ·¢ËÍÄ£Ê½½øĞĞ·¢ËÍ
+  //æ ¹æ®å‘é€æ¨¡å¼è¿›è¡Œå‘é€
   switch (ui_send_mode)
   {
   case SEND_CHAR_MODE:
@@ -1748,7 +827,7 @@ ui_status_e Ui_Send_Normal(void)
     client_send_char(character_tx_buffer);
     break;
   case SEND_GRAPHIC_MODE:
-    graphic_tx_buffer = Process_Graphic_To_Buffer(graphic_priority_buffer, 7, 0);
+    graphic_tx_buffer = Process_Graphic_To_Buffer(graphic_priority_buffer, ui_graphic_buffer_num, 0);
     client_send_seven_graphic(graphic_tx_buffer);
     break;
   default:
@@ -1758,12 +837,10 @@ ui_status_e Ui_Send_Normal(void)
 }
 
 /**
- * @brief UIÇ¿ĞĞ·¢ËÍADD
- * @note  ÓÉÓÚÑ¡ÊÖ¶ËµÇÂ½ºó£¬Ã¿¸öUI¶¼ĞèÒª·¢Ò»´ÎADD£¬ËùÒÔĞèÒªÇ¿ÖÆ·¢ËÍÒ»´ÎADD
- *        
- * @return ui_status_e 0£ºerror 1:·¢ËÍÍêÁË 2:Ã»·¢ËÍÍê
+ * @brief UIå¼ºè¡Œå‘é€ADD        
+ * @return ui_status_e 0ï¼šerror 1:å‘é€å®Œäº† 2:æ²¡å‘é€å®Œ
  */
-ui_status_e Ui_Send_Add(void)
+ui_status_e Ui_Send_Add()
 {
   static uint8_t is_send_char_finish_flag = false;
   static uint8_t is_send_graphic_finish_flag = false;
@@ -1771,16 +848,16 @@ ui_status_e Ui_Send_Add(void)
   static Node_u* graphic_list_cursor = NULL;
   static Node_u* char_list_cursor = NULL;
 
-/*ÅĞ¶Ïgraphic_listºÍchar_list_headÓĞÄ³¶«Î÷*******************************/
+/*åˆ¤æ–­graphic_listå’Œchar_list_headæœ‰æŸä¸œè¥¿*******************************/
   if (graphic_list_head == NULL)
   {
-    is_send_graphic_finish_flag = true;//Ä³‡S¾Íµ±·¢ÍêÁË†ª
+    is_send_graphic_finish_flag = true;//æŸå˜¢å°±å½“å‘å®Œäº†å•°
   }
   if (char_list_head == NULL)
   {
-    is_send_char_finish_flag = true;//Ä³‡S¾Íµ±·¢ÍêÁË†ª
+    is_send_char_finish_flag = true;//æŸå˜¢å°±å½“å‘å®Œäº†å•°
   }
-/*ÅĞ¶ÏÊÇµÚÒ»´Î½øÀ´£¬³õÊ¼»¯¹â±ê******************************************/
+/*åˆ¤æ–­æ˜¯ç¬¬ä¸€æ¬¡è¿›æ¥ï¼Œåˆå§‹åŒ–å…‰æ ‡******************************************/
   if (graphic_list_cursor == NULL && graphic_list_head != NULL)
   {
     graphic_list_cursor = graphic_list_head;
@@ -1789,14 +866,14 @@ ui_status_e Ui_Send_Add(void)
   {
     char_list_cursor = char_list_head;
   }
-/*³õÊ¼»¯·¢ËÍ»º´æ******************************************/
-  ext_client_custom_graphic_seven_t graphic_tx_buffer;   // Í¼Ïñ·¢ËÍ»º´æ
-  ext_client_custom_character_t     character_tx_buffer; // ×Ö·û·¢ËÍ»º´æ
-  ui_info_t graphic_info_buffer[7];                      // 7¸ö´ı·¢ËÍÍ¼ĞÎĞÅÏ¢
-/*ÓÅÏÈ·¢ËÍ×Ö·û******************************************/
+/*åˆå§‹åŒ–å‘é€ç¼“å­˜******************************************/
+  ext_client_custom_graphic_seven_t graphic_tx_buffer;   // å›¾åƒå‘é€ç¼“å­˜
+  ext_client_custom_character_t     character_tx_buffer; // å­—ç¬¦å‘é€ç¼“å­˜
+  ui_info_t graphic_info_buffer[7];                      // 7ä¸ªå¾…å‘é€å›¾å½¢ä¿¡æ¯
+/*ä¼˜å…ˆå‘é€å­—ç¬¦******************************************/
   if (char_list_cursor != NULL && is_send_char_finish_flag == false)
   {
-    if (char_list_cursor->next == NULL)//Èç¹ûµ½ÁËÁ´±íÎ²²¿£¬¾Í·¢ËÍ×îºóÒ»´Î
+    if (char_list_cursor->next == NULL)//å¦‚æœåˆ°äº†é“¾è¡¨å°¾éƒ¨ï¼Œå°±å‘é€æœ€åä¸€æ¬¡
     {
       character_tx_buffer = Process_Char_Info_To_Buffer(*char_list_cursor->ui, 1);
       client_send_char(character_tx_buffer);
@@ -1809,56 +886,55 @@ ui_status_e Ui_Send_Add(void)
     return UI_BUSY;
 
   }
-/*·¢ËÍÍ¼ĞÎ******************************************/
-	
+/*å‘é€å›¾å½¢******************************************/
   if (graphic_list_cursor != NULL && is_send_graphic_finish_flag == false)
   {
-    //´ÓÁ´±íÖĞÈ¡³ö7¸öÍ¼ĞÎĞÅÏ¢
+    //ä»é“¾è¡¨ä¸­å–å‡º7ä¸ªå›¾å½¢ä¿¡æ¯
     for (uint8_t i = 0; i < 7 ; i++)
     {
-      if (graphic_list_cursor->next == NULL)//Èç¹ûµ½ÁËÁ´±íÎ²²¿£¬¾Í·¢ËÍÍêÁË
+      if (graphic_list_cursor->next == NULL)//å¦‚æœåˆ°äº†é“¾è¡¨å°¾éƒ¨ï¼Œå°±å‘é€å®Œäº†
       {
         graphic_info_buffer[i] = *graphic_list_cursor->ui;
         is_send_graphic_finish_flag = true;
-				i_test = i + 1;
+        ui_graphic_buffer_num = i + 1;
         break;
       }
       graphic_info_buffer[i] = *graphic_list_cursor->ui;
       graphic_list_cursor = graphic_list_cursor->next;
-			i_test = i + 1;
+      ui_graphic_buffer_num = i + 1;
     }
-    graphic_tx_buffer = Process_Graphic_To_Buffer(graphic_info_buffer, i_test, 1);
+    graphic_tx_buffer = Process_Graphic_To_Buffer(graphic_info_buffer, ui_graphic_buffer_num, 1);
     client_send_seven_graphic(graphic_tx_buffer);
     return UI_BUSY;
   }
-	/*ÅĞ¶ÏÊÇ·ñ¶¼·¢ÍêÁË******************************************/
-	if (is_send_char_finish_flag == true && is_send_graphic_finish_flag == true)//¶¼·¢ÍêÁË 
+	/*åˆ¤æ–­æ˜¯å¦éƒ½å‘å®Œäº†******************************************/
+	if (is_send_char_finish_flag == true && is_send_graphic_finish_flag == true)//éƒ½å‘å®Œäº†
   {
-    //¸´Î»£¬µÈ´ıÏÂÒ»´Î·¢ËÍ
-    char_list_cursor = char_list_head;//»Øµ½Í·½Úµã
-    graphic_list_cursor = graphic_list_head;//»Øµ½Í·½Úµã
+    //å¤ä½ï¼Œç­‰å¾…ä¸‹ä¸€æ¬¡å‘é€
+    char_list_cursor = char_list_head;//å›åˆ°å¤´èŠ‚ç‚¹
+    graphic_list_cursor = graphic_list_head;//å›åˆ°å¤´èŠ‚ç‚¹
     is_send_char_finish_flag = false;
     is_send_graphic_finish_flag = false;
-    return UI_OK;//·µ»Ø1£¬Ö¤Ã÷·¢ËÍÍêÁË
+    return UI_OK;//è¿”å›1ï¼Œè¯æ˜å‘é€å®Œäº†
   }
   
-  return UI_ERROR;//ßíÓ¦¸ÃÅÜµ½Äáµ½
+  return UI_ERROR;//å””åº”è¯¥è·‘åˆ°å°¼åˆ°
 }
 
 /**
- * @brief ·¢ËÍUI ÔÚÍâ²¿µ÷ÓÃ
+ * @brief å‘é€UI åœ¨å¤–éƒ¨è°ƒç”¨
  * 
  */
-void Ui_Send(void)
+void Ui_Send()
 {
-  /*ÅĞ¶ÏÊÇ·ñµ½ÁË·¢ËÍÊ±¼ä****************************/
+  /*åˆ¤æ–­æ˜¯å¦åˆ°äº†å‘é€æ—¶é—´****************************/
   uint32_t currentTick = HAL_GetTick();
   static uint32_t lastTick = 0;
   if (currentTick - lastTick < SEND_INTERVAL)
   {
     return;
   }
-  /*ÊÕµ½³õÊ¼»¯Ö¸ÁîÇĞ»»±êÖ¾Î»**********************/
+  /*æ”¶åˆ°åˆå§‹åŒ–æŒ‡ä»¤åˆ‡æ¢æ ‡å¿—ä½**********************/
   static uint8_t is_initing_ui = 0;
   if (Init_Ui_Condition())
   {
@@ -1867,21 +943,21 @@ void Ui_Send(void)
       is_initing_ui = 1;
     }
   }
-  /*ÅĞ¶ÏÊÇ·ñÕıÔÚ³õÊ¼»¯****************************/
+  /*åˆ¤æ–­æ˜¯å¦æ­£åœ¨åˆå§‹åŒ–****************************/
   static uint8_t init_times = 0;
-  if (is_initing_ui == 1)//ÕıÔÚ³õÊ¼»¯UI
+  if (is_initing_ui == 1)//æ­£åœ¨åˆå§‹åŒ–UI
   {
     if (Ui_Send_Add() == 1)
     {
-      init_times++; // ³õÊ¼»¯ÍêÒ»´Î£¬´ÎÊı¼ÓÒ»
+      init_times++; // åˆå§‹åŒ–å®Œä¸€æ¬¡ï¼Œæ¬¡æ•°åŠ ä¸€
     }
-    if (init_times >= PER_INIT_UI_TIMES)//³õÊ¼»¯ÍêPER_INIT_UI_TIMES´Î
+    if (init_times >= PER_INIT_UI_TIMES)//åˆå§‹åŒ–å®ŒPER_INIT_UI_TIMESæ¬¡
     {
-      is_initing_ui = 0;//³õÊ¼»¯Íê±Ï
+      is_initing_ui = 0;//åˆå§‹åŒ–å®Œæ¯•
       init_times = 0;
     }
   }
-	else/*Õı³£·¢ËÍUI*/
+	else/*æ­£å¸¸å‘é€UI*/
 	{		
     Ui_Send_Normal();
 	}
@@ -1889,7 +965,7 @@ void Ui_Send(void)
 }
 
 /**
- * @brief ¸üĞÂÍêUIĞÅÏ¢ºóµ÷ÓÃ´Ëº¯Êı½«UIÉèÎª×¼±¸·¢ËÍ×´Ì¬
+ * @brief æ›´æ–°å®ŒUIä¿¡æ¯åè°ƒç”¨æ­¤å‡½æ•°å°†UIè®¾ä¸ºå‡†å¤‡å‘é€çŠ¶æ€
  * 
  * @param ui_info 
  */
@@ -1900,7 +976,7 @@ ui_status_e Enqueue_Ui_For_Sending(ui_info_t *ui_info)
     return UI_ERROR;
   }
 
-  if (ui_info->sent_state == MESSAGE_SENT)//·¢¹ıÏÈ¸üĞÂÊ±¼ä£¬Î´ÏÈÖ®Ç°Ò»Ö±Ä³·¢ÓÖ¸üĞÂ¾Í»áÒ»Ö±·¢ßí³öÈ¥
+  if (ui_info->sent_state == MESSAGE_SENT)//å‘è¿‡å…ˆæ›´æ–°æ—¶é—´ï¼Œæœªå…ˆä¹‹å‰ä¸€ç›´æŸå‘åˆæ›´æ–°å°±ä¼šä¸€ç›´å‘å””å‡ºå»
   {
     ui_info->updateTick = HAL_GetTick();
   }

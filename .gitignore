@@ -41,3 +41,7 @@ Release/
 *~
 .vscode/
 .idea/
+Application/nul
+
+# Superpowers plans (do not commit)
+docs/

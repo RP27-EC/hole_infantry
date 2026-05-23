@@ -5,6 +5,7 @@
 #include "main.h"
 #include "Chassis.h"
 #include "command.h"
+#include "RP_Log.h"
 void StartCtrlTask(void const * argument);
 
 #endif

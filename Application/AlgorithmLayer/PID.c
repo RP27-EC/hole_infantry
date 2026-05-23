@@ -1,116 +1,248 @@
 #include "pid.h"
+
 #include "rp_math.h"
+
+#define M_PI 3.1415926
+
 /**
+
  *  @name   single_pid_ctrl
- *	@brief  ĞÂµÄpid¼ÆËã£¬¶ÔÎ¢·Ö½øĞĞµÍÍ¨ÂË²¨£¬»ı·Ö½øĞĞ±äËÙ
+
+ *	@brief  æ–°çš„pidè®¡ç®—ï¼Œå¯¹å¾®åˆ†è¿›è¡Œä½é€šæ»¤æ³¢ï¼Œç§¯åˆ†è¿›è¡Œå˜é€Ÿ
+
  *  @author HERMIT_PURPLE
+
  */
+
 void single_pid_ctrl(pid_ctrl_t *pid)
+
 {
-    // ±£´æÎó²îÖµ(ĞèÒªÔÚÍâÃæ×ÔĞĞ¼ÆËãÎó²î)
-	//pid->err = pid->target-pid->measure;
-   
-		pid->integral += pid->err;
-	
- 
+
+    // ä¿å­˜è¯¯å·®å€¼(éœ€è¦åœ¨å¤–é¢è‡ªè¡Œè®¡ç®—è¯¯å·®)
+
+    // pid->err = pid->target-pid->measure;
+
+
+
+    pid->integral += pid->err;
+
+
+
     pid->integral = constrain(pid->integral, -pid->integral_max, +pid->integral_max);
-    // p i d Êä³öÏî¼ÆËã
+
+    // p i d è¾“å‡ºé¡¹è®¡ç®—
+
     pid->pout = pid->kp * pid->err;
+
     pid->iout = pid->ki * pid->integral;
-	//¶ÔÎ¢·ÖÏîµÍÍ¨ÂË²¨
-    pid->dout = Lowpass(pid->last_dout,pid->kd * (pid->err - pid->last_err),pid->a);
-	pid->last_dout=pid->dout;
-    // ÀÛ¼ÓpidÊä³öÖµ
+
+    // å¯¹å¾®åˆ†é¡¹ä½é€šæ»¤æ³¢
+
+    pid->dout = Lowpass(pid->last_dout, pid->kd * (pid->err - pid->last_err), pid->a);
+
+    pid->last_dout = pid->dout;
+
+    // ç´¯åŠ pidè¾“å‡ºå€¼
+
     pid->out = pid->pout + pid->iout + pid->dout;
+
     pid->out = constrain(pid->out, -pid->out_max, pid->out_max);
-    // ¼ÇÂ¼ÉÏ´ÎÎó²îÖµ
+
+    // è®°å½•ä¸Šæ¬¡è¯¯å·®å€¼
+
     pid->last_err = pid->err;
+
 }
 
-/*ÀëÏß×´Ì¬ÏÂ¶Ô»ı·ÖÇåÁã*/
+
+
+/*ç¦»çº¿çŠ¶æ€ä¸‹å¯¹ç§¯åˆ†æ¸…é›¶*/
+
 void pid_clear(pid_ctrl_t *pid)
+
 {
-	pid->integral = 0;
+
+    pid->integral = 0;
+    pid->last_err = 0;
+    pid->last_dout = 0;
+    pid->pout = 0;
+    pid->iout = 0;
+    pid->dout = 0;
+    pid->out = 0;
+
 }
+
+
 
 void pid_err_cal(pid_ctrl_t *pid)
+
 {
-	pid->err = pid->target - pid->measure;
+
+    pid->err = pid->target - pid->measure;
+
 }
+
 /**
- *	@brief	pid×Ü¿ØÖÆ ²ÎÊı£ºÍâ»· ÄÚ»·  Íâ»·»òÄÚ»·Ä¿±êÖµ Íâ»·¹Û²âÖµ ÄÚ»·¹Û²âÖµ  ÄÚ»·¹Û²âÖµkp£¬Ò»°ãÌî¸ºµÄ err´¦Àí·½Ê½
- *          err_cal_mode£ºerr´¦Àí·½Ê½ °ëÈ¦»¹ÊÇËÄ·ÖÖ®Ò»È¦ 0£¬1£¬2 ËÙ¶È»·Ê¹ÓÃ0 yawÖáÊ¹ÓÃ1 
-						ÍÓÂİÒÇ½Ç¶È»· 3
- *         ÄÚ»·²»ÄÜÎªNULL
- *	@note   Ê¹ÓÃÊ¾Àı£º
-			pid_ctrl_t *out	  = ;
-			pid_ctrl_t *inn	  = ;
-			float target   	  = ;
-			float mea_out       = ;
-			float mea_in        = ;
-			float inner_kp      = ;
-			uint8_t err_cal_mode= ;
-			=all_pid_calc (out,inn,target,mea_out,mea_in,inner_kp,err_cal_mode);
+
+ *	@brief	pidæ€»æ§åˆ¶ å‚æ•°ï¼šå¤–ç¯ å†…ç¯  å¤–ç¯æˆ–å†…ç¯ç›®æ ‡å€¼ å¤–ç¯è§‚æµ‹å€¼ å†…ç¯è§‚æµ‹å€¼  å†…ç¯è§‚æµ‹å€¼kpï¼Œä¸€èˆ¬å¡«è´Ÿçš„ errå¤„ç†æ–¹å¼
+
+ *          err_cal_modeï¼šerrå¤„ç†æ–¹å¼ åŠåœˆè¿˜æ˜¯å››åˆ†ä¹‹ä¸€åœˆ 0ï¼Œ1ï¼Œ2 é€Ÿåº¦ç¯ä½¿ç”¨0 yawè½´ä½¿ç”¨1
+
+                        é™€èºä»ªè§’åº¦ç¯ 3
+
+ *         å†…ç¯ä¸èƒ½ä¸ºNULL
+
+ *	@note   ä½¿ç”¨ç¤ºä¾‹ï¼š
+
+            pid_ctrl_t *out	  = ;
+
+            pid_ctrl_t *inn	  = ;
+
+            float target   	  = ;
+
+            float mea_out       = ;
+
+            float mea_in        = ;
+
+            float inner_kp      = ;
+
+            uint8_t err_cal_mode= ;
+
+            =all_pid_calc (out,inn,target,mea_out,mea_in,inner_kp,err_cal_mode);
+
  *  @author HERMIT_PURPLE
+
  *
- *  @return ·µ»Ø¼ÆËã½á¹û
+
+ *  @return è¿”å›è®¡ç®—ç»“æœ
+
  */
 
-float  all_pid_calc (pid_ctrl_t *out,pid_ctrl_t *inn,float target,float mea_out,float mea_in,float inner_kp,uint8_t err_cal_mode)
+
+
+float all_pid_calc(pid_ctrl_t *out, pid_ctrl_t *inn, float target, float mea_out, float mea_in, float inner_kp, uint8_t err_cal_mode)
+
 {
-	if(inn == NULL)return 0;  //Ã»ÓĞÄÚ»·£¬Îª0
-	
-	 else if(out == NULL&&inn!=NULL)  //Ö»ÓĞËÙ¶È»·
-	{
-		inn->target=target;
-		inn->measure=mea_in;
-		inn->err=inn->target-mea_in;
-		single_pid_ctrl(inn);
-		return inn->out;
-	}
-	
-	else if(out != NULL&&inn!=NULL)  //Ë«»·PID
-	{
-		
-		out->target=target;
-		out->measure=mea_out;
-		out->err=out->target-out->measure; //¼ÆËã½Ç¶È»·Îó²î£¬ºóÃæÔÙ½øĞĞÎó²î´¦Àí
-		switch(err_cal_mode)
-		{
-			
-			case 0:			
-				break;
-			
-			case 1:
-				out->err = half_cycle(out->err, 8191);
-				break;		
-			
-			case 2:
-				out->err = half_cycle(out->err, 8191);
-				out->err = half_cycle(out->err, 4095);
-				break;
-			
-			case 3:
-				out->err = half_cycle(out->err, 360);
-				break;
-			
-			case 4:
-				out->err = half_cycle(out->err, 65535);
-				break;
-			
-			default:
-				break;
-		}
-		
-		single_pid_ctrl(out);  //¼ÆËã³ö´¦Àí¹ıÎó²îµÄ½Ç¶È»·µÄÖµ
-		inn->target=out->out; //½Ç¶È»·Êä³ö×÷ÎªËÙ¶È»·Ä¿±êÖµ
-		inn->measure=mea_in*inner_kp;//ÄÚ»·ÊäÈëkp£¬¿ÉÒÔµ÷ÕûÕı¸ººÍ´óĞ¡
-		inn->err=inn->target+inn->measure;  //ËÙ¶È»·Îó²î¼ÆËã
-		single_pid_ctrl(inn);
-		return inn->out;  //Êä³öÄÚ»·¼ÆËãÖµ
-	}
-	else  //Ö»ÓĞ½Ç¶È»·
-	{
-		return 0;
-	}
+
+    if (inn == NULL)
+
+        return 0; // æ²¡æœ‰å†…ç¯ï¼Œä¸º0
+
+
+
+    else if (out == NULL && inn != NULL) // åªæœ‰é€Ÿåº¦ç¯
+
+    {
+
+        inn->target = target;
+
+        inn->measure = mea_in;
+
+        inn->err = inn->target - mea_in;
+
+        single_pid_ctrl(inn);
+
+        return inn->out;
+
+    }
+
+
+
+    else if (out != NULL && inn != NULL) // åŒç¯PID
+
+    {
+
+
+
+        out->target = target;
+
+        out->measure = mea_out;
+
+        out->err = out->target - out->measure; // è®¡ç®—è§’åº¦ç¯è¯¯å·®ï¼Œåé¢å†è¿›è¡Œè¯¯å·®å¤„ç†
+
+        switch (err_cal_mode)
+
+        {
+
+
+
+        case 0:
+
+            break;
+
+
+
+        case 1:
+
+            out->err = half_cycle(out->err, 8191);
+
+            break;
+
+
+
+        case 2:
+
+            out->err = half_cycle(out->err, 8191);
+
+            out->err = half_cycle(out->err, 4095);
+
+            break;
+
+
+
+        case 3:
+
+            out->err = half_cycle(out->err, 360);
+
+            break;
+
+
+
+        case 4:
+
+            out->err = half_cycle(out->err, 65535);
+
+            break;
+
+
+
+        case 5:
+
+            out->err = half_cycle(out->err, 2 * M_PI);
+
+            break;
+
+
+
+        default:
+
+            break;
+
+        }
+
+
+
+        single_pid_ctrl(out);                  // è®¡ç®—å‡ºå¤„ç†è¿‡è¯¯å·®çš„è§’åº¦ç¯çš„å€¼
+
+        inn->target = out->out;                // è§’åº¦ç¯è¾“å‡ºä½œä¸ºé€Ÿåº¦ç¯ç›®æ ‡å€¼
+
+        inn->measure = mea_in * inner_kp;      // å†…ç¯è¾“å…¥kpï¼Œå¯ä»¥è°ƒæ•´æ­£è´Ÿå’Œå¤§å°
+
+        inn->err = inn->target + inn->measure; // é€Ÿåº¦ç¯è¯¯å·®è®¡ç®—
+
+        single_pid_ctrl(inn);
+
+        return inn->out; // è¾“å‡ºå†…ç¯è®¡ç®—å€¼
+
+    }
+
+    else // åªæœ‰è§’åº¦ç¯
+
+    {
+
+        return 0;
+
+    }
+
 }
+

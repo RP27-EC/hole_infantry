@@ -11,6 +11,7 @@
 #include "cap.h"
 #include "command.h"
 #include "gimbal_motor.h"
+#include "shoot.h"
 #include "Chassis_Motor.h"
 #include "Chassis.h"
 #include "Balance.h"

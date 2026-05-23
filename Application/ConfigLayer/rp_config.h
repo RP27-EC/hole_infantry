@@ -6,8 +6,8 @@
  * @update
  *              v1.0(9-September-2020)
  *              v1.1(7-November-2021)
- *                  1.ÓÅ»¯Éè±¸ÀàĞÅÏ¢Óë½á¹¹ÌåµÄ±äÁ¿¶¨Òå£¬Ôö¼Óvolatile/const¹Ø¼ü×Ö
- *                  //2.½«rp_config.h·Ö³Édriver_config.h, device_config.h, user_config.hÈı¸öÍ·ÎÄ¼ş    
+ *                  1.ä¼˜åŒ–è®¾å¤‡ç±»ä¿¡æ¯ä¸ç»“æ„ä½“çš„å˜é‡å®šä¹‰ï¼Œå¢åŠ volatile/constå…³é”®å­—
+ *                  //2.å°†rp_config.håˆ†æˆdriver_config.h, device_config.h, user_config.hä¸‰ä¸ªå¤´æ–‡ä»¶
  */
 #ifndef __RP_CONFIG_H
 #define __RP_CONFIG_H
@@ -16,53 +16,62 @@
 #include "stm32h7xx_hal.h"
 #include "stdbool.h"
 #include "string.h"
-// Çı¶¯²ãÅäÖÃ
+#include "RP_Log.h"
+
+// é©±åŠ¨å±‚é…ç½®
 #include "rp_driver_config.h"
-// Éè±¸²ãÅäÖÃ
+// è®¾å¤‡å±‚é…ç½®
 #include "rp_device_config.h"
-// ÓÃ»§²ãÅäÖÃ
+// ç”¨æˆ·å±‚é…ç½®
 #include "rp_user_config.h"
 
 /* Exported macro ------------------------------------------------------------*/
-/*ÓĞÎŞ³¬µç*/
-#define CAP_ENABLE		1
-/*ÓĞÎŞ²ÃÅĞÏµÍ³*/
-#define JUDGE_ENABLE 	1
+// TEST_å¼€å¤´çš„å®å®šä¹‰æ¯”èµ›æ—¶åº”è¯¥æ³¨é‡Šï¼Œæµ‹è¯•æ¨¡å¼ä¹‹é—´å¯èƒ½ä¼šå†²çªï¼Œå¼€å¯å‰è¯·æ³¨æ„
+/*æµ‹è¯•åŸºæœ¬æ§åˆ¶ç®—æ³•æ¨¡å¼ï¼Œä¸»è¦ç”¨æ¥é¥æ§å™¨æ§è…¿é•¿è…¿è§’ï¼Œåªæ§å…³èŠ‚ç”µæœº*/
+//  #define TEST_MY_LEG
+/*æµ‹è¯•è‡ªæ•‘æ¨¡å¼ï¼Œè‡ªæ•‘å®Œä¸è¿›LQR*/
+// #define TEST_RESCUE
+/*è‡ªæ•‘å®Œè¿›æœºæ¢°æ¨¡å¼*/
+// #define TEST_MEC_MODE
+/*ä¸»è¦ç”¨æ¥ç¦»çº¿æ¨¡å¼åœ¨æ²¡æœ‰å‘å¼¹é‡çš„æ—¶å€™æ‰“å¼¹*/
+// #define TEST_NO_LIMIT_SHOOT
+/*ä¸æ£€æµ‹è‡ªæ•‘*/
+// #define TEST_NO_RESCUE
+/*æµ‹è¯•åº•ç›˜å¸åŠ›æ¨¡å¼*/
+// #define TEST_SITDOWN_MODE
+/*æµ‹è¯•åŠŸç‡é™åˆ¶æ¨¡å¼ï¼Œè¶…åŠŸç‡ä¼šåº•ç›˜æ–­ç”µ*/
+#define TEST_POWER_LIMIT
 
-/*ÓĞÎŞÊÓ¾õ*/
-//#define VISION
+/*æ˜¯å¦å¼€å¯è¶…ç”µ*/
+#define CAP_ENABLE
 
-///*²»½øĞĞK¾ØÕóÄâºÏ*/
-//#define NO_K_Fitting 	
+/*æ˜¯å¦ä½¿ç”¨å˜é€Ÿå°é™€èº*/
+// #define IS_VARY_CYCLE
 
-///*·¢ÉäÈÈÁ¿ÏŞÖÆ*/
-#define SHOOT_HEAT  
+/*æ— è£åˆ¤ç³»ç»Ÿä¸‹æµ‹è¯•ï¼Œæ— è£åˆ¤ç³»ç»Ÿä¸‹å¼€å¯æ­¤å®çŠ¶æ€æœºæ‰ä¼šæ›´æ–°*/
+// #define NO_REFEREE_SYSTEM
 
-/*²»×Ô¾È*/
-#define NO_RESCUE
+/*æ˜¯å¦æœ‰å¼¹é€Ÿè‡ªé€‚åº”*/
+#define BULLET_SPEED_ADAPT
 
-///*ÌøÔ¾²»½øĞĞÉìÍÈ»º³å*/
-//#define NO_PRE_LANDING
+/*ä¸è¿›è¡ŒKçŸ©é˜µæ‹Ÿåˆ*/
+// #define NO_K_Fitting
 
-/*ÓÃ´®¿ÚÍ¨ĞÅ¶¨Òå*/
-//#define UART_COMMUNICATE
+// æ˜¯å¦å¼€å¯åŠŸç‡é™åˆ¶
+#define Power_limit
 
-//#define TEST
-
-#define Power_limit     1
-#define OFF_GROUND_TEST 0
-
-/*Ñ¡ÔñIMU½âËãËã·¨ÎªMahony*/
-#define IMU_USE_MAHONY  0
-/*Ñ¡ÔñIMU½âËãËã·¨ÎªEKF*/
-#define IMU_USE_EKF 	1
+/*é€‰æ‹©IMUè§£ç®—ç®—æ³•ä¸ºMahony*/
+#define IMU_USE_MAHONY 0
+/*é€‰æ‹©IMUè§£ç®—ç®—æ³•ä¸ºEKF*/
+#define IMU_USE_EKF 1
 
 /* Exported types ------------------------------------------------------------*/
+
 /* Exported functions --------------------------------------------------------*/
-//ÒÔÏÂÎª»ã±àº¯Êı
-void WFI_SET(void);		//Ö´ĞĞWFIÖ¸Áî
-void INTX_DISABLE(void);//¹Ø±ÕËùÓĞÖĞ¶Ï
-void INTX_ENABLE(void);	//¿ªÆôËùÓĞÖĞ¶Ï
-void MSR_MSP(uint32_t addr);	//ÉèÖÃ¶ÑÕ»µØÖ· 
+// ä»¥ä¸‹ä¸ºæ±‡ç¼–å‡½æ•°
+void WFI_SET(void);          // æ‰§è¡ŒWFIæŒ‡ä»¤
+void INTX_DISABLE(void);     // å…³é—­æ‰€æœ‰ä¸­æ–­
+void INTX_ENABLE(void);      // å¼€å¯æ‰€æœ‰ä¸­æ–­
+void MSR_MSP(uint32_t addr); // è®¾ç½®å †æ ˆåœ°å€
 
 #endif

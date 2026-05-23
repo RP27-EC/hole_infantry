@@ -1,85 +1,130 @@
 /**
-  ******************************************************************************
-  * @file           : cap.c\h
-	* @author         : czf
-	* @date           : 2022.4.28
-  * @brief          : 
-	* @history        : 
-  ******************************************************************************
-  */
-	
+ ******************************************************************************
+ * @file    cap.c
+ * @brief   ç”µå®¹ç®¡ç† - OOPé£æ ¼å®ç°ï¼ŒåŒ…å«æ— çº¿å……ç”µå’Œå¿ƒè·³æ£€æµ‹
+ ******************************************************************************
+ */
+
 #include "cap.h"
 #include "drv_can.h"
 #include "fdcan.h"
-#include "judge.h"
+#include "rp_math.h"
 #include "string.h"
-#include "stdio.h"
+#include "judge.h"
 
-cap_t My_Cap =
-{
-	.cap_offline_cnt = 0,
-	.wireless_offline_cnt = 0,
-	.offline_max_cnt = 150,
+extern CAN_HandleTypeDef hfdcan3;
+
+static void CAP_txMessage(cap_t *self);
+static void CAP_setMessage(cap_t *self);
+static void CAP_rxMessage(cap_t *self, uint8_t *rxBuf, uint32_t can_id);
+static void CAP_Heartbeat(cap_t *self);
+
+uint8_t cap_send_buf[8];
+
+cap_t cap = {
+    .state = CAP_OFFLINE,
+    .w_state = WIRELESS_OFFLINE,
+
+    .info.offline_cnt = 100,
+    .info.offline_max_cnt = 100,
+
+    .info.w_offline_cnt = 100,
+    .info.w_offline_max_cnt = 100,
+
+    .info.tx.chassis_power_buffer = 0,
+    .info.tx.chassis_power_limit = 0,
+    .info.tx.cap_power_out_limit = -300, // æ”¾ç”µåŠŸç‡
+    .info.tx.cap_power_in_limit = +300,  // å……ç”µåŠŸç‡
+
+    #ifdef CAP_ENABLE
+    .info.tx.bit_control.cap_switch = 1,
+    #else
+    .info.tx.bit_control.cap_switch = 0,
+    #endif
+    
+    .info.tx.bit_control.turbo_mode = 0,
+    .info.tx.bit_control.pre_charge_mode_en = 0,
+
+    .setdata = CAP_setMessage,
+    .txdata = CAP_txMessage,
+    .update = CAP_rxMessage,
+    .heartbeat = CAP_Heartbeat,
 };
 
-static float int16_to_float(int16_t a, int16_t a_max, int16_t a_min, float b_max, float b_min)
+/**
+ * @brief  è¶…ç”µå¿ƒè·³æ£€æµ‹
+ */
+static void CAP_Heartbeat(cap_t *self)
 {
-    int32_t a_32 = a, a_max_32 = a_max, a_min_32 = a_min;
-    int32_t diff_a = a_max_32 - a_min_32;
-    
-    if (diff_a == 0) return (b_max + b_min) / 2.0f; // ´¦Àí³ıÁã
-    
-    float ratio = (float)(a_32 - a_min_32) / (float)diff_a;
-    return ratio * (b_max - b_min) + b_min;
+    cap_info_t *info = &self->info;
+
+    info->offline_cnt++;
+    info->w_offline_cnt++;
+
+    if (info->offline_cnt > info->offline_max_cnt)
+    {
+        info->offline_cnt = info->offline_max_cnt;
+        self->state = CAP_OFFLINE;
+    }
+    else if (self->state == CAP_OFFLINE)
+    {
+        self->state = CAP_ONLINE;
+    }
+
+    if (info->w_offline_cnt > info->w_offline_max_cnt)
+    {
+        info->w_offline_cnt = info->w_offline_max_cnt;
+        self->w_state = WIRELESS_OFFLINE;
+    }
+    else if (self->w_state == WIRELESS_OFFLINE)
+    {
+        self->w_state = WIRELESS_ONLINE;
+    }
 }
 
-static int16_t float_to_int16(float b, float b_max, float b_min, int16_t a_max, int16_t a_min)
+/**
+ * @brief  æ›´æ–°å‘é€æ•°æ®ï¼ˆåŠŸç‡é™åˆ¶ã€ç¼“å†²èƒ½é‡ï¼‰ï¼Œä¸æ‰§è¡ŒCANå‘é€
+ */
+static void CAP_setMessage(cap_t *self)
 {
-    // ´¦Àí³ıÁãºÍÎŞĞ§ÊäÈë
-    if (b_max == b_min) return (int16_t)((a_max + a_min) / 2);
-    
-    // ¼ÆËã±ÈÀı²¢Ó³Éäµ½ÕûÊı·¶Î§
-    float ratio = (b - b_min) / (b_max - b_min);
-    
-    // ÌáÉı¼ÆËã·¶Î§±ÜÃâÒç³ö
-    int32_t a = (int32_t)(ratio * (a_max - a_min) + a_min + 0.5f); // ËÄÉáÎåÈë
-    
-    // Ç¯Î»µ½Ä¿±ê·¶Î§
-    a = (a < a_min) ? a_min : (a > a_max) ? a_max : a;
-    
-    return (int16_t)a;
+    self->info.tx.chassis_power_limit = My_Judge.org_info->game_robot_status.chassis_power_limit;
+    self->info.tx.chassis_power_buffer = My_Judge.org_info->power_heat_data.buffer_energy;
 }
 
-capboard_tx_info_t Cap_Tx_Info;
-
-capboard_rx_info_t Cap_Rx_Info;
-
-uint8_t Cap_Tx_Buf[8];
-void Cap_Tx_Data_Update(capboard_tx_info_t *cap)
+/**
+ * @brief  CANå‘é€æ•°æ®åˆ°ç”µå®¹æ¿
+ */
+static void CAP_txMessage(cap_t *self)
 {
-	
-	cap->chassis_power_limit = My_Judge.org_info->game_robot_status.chassis_power_limit;
-	cap->chassis_power_buffer = My_Judge.org_info->power_heat_data.buffer_energy;
-	cap->cap_power_out_limit = -300;
-	cap->cap_power_in_limit = 300;
-	cap->bit_control.cap_switch = 1;
-	cap->bit_control.turbo_mode = 0;
-	
-	memcpy(Cap_Tx_Buf,cap,sizeof(capboard_tx_info_t));
-	
-	CAN_SendData(&hfdcan3,0x222,Cap_Tx_Buf);
+
+    memcpy(cap_send_buf, &self->info.tx, sizeof(capboard_tx_info_t));
+    CAN_SendData(&hfdcan3, MASTER_TO_CAP_ID, cap_send_buf);
 }
 
-float cap_V,cap_I;
-void Cap_Rx_Data_Update(capboard_rx_info_t *cap_rx_info,uint8_t *rxbuf)
+/**
+ * @brief  CANæ¥æ”¶æ•°æ®å¤„ç†ï¼ˆåŒºåˆ†CAP_TO_MASTER_IDå’ŒWIRELESS_IDï¼‰
+ */
+static void CAP_rxMessage(cap_t *self, uint8_t *rxBuf, uint32_t can_id)
 {
-   
-    /* ¿½±´ÄÚ´æ */
-    memcpy(cap_rx_info, rxbuf, sizeof(capboard_rx_info_t));
-	  My_Cap.cap_offline_cnt = 0;
-	  My_Cap.chassis_power = cap_rx_info->now_chassis_power;
-	  My_Cap.cap_v = int16_to_float(cap_rx_info->now_cap_V, 32000, -32000, 25, 0);
-    My_Cap.cap_i = int16_to_float(cap_rx_info->now_cap_I, 32000, -32000, 16, -16);
-	
-}
+    if (can_id == CAP_TO_MASTER_ID)
+    {
+        memcpy(&self->info.rx, rxBuf, sizeof(capboard_rx_info_t));
 
+        int16_t now_cap_V = self->info.rx.now_cap_V;
+        int16_t now_cap_I = self->info.rx.now_cap_I;
+
+        self->info.cap_u = int16_to_float(now_cap_V, 32000, -32000, 25.0f, 0.0f);
+        self->info.cap_i = int16_to_float(now_cap_I, 32000, -32000, 16.0f, -16.0f);
+
+        self->info.offline_cnt = 0;
+    }
+    else if (can_id == WIRELESS_ID)
+    {
+        memcpy(&self->info.wireless, rxBuf, sizeof(wireless_rx_info_t));
+
+        int16_t wireless_P = self->info.wireless.charging_power;
+        self->info.wireless_p = int16_to_float(wireless_P, 32000, -32000, 0.0f, 150.0f);
+
+        self->info.w_offline_cnt = 0;
+    }
+}

@@ -1,13 +1,13 @@
-#ifndef __STRAIGHT_H
-#define __STRAIGHT_H
-
-/* Includes ------------------------------------------------------------------*/
-#include "Straight_Leg_Calc.h"
-#include "car_info.h" //½öÓÃ×÷ÒýÈëÃ¶¾Ù
-/* Exported macro ------------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
-/* Servo functions */
-extern Straight_Leg_t Straight_Leg[Leg_Num];
-
-#endif
+#ifndef __STRAIGHT_H
+#define __STRAIGHT_H
+
+/* Includes ------------------------------------------------------------------*/
+#include "Straight_Leg_Calc.h"
+#include "car_info.h" //ä»…ç”¨ä½œå¼•å…¥æžšä¸¾
+/* Exported macro ------------------------------------------------------------*/
+/* Exported types ------------------------------------------------------------*/
+/* Exported functions --------------------------------------------------------*/
+/* Servo functions */
+extern Straight_Leg_t Straight_Leg[Leg_Num];
+
+#endif

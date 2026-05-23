@@ -1,160 +1,172 @@
 #ifndef __CAR_INFO_H
 #define __CAR_INFO_H
 
+/*************************** ã€Šæœºä½“å±æ€§ã€‹ begin ****************************/
+#define WHEEL_RADIUS 0.06f // é©±åŠ¨è½®åŠå¾„ï¼Œå•ä½ï¼šm
+// è…¿æ†é•¿ï¼Œå¦‚æœä¸ºä¸²è”è…¿è¯·å°†l5ç½®é›¶ï¼Œl1=l2,l3=l4
+#define l1 0.215f
+#define l2 0.258f
+#define l3 0.258f
+#define l4 0.215f
+#define l5 0.f
+// å„æ†è´¨å¿ƒç³»æ•°
+#define l1_cen 0.42f
+#define l2_cen 0.f
+#define l3_cen 0.4985f
+#define l4_cen 0.42054f
 
-/*************************** »úÌåÊôĞÔ begin ****************************/
-#define WHEEL_RADIUS  0.06f//Çı¶¯ÂÖ°ë¾¶£¬µ¥Î»£ºm  
-//ÍÈ¸Ë³¤£¬Èç¹ûÎª´®ÁªÍÈÇë½«l5ÖÃÁã£¬l1=l2,l3=l4
-#define l1     0.235f
-#define l2     0.282f
-#define l3     0.282f
-#define l4     0.235f
-#define l5     0.f
-//¸÷¸ËÖÊĞÄÏµÊı
-#define l1_cen    0.4742f            //5
-#define l2_cen    0.f            //0
-#define l3_cen    0.4009f            //5
-#define l4_cen    0.4297f            //5
+// å„æ†è´¨é‡
+#define m_l1 0.0558f
+#define m_l2 0.f
+#define m_l3 0.265f
+#define m_l4 0.2977f
 
-//¸÷¸ËÖÊÁ¿
-#define m_l1     0.1677f
-#define m_l2     0.f
-#define m_l3     0.3985f 
-#define m_l4     0.43f 
-
-//Çı¶¯ÂÖÖÊÁ¿£¨ËãÉÏ¶¨×Ó£©
-#define mw      0.517f            //0.55chuan        ************************************************
-            //
-//»úÌåÖÊÁ¿
-#define mb    33.0f          //19.25f          //3.2f  //kg bing      *********************************************
+// é©±åŠ¨è½®è´¨é‡ï¼ˆç®—ä¸Šå®šå­ï¼‰
+#define mw 0.55f
+// æœºä½“è´¨é‡
+#define mb 29.0f
 #define g  9.81f
 
-//Õû³µĞı×ª°ë¾¶
-#define Rl  0.291f////////////////            *********************************************
-//×î³¤×î¶ÌÍÈ³¤
-#define MAX_LEG_LENGTH    0.458f
-#define MIN_LEG_LENGTH    0.145f
+// æ•´è½¦æ—‹è½¬åŠå¾„
+#define Rl 0.2574f
+// æœ€é•¿æœ€çŸ­è…¿é•¿
+#define MAX_LEG_LENGTH 0.32f
 
-//µ¥ÍÈÖÊÁ¿£¬ËÄ¸Ë×ÜºÍ
-#define m_l 1.4f            //
-//
-//
-#define R_PHI1_UP_ANGLE    (-170.96)/////////////////´úÂëÀïÎŞ-17096
-#define R_PHI4_UP_ANGLE    (-14.4)///////////////////-14.4
-							
-#define L_PHI1_UP_ANGLE    (-164.0f)///////////////            //
-#define L_PHI4_UP_ANGLE    (-13.5f)//////////////////            //
-/*************************** »úÌåÊôĞÔ end ****************************/
+#define MIN_LEG_LENGTH 0.13f
+#define MID_LEG_LENGTH ((MAX_LEG_LENGTH + MIN_LEG_LENGTH) / 2.f)
+// å•è…¿è´¨é‡ï¼Œå››æ†æ€»å’Œ
+#define m_l (m_l1 + m_l2 + m_l3 + m_l4)
+// #define R_PHI1_UP_ANGLE (-170.96)
+// #define R_PHI4_UP_ANGLE (-14.4)
 
+// #define L_PHI1_UP_ANGLE (-164.0f)
+// #define L_PHI4_UP_ANGLE (-13.5f)
+/*************************** æœºä½“å±æ€§ end ****************************/
 
-/*************************** ¿ØÖÆÅäÖÃ begin ****************************/
+/*************************** æ§åˆ¶é…ç½® begin ****************************/
 
-#define TAR_LEG_LENGTH_INITIAL   (0.21f)//³õÊ¼Ä¿±êÍÈ³¤////////////            //
-#define OFF_GROUND_SUPPORT 		 32.f//ÀëµØÖ§³ÖÁ¦ãĞÖµ£¬Ô½Ğ¡Ô½ÄÑ´¥·¢£¬µ¥Î»£ºN
-#define MAX_LIFT_SPEED           0.3f       //µ¥Î»£ºm/s  ÍÈ³¤¸Ä±ä×î´óËÙ¶È
-#define MAX_SPIN_SPEED           2.0f    //µ¥Î»£ºrad/s ³µÌå×ªÏòÔË¶¯×î´óËÙ¶È////////
+#define TAR_LEG_LENGTH_INITIAL    (0.15f) // åˆå§‹ç›®æ ‡è…¿é•¿
+#define OFF_GROUND_SUPPORT        50.0f   // ç¦»åœ°æ”¯æŒåŠ›é˜ˆå€¼ï¼Œè¶Šå°è¶Šéš¾è§¦å‘ï¼Œå•ä½ï¼šN
+#define OFF_GROUND_TIME_THRESHOLD 5       // ç¦»åœ°æ£€æµ‹è§¦å‘æ—¶é—´é˜ˆå€¼ï¼Œå•ä½ms
+#define MAX_LIFT_SPEED            0.15f   // å•ä½ï¼šm/s  è…¿é•¿æ”¹å˜æœ€å¤§é€Ÿåº¦
+#define MAX_SPIN_SPEED            200.0f  // å•ä½ï¼šÂ°/s è½¦ä½“è½¬å‘è¿åŠ¨æœ€å¤§é€Ÿåº¦
 
-/*Èí¼şÏŞÎ»Ïà¹Ø£¬±£»¤»úĞµ½á¹¹,Ó¦¸Ã¿ÉÒÔ²»ÓÃ¼Ó*/
-#define LIMIT_RANGE      (10.f)
-#define SD_POS_FIX_TOR_K			(-0.f)   //¹Ø½ÚÏŞÎ»Á¦¾Ø²¹³¥ÏµÊı -0.1
+/*è½¯ä»¶é™ä½ç›¸å…³ï¼Œä¿æŠ¤æœºæ¢°ç»“æ„*/
+// #define LIMIT_RANGE      (10.f)
+// #define SD_POS_FIX_TOR_K (-0.f) // å…³èŠ‚é™ä½åŠ›çŸ©è¡¥å¿ç³»æ•° -0.1
 
-/*Ğ¶Á¦×èÄáÊ±¼äÓë×èÄáÏµÊı*/
-#define DAMPING_DELAY_MAX_CNT     3500   //×èÄá³ÖĞøÊ±¼ä1.5s
+/*å¸åŠ›é˜»å°¼æ—¶é—´ä¸é˜»å°¼ç³»æ•°*/
+#define DAMPING_DELAY_MAX_CNT     3500 // é˜»å°¼æŒç»­æ—¶é—´
+
 #define Wheel_Damping_Coefficient 0.0001f //
-#define Sd_Damping_Coefficient    4.f
+#define Sd_Damping_Coefficient    3.f
 
-#define MAX_STRAIGHT_SPEED	2.3f///////////
+// æœºä½“æœ€å¤§å‰è¿›é€Ÿåº¦
+#define MAX_STRAIGHT_SPEED         2.5f
+#define RC_INPUT_SD1_ORDER_CORRECT 1.f
 
-#define RC_INPUT_SD1_ORDER_CORRECT 1.f/////////
-    
+/*************************** æ§åˆ¶é…ç½® end ****************************/
 
-/*************************** ¿ØÖÆÅäÖÃ end ****************************/
+/*************************** é›¶ç‚¹ã€æ–¹å‘é…ç½® begin ****************************/
+/*
+ * - å‰è¿›æ–¹å‘æœå³ï¼Œè…¿åèººæ‘†æ”¾
+ * - æœºä½“å³è¾¹ç”µæœºé›¶ç‚¹(HORIZON_ANGLE)ä¸ºï¼š-ã€Šå¹³èººæ—¶åä¼¸è…¿å§¿æ€ç¼–ç å™¨å€¼ã€‹+ ã€Šæ°´å¹³å‘å·¦ä¸è†å…³èŠ‚è…¿/å¤§è…¿çš„å¤¹è§’ã€‹
+ * - æœºä½“å·¦è¾¹ç”µæœºé›¶ç‚¹(HORIZON_ANGLE)ä¸ºï¼š-ã€Š-å¹³èººæ—¶åä¼¸è…¿å§¿æ€ç¼–ç å™¨å€¼ã€‹+ ã€Šæ°´å¹³å‘å·¦ä¸è†å…³èŠ‚è…¿/å¤§è…¿çš„å¤¹è§’ã€‹
+ * - å³è¾¹ç”µæœºè¿æ†è§£ç®—è§’åº¦ä¸ºï¼š ã€Šå®æ—¶ç¼–ç å™¨å€¼ã€‹+ é›¶ç‚¹
+ * - å·¦è¾¹ç”µæœºè¿æ†è§£ç®—è§’åº¦ä¸ºï¼š-ã€Šå®æ—¶ç¼–ç å™¨å€¼ã€‹+ é›¶ç‚¹
+ * - å·¦è¾¹ç”µæœºé›¶ç‚¹-ã€Š-å¹³èººæ—¶åä¼¸è…¿å§¿æ€ç¼–ç å™¨å€¼ã€‹= +ã€Šå¹³èººæ—¶åä¼¸è…¿å§¿æ€ç¼–ç å™¨å€¼ã€‹ï¼Œæ•…ä¸‹é¢æ˜¯+
+ * - X_X_MOTOR_ZERO_ANGLEä¸ºå¹³èººæ—¶åä¼¸è…¿å§¿æ€åŸå§‹ç¼–ç å™¨å€¼
+ */
+// æ°´å¹³å‘å·¦ä¸è†å…³èŠ‚è…¿å¤¹è§’ï¼š73.06Â°
+// æ°´å¹³å‘å·¦ä¸å¤§è…¿å¤¹è§’ï¼š-34.81Â°
+#define Angle_Horizontal_Leftward_and_Knee_Joint_Leg 73.06f
+#define Angle_Horizontal_Leftward_and_Big_Leg        -34.81f
+#define R_F_MOTOR_ZERO_ANGLE                         1.23961902f
+#define R_B_MOTOR_ZERO_ANGLE                         0.925723314f
+#define L_F_MOTOR_ZERO_ANGLE                         1.72263885f
+#define L_B_MOTOR_ZERO_ANGLE                         0.593420029f
+#define R_F_HORIZON_ANGLE                            (-(R_F_MOTOR_ZERO_ANGLE) + Degree_to_rad * Angle_Horizontal_Leftward_and_Knee_Joint_Leg)
+#define R_B_HORIZON_ANGLE                            (-(R_B_MOTOR_ZERO_ANGLE) + Degree_to_rad * Angle_Horizontal_Leftward_and_Big_Leg)
+#define L_F_HORIZON_ANGLE                            (+(L_F_MOTOR_ZERO_ANGLE) + Degree_to_rad * Angle_Horizontal_Leftward_and_Knee_Joint_Leg)
+#define L_B_HORIZON_ANGLE                            (+(L_B_MOTOR_ZERO_ANGLE) + Degree_to_rad * Angle_Horizontal_Leftward_and_Big_Leg)
 
-
-
-
-/*************************** Áãµã¡¢·½ÏòÅäÖÃ begin ****************************/
-
-/*¹Ø½Úµç»úÁãµã  42.37 0.739496 2.4020966  13.03 0.227416 2.9141766*/
-#define R_F_HORIZON_ANGLE (2.41639f+2.4020966f-6.283185307f)         //(-1.638f)            //=0.779
-#define R_B_HORIZON_ANGLE (0.5520017f+0.227416f)         //(-0.764f)            //=0.227
-#define L_F_HORIZON_ANGLE (2.89950776f-2.4020966f)         //(-2.118f-2.723f+3.1415f+5.42f)    //514bing         //
-#define L_B_HORIZON_ANGLE (1.31823707f-0.227416f)         //(-1.552f+2.687f-0.0274f   /*-0.71f*/)     //2.75bing            //
-
-/*¹Ø½Úµç»úÁãµãÔËËã·½ÏòĞ£Õı*/
+/*å…³èŠ‚ç”µæœºé›¶ç‚¹è¿ç®—æ–¹å‘æ ¡æ­£*/
 #define R_F_HORIZON_ANGLE_ORDER_CORRECT 1
-#define R_B_HORIZON_ANGLE_ORDER_CORRECT -1
-#define L_F_HORIZON_ANGLE_ORDER_CORRECT -1
+#define R_B_HORIZON_ANGLE_ORDER_CORRECT 1
+#define L_F_HORIZON_ANGLE_ORDER_CORRECT 1
 #define L_B_HORIZON_ANGLE_ORDER_CORRECT 1
 
-/*µç»ú±àÂëÆ÷ÖµµİÔö·½ÏòĞŞÕı£¬ÄæÊ±ÕëÎª1£¬Ë³Ê±ÕëÎª-1*/
-#define R_F_TIME  -1    //´ÓÓÒ¿´nishizhen
-#define R_B_TIME  1    
-#define L_F_TIME  1   //´ÓÓÒÍù×ó¿´ÊÇÓëÉÏÃæ¾µÏñ
-#define L_B_TIME  -1
+/*ç”µæœºç¼–ç å™¨å€¼é€’å¢æ–¹å‘ä¿®æ­£ï¼Œé€†æ—¶é’ˆä¸º1ï¼Œé¡ºæ—¶é’ˆä¸º-1*/
+#define R_F_TIME 1
+#define R_B_TIME 1
+#define L_F_TIME -1
+#define L_B_TIME -1
 
-/*½¨Ä£ÓëVMCµÄTp·½Ïò½ÃÕı*/
-#define L_TP_LQR_ORDER_CORRECT    -1///
-#define R_TP_LQR_ORDER_CORRECT    -1///
+/*å»ºæ¨¡ä¸VMCçš„Tpæ–¹å‘çŸ«æ­£*/
+#define L_TP_LQR_ORDER_CORRECT -1
+#define R_TP_LQR_ORDER_CORRECT -1
 
-/*½¨Ä£ÓëVMCµÄvir_phi0·½Ïò½ÃÕı*/
-#define L_VIR_PHI0_ORDER_CORRECT  -1///
-#define R_VIR_PHI0_ORDER_CORRECT  -1///
+/*å»ºæ¨¡ä¸VMCçš„vir_phi0æ–¹å‘çŸ«æ­£*/
+#define L_VIR_PHI0_ORDER_CORRECT -1
+#define R_VIR_PHI0_ORDER_CORRECT -1
 
-/*½¨Ä£Óëµç»úÅ¤¾ØÊä³ö·½Ïò½ÃÕı*/
-#define L_F_ORDER_CORRECT    -1  //¹Ø½Úµç»ú--++
-#define L_B_ORDER_CORRECT    -1
-#define R_F_ORDER_CORRECT    1
-#define R_B_ORDER_CORRECT    1
+/*å»ºæ¨¡ä¸ç”µæœºæ‰­çŸ©è¾“å‡ºæ–¹å‘çŸ«æ­£*/
+#define L_F_ORDER_CORRECT -1 // å…³èŠ‚ç”µæœº--++
+#define L_B_ORDER_CORRECT -1
+#define R_F_ORDER_CORRECT 1
+#define R_B_ORDER_CORRECT 1
 
-#define L_W_ORDER_CORRECT    -1 //Çı¶¯ÂÖ///
-#define R_W_ORDER_CORRECT    1///
+#define L_W_ORDER_CORRECT -1 // é©±åŠ¨è½®
+#define R_W_ORDER_CORRECT 1
 
-/* Ë«ÍÈĞ­µ÷Tp_sync·½Ïò½ÃÕı */
-#define L_SYNC_ORDER_CORRECT   -1
-#define R_SYNC_ORDER_CORRECT   1
+// æ°®æ°”å¼¹ç°§è¡¥å¿åŠ›æ–¹å‘çŸ«æ­£
+#define FRONT_SPRING_COMPENSATION_ORDER_CORRECT 1
+#define BACK_SPRING_COMPENSATION_ORDER_CORRECT  -1
 
-/* Roll½Ç¿ØÖÆTp_roll·½Ïò½ÃÕı */
-#define L_TP_Roll_ORDER_CORRECT    1
-#define R_TP_Roll_ORDER_CORRECT    -1
+// è…¿éƒ¨é‡åŠ›è¡¥å¿åŠ›æ–¹å‘çŸ«æ­£
+#define LEG_GRAVITY_COMPENSATION_ORDER_CORRECT -1
 
-/* ×ªÏò¿ØÖÆTw_turn·½Ïò½ÃÕı */
-#define R_TURN_ORDER_CORRECT 1//2.21gai
+/* åŒè…¿åè°ƒTp_syncæ–¹å‘çŸ«æ­£ */
+#define L_SYNC_ORDER_CORRECT -1
+#define R_SYNC_ORDER_CORRECT 1
+
+/* Rollè§’æ§åˆ¶Tp_rollæ–¹å‘çŸ«æ­£ */
+#define L_TP_Roll_ORDER_CORRECT -1
+#define R_TP_Roll_ORDER_CORRECT 1
+
+/* è½¬å‘æ§åˆ¶Tw_turnæ–¹å‘çŸ«æ­£ */
+#define R_TURN_ORDER_CORRECT 1
 #define L_TURN_ORDER_CORRECT -1
 
-/* ²àÏòÇ°À¡ÊúÖ±Á¦F_inertial·½Ïò½ÃÕı */
+/* ä¾§å‘å‰é¦ˆç«–ç›´åŠ›F_inertialæ–¹å‘çŸ«æ­£ */
 #define L_F_INERTIAL_ORDER_CORRECT -1
 #define R_F_INERTIAL_ORDER_CORRECT 1
 
-/* Ïû³ıµç»ú¶¨×Ó×ª¶¯¶ÔÎ»ÒÆÓ°Ïì·½Ïò½ÃÕı */
+/* æ¶ˆé™¤ç”µæœºå®šå­è½¬åŠ¨å¯¹ä½ç§»å½±å“æ–¹å‘çŸ«æ­£ */
 #define R_STATOR_ORDER_CORRECT 1
 #define L_STATOR_ORDER_CORRECT -1
 
-/* ÓÃÓÚÇós¡¢sd1µÄÂÖËÙ¡¢ÂÖ×Ü½Ç¶È·½Ïò½ÃÕı */
-#define R_W_SPEED_ORDER_CORRECT 1//  ¸º¸ÄÕı
-#define L_W_SPEED_ORDER_CORRECT 1
+/* ç”¨äºæ±‚sã€sd1çš„è½®é€Ÿã€è½®æ€»è§’åº¦æ–¹å‘çŸ«æ­£ */
+#define R_W_SPEED_ORDER_CORRECT    1
+#define L_W_SPEED_ORDER_CORRECT    1
 
 #define R_W_ANGLESUM_ORDER_CORRECT 1
 #define L_W_ANGLESUM_ORDER_CORRECT -1
 
-/* ¹Ø½Úµç»ú×Ü½Ç¶È·½Ïò½ÃÕı */
+/* å…³èŠ‚ç”µæœºæ€»è§’åº¦æ–¹å‘çŸ«æ­£ */
 #define R_F_SD_ANGLESUM_ORDER_CORRECT -1
 #define R_B_SD_ANGLESUM_ORDER_CORRECT -1
 #define L_F_SD_ANGLESUM_ORDER_CORRECT 1
 #define L_B_SD_ANGLESUM_ORDER_CORRECT 1
 
-/*************************** Áãµã¡¢·½ÏòÅäÖÃ end ****************************/
+/*************************** é›¶ç‚¹ã€æ–¹å‘é…ç½® end ****************************/
 
+#define TIME_STEP 0.001f // ä»»åŠ¡è¿è¡Œå‘¨æœŸï¼Œå•ä½ï¼šs
 
-#define TIME_STEP			0.001f//ÈÎÎñÔËĞĞÖÜÆÚ£¬µ¥Î»£ºs
-
-typedef enum
-{
-	R_Leg,
-	
-	L_Leg,
-	
-	Leg_Num,
-}Leg_e;
+typedef enum {
+    R_Leg,
+    L_Leg,
+    Leg_Num,
+} Leg_e;
 
 #endif

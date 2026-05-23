@@ -1,216 +1,123 @@
-//#ifndef __UI_H
-//#define __UI_H
-
-//#include "main.h"
-//#include "rp_config.h"
-///*×¼Ïß²ÎÊýÉèÖÃ----------------------------------------*/
-////OFFSETÔ½´óÌ§µÄpitchÔ½´ó
-//#define _TOILET_DOWN_OFFSET 165
-//#define _TOILET_DOWN_WIDTH 60
-
-//#define _OUTPOST_OFFSET 230
-//#define _OUTPOST_WIDTH 	40
-
-//#define _HEIGHT_OFFSET 260
-//#define _HEIGHT_WIDTH 120
-
-//#define _VISION__RECTANGEL_X_WIDTH 250
-//#define _VISION__RECTANGEL_Y_OFFSET 200
-///*UIÄÚÈÝºê¶¨Òå****************************************************/
-// 
-//typedef enum{
-//	//µ×ÏÂ³¬µçÌõ
-//	D_CAP_VOLTAGE = 0, // ³¬µçµçÑ¹
-//	//×ó±ß×´Ì¬ÏÔÊ¾
-//	D_FRIC_B_SPEED,		//Á½¼¶Ä¦²ÁÂÖ×ªËÙ
-//	D_FRIC_F_SPEED,
-//	D_UWB_YAW,					 // UWB's yaw
-//	D_PTICH_IMU_ANGLE,   // ¸©Ñö½ÇÍÓÂÝÒÇ
-//	D_VISION_CIRCLE,     // ÊÓ¾õÊÇ·ñÔÚÏß
-//	D_SPEED_ADAPT_CYCLE,		     // Ð¡ÍÓÂÝ×´Ì¬
-//	D_CAP_ON_CYCLE, 		 // ÊÇ·ñ¿ª³¬µç
-//	D_CAR_MODE,          // ³µÐÐ¶¯Ä£Ê½
-//	
-//	//ÓÒ±ß×´Ì¬ÏÔÊ¾
-//	D_HIT_TARGET_DISTANCE,
-//	D_FRIC_STATE_CYCLE,	//·ûºÏËÙ¶ÈÖ¸Ê¾
-//	
-//	D_RFID_CYCLE,   //RFID×´Ì¬µÆ
-//	
-//	//ÖÐ¼ä×´Ì¬ÏÔÊ¾
-//	D_MID_RECTANGEL,   // ÖÐ¼äÊÓ¾õ¿ò
-//	
-//	D_HIT_TARGET_TRIANGLE_1,   // »÷´òÄ¿±ê·½ÏòÖ¸Ê¾Æ÷
-//	D_HIT_TARGET_TRIANGLE_2,
-//	
-//	D_HIT_HIGHLIGHT_LINE_1, //»÷´òÃüÖÐÌáÊ¾
-//	D_HIT_HIGHLIGHT_LINE_2,
-//	
-//	D_HEAD_CYCLE,				//Ö¸Ê¾Í··½Ïò
-//	#ifndef UI_SIMPLIFY
-//	//ÊÓ¾õ×°¼×°å
-//	
-//	D_VISION_ARMOR_CYCLE,
-//	D_VISION_HP_CYCLE,
-//	D_VISION_WHITE_CYCLE,
-//	
-//	//roi
-//	D_ROI_UP,
-//	D_ROI_LEFT,
-//	D_ROI_DOWN,
-//	D_ROI_RIGHT,
-//	D_ROI_MID,
-//	#endif
-// 
-//	//pitchÖ¸Ê¾Æ÷
-//	D_PITCH_POINTER,
-//	
-//	
-// 
-//	DYNAMIC_UI_NUM,
-//}dynamic_ui_e;
-
-//typedef enum{
-//	//×´Ì¬µÆ±êÌâ
-//	C_VISION_CHAR,
-//	C_FRIC_CHAR,
-//	C_FRIC_ADAPT_CHAR,
-//	C_CAP_CHAR,
-//	C_CAR_MODE_CHAR,
-//	C_RFID_CHAR,
-//	//×¼ÐÄÏß
-//	C_MID_LINE,
-//	C_HEIGHT_LINE,
-//	C_OUTPOST_LINE,
-//	C_TOILET_DOWN_LINE,
-//	//×¼ÏßÃû³Æ
-//	C_HEIGHT_CHAR,
-//	C_OUTPOST_CHAR,
-//	C_TOILET_DOWN_CHAR,
-//	
-//	//Í¨¹ýÏß
-//	C_PASS_LINE_LEFT,
-//	C_PASS_LINE_RIGHT,
-//	
-////	#ifndef UI_SIMPLIFY
-//	//pitchÖ¸Ê¾Æ÷
-//	C_PITCH_LINE_0,
-//	C_PITCH_LINE_10,
-//	C_PITCH_LINE_20,
-//	C_PITCH_LINE_30,
-//				
-//	C_PITCH_LINE_40,
-//	C_PITCH_LINE_50,
-//	C_PITCH_LINE_N_10,
-//	C_PITCH_LINE_N_20,
-//	C_PITCH_LINE_N_30,
-//	
-//	C_PITCH_0_CHAR,
-//	C_PITCH_50_CHAR,
-//	C_PITCH_30_CHAR,
-//	C_PITCH_N_30_CHAR,
-////	#endif
-//	CONST_UI_NUM,
-//}const_ui_e;
-
-///* ³µÐÐ¶¯Ä£Ê½Ã¶¾Ù */
-//enum 
-//{
-//  offline_CAR,        //ÀëÏßÄ£Ê½         0
-//  init_CAR,           //³õÊ¼»¯Ä£Ê½       1
-//  mec_CAR,            //»úÐµÄ£Ê½         2
-//  gyro_CAR,           //ÍÓÂÝÒÇÄ£Ê½       3
-//	cycle_CAR,		  //Ð¡ÍÓÂÝÄ£Ê½       4
-//  vision_gyro_CAR,    //ÊÓ¾õÍÓÂÝÒÇÄ£Ê½   5
-//  vision_cycle_CAR,   //ÊÓ¾õÐ¡ÍÓÂÝÄ£Ê½   6
-//  lob_CAR,            //Å×ÇòÄ£Ê½         7
-//};
-
-//typedef enum
-//{
-//	SENTRY,
-//	HERO,
-//	ENGINEER,
-//	INFANRTY_3,
-//	INFANRTY_4,
-//	INFANRTY_5,
-//	OUTPOST,
-//  BASE,
-//}robot_type_e;
-
-//typedef struct __attribute__((packed)) 
-//{
-//	uint16_t armor_radius ; // ÏÔÊ¾×°¼×°åÀëÖÐÐÄµÄ¾àÀë
-//	
-//}my_ui_config_t;
-
-//void My_Ui_Init(void);
-//void Ui_Info_Update(void);
-//#endif
-
-#ifndef __MY_UI_H
-#define __MY_UI_H
+#ifndef __UI_H
+#define __UI_H
 
 #include "stm32h7xx_hal.h"
 #include "rp_math.h"
-typedef enum{
-	TOP_FRAME,
-	FLY_FRAME,
-	UPSTEP_FRAME,
-	UPSTEP_NUM,//ÉÏÌ¨½×Êý×Ö
-	BUFF_FRAME,//·¢ÏÖbuff
-	BUFF_NUM,//buffÐòºÅ
-//	POWER,
-//	POWER_FRAME,
-	BULLET_NUM,
-	CHAS_HEAD_LINE,//³µÍ·Ïß
-	CHAS_SIDE_LINE,//³µ²àÏß
-	PITCH_LINE,//»úÌåÏß
-	THETA_LINE,//°Ú½ÇÏß
-	R_LEG_LENGTH,//ÓÒÍÈ³¤
-	L_LEG_LENGTH,//×óÍÈ³¤
-//	VISION_FRAME,//·¢ÏÖÄ¿±ê
-	CAP_LINE,//³¬µçÌõ
-	VISION_AIM,//ÊÓ¾õÄ¿±êÎ»ÖÃ
-	AUTO_CATCH_FRAME,//×ÔÃé¿ò
-	CAR_SPEED,//³µÌåËÙ¶È
-	LENGTH_FRAME,//ÍÈ³¤Ä£Ê½¿ò
-	
-	
-	DYNAMIC_NUM,
-}dynamic_ui_cnt_e;
+#include "ui_protocol.h"
+#include "ui_priority.h"
+#include "Balance.h"
+#include "Chassis.h"
+#include "car_info.h"
+#include "gimbal.h"
+#include "communicate.h"
+#include "cap.h"
 
-typedef enum{
-	TOP_CHAR,
-	UPSTEP_CHAR,
-	FLY_CHAR,
-	BUFF_CHAR,
-//	VISION_CHAR,
-//	AUTO_CATCH_FRAME,//×ÔÃé¿ò
-	CHAS_CIRCLE,//µ×ÅÌÔ²ÅÌ
-	STANDARD_LINE,//ÍÈ³¤Ä¬ÈÏ¸ß¶È
-	HIGH_LINE,//¶þ½×ÍÈ³¤Ä£Ê½Ë®Æ½Ïß
-	MINIMUM_LINE,//×îµÍÍÈ³¤»ù×¼Ïß
-	CAP_FRAME,//³¬µç¿ò
-	MOVE_L_LINE,//×óÐÐ³µÏß
-	MOVE_R_LINE,//ÓÒÐÐ³µÏß
-	LOW_CHAR,//µÍÍÈ³¤
-	MID_CHAR,//ÖÐÍÈ³¤
-	HIGH_CHAR,//¸ßÍÈ³¤
-	CAP_DIVISION_1,//³¬µç·Ö¸îÏß
-	CAP_DIVISION_2,
-	
-	CONST_NUM,
-}const_ui_cnt_e;
+typedef enum {
+    CHAS_HEAD_LINE,
+    CHAS_SIDE_LINE,
+    CAP_LINE,
+    VISION_AIM,
+    AUTO_CATCH_FRAME,
+    LENGTH_FRAME,
+    D_CAR_MODE,
+    L_LEG_BODY_LINE,
+    L_LEG_A_TO_D,
+    L_LEG_D_TO_C,
+    R_LEG_BODY_LINE,
+    R_LEG_A_TO_D,
+    R_LEG_D_TO_C,
+    L_LEG_BODY_BACK_CIRCLE,
+    L_LEG_BODY_FRONT_CIRCLE,
+    L_LEG_C_CIRCLE,
+    R_LEG_BODY_BACK_CIRCLE,
+    R_LEG_BODY_FRONT_CIRCLE,
+    R_LEG_C_CIRCLE,
+    D_RED_1_HEALTH_CHAR,
+    D_RED_2_HEALTH_CHAR,
+    D_RED_3_HEALTH_CHAR,
+    D_RED_4_HEALTH_CHAR,
+    D_RED_5_HEALTH_CHAR,
+    D_BLUE_1_HEALTH_CHAR,
+    D_BLUE_2_HEALTH_CHAR,
+    D_BLUE_3_HEALTH_CHAR,
+    D_BLUE_4_HEALTH_CHAR,
+    D_BLUE_5_HEALTH_CHAR,
+    DART_WARNING_CHAR,
+    D_L_FRIC_STATE_CYCLE,
+    D_R_FRIC_STATE_CYCLE,
+    D_VISION_DETECT_ROBOT_HEALTH_INT,
+    D_ENERMY_MONEY_INT,
+    DYNAMIC_NUM,
+} dynamic_ui_e;
 
-typedef struct UI_Dynamic_Info_struct_t
-{
-	uint32_t l_leg_length;
-	
-	uint32_t r_leg_length;
-	
-}UI_Dynamic_Info_t;
+typedef enum {
+    CHAS_CIRCLE,
+    CAP_FRAME,
+    LOW_CHAR,
+    MID_CHAR,
+    HIGH_CHAR,
+    C_CAR_MODE_CHAR,
+    C_RED_1_CHAR,
+    C_RED_2_CHAR,
+    C_RED_3_CHAR,
+    C_RED_4_CHAR,
+    C_RED_5_CHAR,
+    C_BLUE_1_CHAR,
+    C_BLUE_2_CHAR,
+    C_BLUE_3_CHAR,
+    C_BLUE_4_CHAR,
+    C_BLUE_5_CHAR,
+    C_Fric_CHAR,
+    CONST_NUM,
+} const_ui_e;
 
 void My_Ui_Init(void);
 void Ui_Info_Update(void);
+void update_robot_health(void);
+void update_dart_warning(void);
+void update_fric_state_cycles(void);
+void update_vision_detect_robot_health(void);
+void update_enermy_money(void);
+
+/*==================== Leg UI Begin ====================*/
+// è…¿éƒ¨UIé…ç½®å‚æ•°ç»“æž„ä½“
+typedef struct {
+    float scale;            // æ”¾å¤§æ¯”ä¾‹
+    int16_t leg_offset_x;   // å·¦è…¿æ•´ä½“åç½®X
+    int16_t leg_offset_y;   // å·¦è…¿æ•´ä½“åç½®Y
+    int16_t right_offset_x; // å³è…¿ç›¸å¯¹å·¦è…¿åç½®X
+    int16_t right_offset_y; // å³è…¿ç›¸å¯¹å·¦è…¿åç½®Y
+    int16_t body_length;    // æœºä½“æ†åŠé•¿åº¦
+
+} Leg_UI_Config_t;
+
+// è…¿éƒ¨UIä¸­é—´å˜é‡ç»“æž„ä½“
+typedef struct {
+    float pitch; // æœºä½“pitchè§’åº¦
+    // å·¦è…¿åŽŸå§‹åæ ‡ï¼ˆå–è´ŸåŽï¼‰
+    float raw_A_l_x, raw_A_l_y;
+    float raw_D_l_x, raw_D_l_y;
+    float raw_C_l_x, raw_C_l_y;
+    // å³è…¿åŽŸå§‹åæ ‡ï¼ˆå–è´ŸåŽï¼‰
+    float raw_A_r_x, raw_A_r_y;
+    float raw_D_r_x, raw_D_r_y;
+    float raw_C_r_x, raw_C_r_y;
+    // å·¦è…¿ä¸–ç•Œåæ ‡ï¼ˆæ—‹è½¬åŽï¼‰
+    float world_A_l_x, world_A_l_y;
+    float world_D_l_x, world_D_l_y;
+    float world_C_l_x, world_C_l_y;
+    // å³è…¿ä¸–ç•Œåæ ‡ï¼ˆæ—‹è½¬åŽï¼‰
+    float world_A_r_x, world_A_r_y;
+    float world_D_r_x, world_D_r_y;
+    float world_C_r_x, world_C_r_y;
+    // æœºä½“æ†ç«¯ç‚¹ï¼ˆå·¦è…¿ï¼‰
+    float body_back_l_x, body_back_l_y;
+    float body_front_l_x, body_front_l_y;
+    // æœºä½“æ†ç«¯ç‚¹ï¼ˆå³è…¿ï¼‰
+    float body_back_r_x, body_back_r_y;
+    float body_front_r_x, body_front_r_y;
+} Leg_UI_Var_t;
+
+/*==================== Leg UI End ====================*/
+
 #endif

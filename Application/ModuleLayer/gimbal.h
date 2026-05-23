@@ -1,126 +1,136 @@
 #ifndef __GIMBAL_H
+
 #define __GIMBAL_H
 
-
 /* Includes ------------------------------------------------------------------*/
+
 #include "rp_config.h"
+
 #include "communicate.h"
-//#include "myrobot_def.h"
+
 #include "chassis_motor.h"
+
 #include "gimbal_motor.h"
+
 #include "bmi.h"
+
 #include "rc_sensor.h"
+
 #include "Balance.h"
+
 #include "DM_Motor.h"
+
 #include "rp_device_config.h"
+
 #include "rp_math.h"
+
 #include "communicate.h"
-#define YAW_MOTOR_ANGLE_MIDDLE 		(-1.48515582f)       //(1.57075f-0.f)  		  //YAWµç»úÖĞÖµ
-#define PITCH_MOTOR_ENCODER_MIDDLE  (3400.f+2950.f)      //(2950.f)    //pitchµç»ú±àÂëÆ÷ÖĞÖµ
-#define GIMBAL_LOB_MEC_ANGEL	 (628.f)      //µõÉä»úĞµ½Ç¶È 15.6µ¯ËÙ606
-#define GIMBAL_LOB_LOW_MEC_ANGEL	 (536.f)      //µõÉäµ×²¿»úĞµ½Ç¶È  
-#define GIMBAL_MAX_MEC_ANGEL   		(905.f)				//pitch»úĞµ½Ç¶Èµç¿ØÏŞÎ»×î´óÖµ 990
-#define GIMBAL_MIN_MEC_ANGEL  		 (-323.f)			//pitch»úĞµ½Ç¶Èµç¿ØÏŞÎ»×îĞ¡Öµ -180
 
-#define GIMBAL_MAX_GYRO_ANGEL		(Board_Rx_Info.pitch_imu + (GIMBAL_MAX_MEC_ANGEL - Board_Rx_Info.pitch_mec) / 8192.f * 360.f)
-//pitchÍÓÂİÒÇ½Ç¶Èµç¿ØÏŞÎ»×îĞ¡Öµ       
-#define GIMBAL_MIN_GYRO_ANGEL		(Board_Rx_Info.pitch_imu - (Board_Rx_Info.pitch_mec - GIMBAL_MIN_MEC_ANGEL) / 8192.f * 360.f)
+#include <stdint.h>
 
+#define YAW_MOTOR_ANGLE_MIDDLE     (-2.4147625f) // YAWç”µæœºä¸­å€¼
 
-/*ÔÆÌ¨pid¼ÆËãÀàĞÍ*/
-typedef enum
-{
-	GYRO_PID,
-	MEC_PID,
-	SPEED_PID,
-}gimbal_pid_mode_e;
+#define PITCH_MOTOR_ENCODER_MIDDLE (1.72887063f) // pitchç”µæœºç¼–ç å™¨ä¸­å€¼
 
-typedef struct __attribute__((packed)) 
-{
-	uint8_t lob_init_angle_flag;//³õÊ¼»¯µõÉä½Ç¶È±êÖ¾Î»,ÎªÁËÖ»³õÊ¼»¯Ò»´Î
-	float lob_init_mec_yaw_angle;//»úĞµ½Ç¶È 
+#define GIMBAL_MAX_MEC_ANGEL       (35.f * M_PI / 180.f) // pitchæœºæ¢°è§’åº¦ç”µæ§é™ä½æœ€å¤§å€¼
 
-	float pre_aim_yaw_angle;//µõÉäÔ¤ÃéyawÍÓÂİ½Ç
- 
-	float gyro_init_lob_yaw_angle; //È¡µõÉäÃüÁîµÄÄÇÒ»¿ÌµÄ½Ç¶È
-	
-	uint8_t last_into_oblique_lob_command_flag;//ÅĞ¶ÏÏÂ½µÑØÌø±ä
-	uint16_t out_oblique_head_homing_timeout;
-	
-	uint8_t into_auto_lob_command_flag; //Ö»ÓĞÏÈ½øÃüÁî²ÅÄÜ½ølob¸üĞÂ£¬ÎªÁËÏÈ½øÃüÁîÔÙ½øµõÉä¸üĞÂ,³ÖĞøÎª1Ö±µ½ÍË³ö
-	uint8_t into_normal_lob_command_flag;
-}gimbal_lob_info_t;
+#define GIMBAL_MIN_MEC_ANGEL       (-20.f * M_PI / 180.f) // pitchæœºæ¢°è§’åº¦ç”µæ§é™ä½æœ€å°å€¼
 
-/*ÊÓ¾õÆ«ÖÃ*/
-typedef struct __attribute__((packed)) 
-{
-	float vision_yaw_offset;
-	float lob_yaw_mec_offset;
-	float lob_yaw_gyro_offset;
-}gimbal_offset_info_t;
+#define GIMBAL_MAX_GYRO_ANGEL      (gimbal->base_info.pitch_imu_angle + (GIMBAL_MAX_MEC_ANGEL - gimbal->base_info.pitch_motor_angle) / M_PI * 360.f)
 
-/*pitch¿ØÖÆÀàĞÍ*/
-typedef struct __attribute__((packed))  
-{
-	int8_t gimbal_mode;   //µõÉä»¹ÊÇÍÓÂİÒÇ»¹ÊÇ»úĞµ
-}gimbal_mode_t;
+#define GIMBAL_MIN_GYRO_ANGEL      (gimbal->base_info.pitch_imu_angle - (gimbal->base_info.pitch_motor_angle - GIMBAL_MIN_MEC_ANGEL) / M_PI * 360.f)
 
-typedef enum
-{
-	Gimbal_Turn_IDLE,
-	Gimbal_Turn_Going,
-	Gimbal_Turn_Num,
-}Gimbal_Turn_e;
+/*äº‘å°æ¨¡å¼*/
 
+typedef enum {
+
+    GIMB_SLEEP, // å¸åŠ›
+    G_INIT,     // å½’ä¸­åˆå§‹åŒ–æ¨¡å¼ï¼Œç­‰å¾…äº‘å°å¤ä½å®Œæˆ
+    G_GYRO,     // åº•ç›˜è·Ÿå¤´
+    G_MEC,      // å¤´è·Ÿåº•ç›˜
+    G_MEC_MOVE, // ç”¨æœºæ¢°è§’æ§äº‘å°è€Œéè·Ÿéšåº•ç›˜ï¼Œæµ‹æ•£æ­¥ç”¨
+
+} gimbal_mode_e;
+
+/*è§†è§‰åç½®*/
+
+typedef struct __attribute__((packed)) {
+
+    float vision_yaw_offset;
+
+} gimbal_offset_info_t;
+
+/*äº‘å°åˆå§‹åŒ–ä¿¡æ¯*/
+
+typedef struct {
+
+    uint16_t init_time; // åˆå§‹åŒ–æ—¶é—´
+
+    uint16_t init_time_max; // åˆå§‹åŒ–yawã€pitchå½’é›¶ç‚¹è¶…æ—¶æ—¶é—´
+
+    float pitchInitAngleTolerance; // pitchåˆå§‹åŒ–æœºæ¢°è§’åº¦å®¹å¿åº¦
+
+    float yawInitAngleTolerance; // yawåˆå§‹åŒ–æœºæ¢°è§’åº¦å®¹å¿åº¦
+
+    float pitchInitSpeedTolerance; // pitchåˆå§‹åŒ–æœºæ¢°è§’é€Ÿåº¦å®¹å¿åº¦
+
+    float yawInitSpeedTolerance; // yawåˆå§‹åŒ–æœºæ¢°è§’é€Ÿåº¦å®¹å¿åº¦
+
+} gimbal_init_info_t;
 
 typedef struct
 {
-	float yaw_imu_angle;						//ÔÆÌ¨ÍÓÂİÒÇyawÖá½Ç¶È
-	float yaw_imu_speed;						//ÔÆÌ¨ÍÓÂİÒÇyawÖáËÙ¶È rad/s
-	float  yaw_imu_angle_target;    //ÍÓÂİÒÇÄ£Ê½Ä¿±êyaw   ÊÀ½ç×ø±êÏµ (-180¡ã~180¡ã) (Ë³Ê±ÕëÎªÕı)
-	float  yaw_motor_angle;         //yawÖá Ïà¶Ôµ×ÅÌ  ½Ç¶È(-32768~32768)      (Ë³Ê±ÕëÎªÕı)
-	float  yaw_motor_speed;         //yawÖá Ïà¶Ôµ×ÅÌ  ËÙ¶È(dps)               (Ë³Ê±ÕëÎªÕı)
-	float  yaw_mec_angle_target;	  //»úĞµÄ£Ê½Ä¿±êyaw		µ×ÅÌ×ø±êÏµ(-180¡ã~180¡ã)
-  float yaw_mec_360_angle;
-	
-	float  pitch_motor_angle;       //pitchÖá Ïà¶Ôµ×ÅÌ   ½Ç¶È(0~16383)    (ÏòÉÏÎªÕı)
-	float  pitch_motor_speed;       //pitchÖá Ïà¶Ôµ×ÅÌ   ËÙ¶È(dps)           (ÏòÉÏÎªÕı)
-	float  pitch_mec_angle_target;  //»úĞµÄ£Ê½Ä¿±êpitch	µ×ÅÌ×ø±êÏµ	(0~16383)  (ÏòÉÏÎªÕı)
-	float  pitch_imu_angle_target;  //ÍÓÂİÒÇÄ£Ê½Ä¿±êpitch  ÊÀ½ç×ø±êÏµ (-90¡ã~90¡ã)   (ÏòÉÏÎªÕı)
+    float yaw_imu_angle;        // äº‘å°é™€èºä»ªyawè½´è§’åº¦
+    float yaw_imu_angle_target; // é™€èºä»ªæ¨¡å¼ç›®æ ‡yaw   ä¸–ç•Œåæ ‡ç³» (-180Â°~180Â°)
+    float yaw_imu_speed;
+    float yaw_motor_angle;      // yawè½´ ç›¸å¯¹åº•ç›˜
+    float yaw_mec_angle_target; // æœºæ¢°æ¨¡å¼ç›®æ ‡yaw		åº•ç›˜åæ ‡ç³»(-180Â°~180Â°)
+    float yaw_motor_speed;      // yawè½´ ç›¸å¯¹åº•ç›˜  é€Ÿåº¦(dps)
+    float yaw_mec_360_angle;
 
-	int16_t  output_gimbal_y;				//yawÖáµç»úÊä³ö
+    float pitch_imu_angle; // äº‘å°é™€èºä»ªpitchè½´è§’åº¦
+    float pitch_imu_angle_target;
+    float pitch_imu_speed; // äº‘å°é™€èºä»ªpitchè½´é€Ÿåº¦
+    float pitch_motor_angle;
+    float pitch_mec_360_angle;
+    float pitch_mec_angle_target;
 
-	uint16_t init_time;//³õÊ¼»¯Ê±¼ä
-	uint16_t init_time_max;//³õÊ¼»¯³¬Ê±
-	uint16_t init_time_max_count;//³õÊ¼»¯³¬Ê±¼ÆÊı
-	
-	Gimbal_Turn_e step;
-	uint16_t turn_time;//»»Í·Ê±¼ä
-	uint16_t turn_time_max;//»»Í·³¬Ê±
-	bool Gimbal_Turn_Finish;
+    float output_gimbal_y; // yawè½´ç”µæœºè¾“å‡º
+    float output_gimbal_p; // pitchè½´ç”µæœºè¾“å‡º
 
-}gimbal_base_info_t;
+} gimbal_base_info_t;
 
-typedef struct gimbal_all
-{
-	Motor_DM_t  *gimbal_y;
-	
-	gimbal_base_info_t base_info;
-  gimbal_pid_mode_e yaw_pid_mode;
-	gimbal_lob_info_t		lob_info;
-	gimbal_offset_info_t  	*offset_info;//Æ«ÖÃĞÅÏ¢
+typedef struct gimbal_all {
 
-	float            (*all_pid_calc)(pid_ctrl_t *out,pid_ctrl_t *inn,float target,float mea_out,float mea_in,float inner_kp,uint8_t err_cal_mode);
-	void        		 (*work)(struct gimbal_all *gimbal);
+    Motor_DM_t *gimbal_y;
+    gimbal_pid_info_t *pid_info;
+    gimbal_base_info_t base_info;
 
-	Dev_Reset_State_e			 gimbal_reset_state; //ÔÆÌ¨³õÊ¼»¯×´Ì¬
-	gimbal_mode_t          gimbal_ctrl_mode;
+    gimbal_mode_e mode;
+    gimbal_mode_e gimbal_last_mode; // ä¸Šä¸€å‘¨æœŸäº‘å°æ¨¡å¼ï¼Œç”¨äºæ£€æµ‹æ¨¡å¼è·³å˜
 
-}gimbal_t;
+    Dev_Reset_State_e gimbal_reset_state; // äº‘å°åˆå§‹åŒ–çŠ¶æ€
+
+    gimbal_offset_info_t *offset_info; // åç½®ä¿¡æ¯
+
+    gimbal_init_info_t initInfo; // äº‘å°åˆå§‹åŒ–å¤ä½ä¿¡æ¯
+
+    float (*all_pid_calc)(pid_ctrl_t *out, pid_ctrl_t *inn, float target, float mea_out, float mea_in, float inner_kp, uint8_t err_cal_mode);
+
+    void (*work)(struct gimbal_all *gimbal);
+
+} gimbal_t;
+
+/*äº‘å°180åº¦æ—‹è½¬çŠ¶æ€*/
+typedef struct {
+    bool is_rotating;      // æ˜¯å¦æ­£åœ¨æ—‹è½¬
+    float target_angle;    // æ—‹è½¬ç›®æ ‡è§’åº¦(ç›¸å¯¹å€¼ï¼Œ180æˆ–-180)
+    float angle_tolerance; // è§’åº¦å®¹å·®ï¼Œé»˜è®¤3.0åº¦
+    float speed_tolerance; // é€Ÿåº¦å®¹å·®ï¼Œé»˜è®¤0.5rad/s
+} gimbal_180_state_t;
 
 extern gimbal_t gimbal;
 
 void Gimbal_Work(gimbal_t *gimbal);
-
 
 #endif

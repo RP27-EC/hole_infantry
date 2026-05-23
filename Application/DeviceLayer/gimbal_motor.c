@@ -1,91 +1,113 @@
 #include "gimbal_motor.h"
 #include "DM_Motor.h"
-/*yaw���*/
-#ifdef UART_COMMUNICATE
+
+// yaw陀螺仪外环pid
+pid_ctrl_t yaw_gyro_out =
+    {
+        .kp = 30.f,
+        .ki = 0.08f,
+        .kd = 0.f,
+        .integral_max = 100.f,
+        .out_max = 700.f,
+};
+
+// yaw陀螺仪内环pid
+pid_ctrl_t yaw_gyro_inner =
+    {
+        .kp = 0.02f,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 0.f,
+        .out_max = 12.f,
+};
+
+// pitch陀螺仪外环pid
+pid_ctrl_t pitch_gyro_out =
+    {
+        .kp = 35.f,
+        .ki = 0.13f,
+        .kd = 0.f,
+        .integral_max = 500.f,
+        .out_max = 1000.f,
+};
+
+// pitch陀螺仪内环pid
+pid_ctrl_t pitch_gyro_inner =
+    {
+        .kp = 0.025f,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 0.f,
+        .out_max = 12.f,
+};
+
+// yaw机械外环pid
+pid_ctrl_t yaw_mec_out =
+    {
+        .kp = 80.f,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 400.f,
+        .out_max = 1000.f,
+};
+
+// yaw机械内环pid
+pid_ctrl_t yaw_mec_inner =
+    {
+        .kp = 0.01f,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 0.f,
+        .out_max = 12.f,
+};
+
+// pitch机械外环pid
+pid_ctrl_t pitch_mec_out =
+    {
+        .kp = 30.f,
+        .ki = 0.1f,
+        .kd = 0.f,
+        .integral_max = 500.f,
+        .out_max = 1000.f,
+};
+
+// pitch机械内环pid
+pid_ctrl_t pitch_mec_inner =
+    {
+        .kp = 0.01f,
+        .ki = 0.f,
+        .kd = 0.f,
+        .integral_max = 0.f,
+        .out_max = 12.f,
+};
+gimbal_pid_info_t gimbal_pid =
+    {
+        .yaw_gyro_inner = &yaw_gyro_inner,
+        .yaw_gyro_outer = &yaw_gyro_out,
+        .pitch_gyro_inner = &pitch_gyro_inner,
+        .pitch_gyro_outer = &pitch_gyro_out,
+        .yaw_mec_inner = &yaw_mec_inner,
+        .yaw_mec_outer = &yaw_mec_out,
+        .pitch_mec_inner = &pitch_mec_inner,
+        .pitch_mec_outer = &pitch_mec_out,
+};
+
 Motor_DM_Born_Info_t Yaw_Born_Info =
-{
-	.stdId = 0x01,
-	
-	.hcan = &hfdcan3,
-
+    {
+        .txId = YAW_TX_ID,
+        .hcan = &hfdcan2,
 };
-#else
-Motor_DM_Born_Info_t Yaw_Born_Info =
-{
-	.stdId = 0x01,
-	
-	.hcan = &hfdcan1,
-
+Motor_DM_Rx_Info_t Yaw_Rx_Info;
+Motor_DM_Tx_Info_t Yaw_Tx_Info;
+Motor_DM_State_t Yaw_State;
+Motor_DM_Ctrl_Info_t Yaw_Ctrl;
+Motor_DM_t Yaw_Motor =
+    {
+        .born_info = &Yaw_Born_Info,
+        .rx_info = &Yaw_Rx_Info,
+        .tx_info = &Yaw_Tx_Info,
+        .state = &Yaw_State,
+        .ctrl = &Yaw_Ctrl,
+        .single_init = &DM_Single_Motor_Init,
+        .type = dm_4310,
 };
-#endif
-
-Motor_DM_Rx_Info_t Yaw_Rx_Info_t;
-
-Motor_DM_Tx_Info_t Yaw_Tx_Info_t;
-
-Motor_DM_State_t Yaw_State_t;
-
-pid_ctrl_t Yaw_Gyro_Ctrl_out = 
-{
-	.kp = 18.f,    //30.f,//
-	.ki = 1.f,//0.1f,   //0.3f,//0.2f,
-	.kd = 0.f,
-	.integral_max = 5.f,
-	.out_max = 200.f,   //400.f,
-};
-
-pid_ctrl_t Yaw_Gyro_Ctrl_inn = 
-{
-	.kp = 0.08f,//0.05f,   //0.15f,//0.35f,//0.75f,//
-	.ki = 0.f,
-	.kd = 0.f,
-	.integral_max = 0.f,
-	.out_max = 12.f,
-};
-
-pid_ctrl_t Yaw_Lob_Ctrl_out = 
-{
-	.kp = 20.f,  //30.f,//
-	.ki = 0.1f,   //0.3f,
-	.kd = 0.f,
-	.integral_max = 5.f,
-	.out_max = 200.f,   //400.f,
-};
-
-pid_ctrl_t Yaw_Lob_Ctrl_inn = 
-{
-	.kp = 0.05f,   //0.08f,//
-	.ki = 0.f,
-	.kd = 0.f,
-	.integral_max = 0.f,
-	.out_max = 12.f,
-};
-
-
-Motor_DM_Ctrl_Info_t Yaw_Ctrl_t = 
-{
-	.angle_ctrl_inner = &Yaw_Gyro_Ctrl_inn,
-	.angle_ctrl_outer = &Yaw_Gyro_Ctrl_out,
-	.position_inn = &Yaw_Lob_Ctrl_inn,
-	.position_out = &Yaw_Lob_Ctrl_out,
-};
-
-Motor_DM_t Yaw_Motor = 
-{
-	.born_info = &Yaw_Born_Info,
-	
-	.rx_info = &Yaw_Rx_Info_t,
-	
-	.tx_info = &Yaw_Tx_Info_t,
-	
-	.state = &Yaw_State_t,
-	
-	.ctrl = &Yaw_Ctrl_t,
-	
-	.single_init = &DM_Single_Motor_Init,
-	
-	.type = yaw_6006,
-
-};
-
-

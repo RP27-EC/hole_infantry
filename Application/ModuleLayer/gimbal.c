@@ -1,452 +1,493 @@
 #include "gimbal.h"
 
+#define M_PI 3.14159265358979323846f
+// 更新云台模式状态
+static void Gimbal_Status_Update(gimbal_t *gimbal);
+// 更新陀螺仪模式目标
+static void Gimbal_Gyro_Update(gimbal_t *gimbal, uint8_t ctrl_mode);
+// 更新机械模式目标
+static void Gimbal_Mec_Update(gimbal_t *gimbal);
+// 更新机械主动移动模式
+static void Gimbal_Mec_Move_Update(gimbal_t *gimbal);
+// 云台归中初始化模式
+static void Gimbal_Init_Update(gimbal_t *gimbal);
+// 更新云台外部反馈信息
+static void Gimbal_Extern_Update(gimbal_t *gimbal);
+// 约束yaw目标角度范围
+static void Gimbal_Yaw_Angle_Limit(gimbal_t *gimbal);
+// 约束pitch机械目标角度范围
+static void Gimbal_Pitch_Mec_Angle_Limit(gimbal_t *gimbal);
+// 约束pitch陀螺仪目标角度范围
+static void Gimbal_Pitch_Gyro_Angle_Limit(gimbal_t *gimbal);
+// 计算PID输出
+static void Gimbal_Pid_Cal(gimbal_t *gimbal);
+// 云台初始化流程
+static void Gimbal_Check_init(gimbal_t *gimbal);
+// 云台总工作流程入口
+void Gimbal_Work(gimbal_t *gimbal);
 
 gimbal_offset_info_t offset_info =
-{
-	.vision_yaw_offset = 0, //�Ӿ�ƫ�� 
-	.lob_yaw_mec_offset = 0,    //����ƫ��
+    {
+        .vision_yaw_offset = 0, // 视觉偏置
 };
 
-gimbal_t gimbal=
-{
-	.gimbal_y = &Yaw_Motor,
-	.offset_info = &offset_info,
-	.all_pid_calc = &all_pid_calc,
-	.work = Gimbal_Work,
-	.yaw_pid_mode = 0,
-	.gimbal_reset_state = DEV_RESET_NO,
-	.gimbal_ctrl_mode = 1,//������
-	.lob_info.pre_aim_yaw_angle = 45,
-	.base_info.init_time=0,
-	.base_info.init_time_max=1000,	
-	.base_info.init_time_max_count=0,
-  .base_info.pitch_imu_angle_target = 0,
-	.base_info.pitch_mec_angle_target = 0,
-	.base_info.turn_time = 0,
-	.base_info.turn_time_max = 2000,
-	.base_info.Gimbal_Turn_Finish = 0,
+static gimbal_180_state_t gimbal_180_state = {
+    .is_rotating = false,
+    .target_angle = 0.f,
+    .angle_tolerance = 3.0f, // 度
+    .speed_tolerance = 0.5f, // rad/s
 };
 
-/*��̨״̬����*/
-void Gimbal_Status_Update(gimbal_t *gimbal)
+gimbal_t gimbal =
+    {
+        .gimbal_y = &Yaw_Motor,
+        .offset_info = &offset_info,
+        .all_pid_calc = &all_pid_calc,
+        .pid_info = &gimbal_pid,
+        .work = Gimbal_Work,
+        .gimbal_last_mode = GIMB_SLEEP,
+        .gimbal_reset_state = DEV_RESET_NO,
+        .initInfo.init_time = 0,
+        .initInfo.init_time_max = 3000.f,
+        .initInfo.pitchInitAngleTolerance = 0.3f,
+        .initInfo.yawInitAngleTolerance = 0.3f,
+        .initInfo.yawInitSpeedTolerance = 0.2f,
+        .initInfo.pitchInitSpeedTolerance = 30.f,
+        .base_info.pitch_imu_angle_target = 0,
+        .base_info.pitch_mec_angle_target = 0,
+};
+
+/*云台状态更新*/
+static void Gimbal_Status_Update(gimbal_t *gimbal)
 {
-	switch(Balance.mode)
-	{
-		case Init_Mode:			
-		case Mec_Mode:
-		case Rescue_Mode:
-	  case Handle_Mode:
-			gimbal->gimbal_ctrl_mode.gimbal_mode = 3;
-		  break;
-		case LEG_TEST_Mode:
-		case Lob_Mode:		
-			gimbal->gimbal_ctrl_mode.gimbal_mode = 2;
-		  break;
-		case Imu_Mode:
-		case Cycle_Mode:
-		case Vary_Cycle_Mode:
-			gimbal->gimbal_ctrl_mode.gimbal_mode = 1;
-		  break;			
-		default:
-			break;
-	}
+    switch (Balance.mode)
+    {
+    case Sleep_Mode:
+        gimbal->mode = GIMB_SLEEP;
+        gimbal->gimbal_reset_state = DEV_RESET_NO;
+        break;
+
+    case Mec_Mode:
+        gimbal->mode = G_MEC;
+        break;
+
+    case Init_Mode:
+        gimbal->mode = G_INIT;
+        break;
+
+    case Manual_Rescue_Mode:
+        gimbal->mode = GIMB_SLEEP;
+        gimbal->gimbal_reset_state = DEV_RESET_NO;
+        break;
+
+    case Rescue_Mode:
+        /**
+         * PRNormalBackwardLeg就近归位
+         * CorrectGimbalDirection\RetractLegs\Reset则归云台零点
+         * 具体看Gimbal_Mec_Update此函数
+         */
+        if (
+            Balance.mode == Rescue_Mode &&
+            (Chassis.rescue_info->rescue_state_mac == PRNormalBackwardLeg ||
+             Chassis.rescue_info->rescue_state_mac == CorrectGimbalDirection ||
+             Chassis.rescue_info->rescue_state_mac == RetractLegs ||
+             Chassis.rescue_info->rescue_state_mac == Reset))
+        {
+            gimbal->mode = G_MEC;
+        }
+        else
+        {
+            gimbal->mode = GIMB_SLEEP;
+        }
+
+        break;
+
+    case Imu_Mode:
+    case Cycle_Mode:
+        // balance在自救完就进imu模式了，没有判断云台是否复位完成，所以在此处判断
+        if (gimbal->gimbal_reset_state == DEV_RESET_OK)
+        {
+            gimbal->mode = G_GYRO;
+        }
+        else
+        {
+            gimbal->mode = G_MEC;
+        }
+        break;
+
+    case SitDown_Mode:
+        if (Balance.Vision.Auto_Catch_Flag == true)
+        {
+            gimbal->mode = G_GYRO;
+        }
+        else
+        {
+            gimbal->mode = G_MEC_MOVE;
+        }
+        break;
+
+    default:
+        gimbal->mode = GIMB_SLEEP;
+        gimbal->gimbal_reset_state = DEV_RESET_NO;
+        break;
+    }
+
+    // C_RTS模式使用IMU模式进行云台控制
+    if (Balance.Flag->RTS_Flag == true)
+    {
+        if (gimbal->gimbal_reset_state == DEV_RESET_OK)
+        {
+            gimbal->mode = G_GYRO;
+        }
+        else
+        {
+            gimbal->mode = G_MEC;
+        }
+    }
 }
 
-/*��̨pitch�������ǽǶ���λ*/
-void Gimbal_Pitch_Gyro_Angle_Limit(gimbal_t *gimbal)
+/*云台陀螺仪模式*/
+static bool last_GIMBAL_180_Flag = false; // 上一周期标志位状态
+static float k_yaw_imu_RC_speed = 200;
+static float k_pitch_imu_RC_speed = 30;
+static float k_yaw_imu_Key_speed = 3;
+static float k_pitch_imu_Key_speed = 1;
+static void Gimbal_Gyro_Update(gimbal_t *gimbal, uint8_t ctrl_mode)
 {
-	float angle = gimbal->base_info.pitch_imu_angle_target;
-	if(angle > GIMBAL_MAX_GYRO_ANGEL)
-	{
-		angle = GIMBAL_MAX_GYRO_ANGEL;
-	}
-	if(angle < GIMBAL_MIN_GYRO_ANGEL)
-	{
-		angle = GIMBAL_MIN_GYRO_ANGEL;
-	}
-	gimbal->base_info.pitch_imu_angle_target = angle;
+    /*------------------------- 一键换头命令 begin ----------------------------*/
+    bool current_GIMBAL_180_Flag = Balance.Flag->GIMBAL_180_Flag;
+    bool rising_edge = (current_GIMBAL_180_Flag == true) && (last_GIMBAL_180_Flag == false);
+    float angle_diff = my_abs(half_cycle(
+        (gimbal->base_info.yaw_imu_angle_target - gimbal->base_info.yaw_imu_angle), 360.f));
+    float speed = my_abs(gimbal->base_info.yaw_imu_speed);
+
+    // 检测到上升沿且正在旋转未完成时，设置目标角度+=180
+    if (rising_edge)
+    {
+        gimbal->base_info.yaw_imu_angle_target += 180.f;
+        gimbal->base_info.yaw_imu_angle_target = half_cycle(gimbal->base_info.yaw_imu_angle_target, 360.f);
+    }
+
+    // 检查旋转是否完成
+    if (Balance.Flag->GIMBAL_180_Flag == true)
+    {
+
+        if (angle_diff <= 2.f &&
+            speed <= 0.3f)
+        {
+            // 旋转完成，清除标志位
+            Balance.Flag->GIMBAL_180_Flag = false;
+        }
+    }
+    // 保存当前标志位状态用于下一周期上升沿检测
+    last_GIMBAL_180_Flag = current_GIMBAL_180_Flag;
+    /*-------------------------- 一键换头命令 end ----------------------------*/
+
+    // 正常遥杆/键盘控制（仅在非180旋转时生效）
+    if (current_GIMBAL_180_Flag != true)
+    {
+        if ((Balance.Vision.Auto_Catch_Flag == true ||
+             Balance.Vision.Auto_Catch_Engi_Flag == true) &&
+            Board_Rx_Info.flag.is_vision_online == true &&
+            Board_Rx_Info.flag.is_find_target == true)
+        {
+            gimbal->base_info.yaw_imu_angle_target = Board_Rx_Info.vision_target_yaw;
+            gimbal->base_info.pitch_imu_angle_target = Board_Rx_Info.vision_target_pitch;
+        }
+        else
+        {
+            if (ctrl_mode == RC_CTRL)
+            {
+                gimbal->base_info.yaw_imu_angle_target -= rc_sensor.info->ch0 / 660.f * 0.001f * k_yaw_imu_RC_speed;
+                gimbal->base_info.pitch_imu_angle_target += rc_sensor.info->ch1 / 660.f * 0.001f * k_pitch_imu_RC_speed;
+            }
+            else
+            {
+                gimbal->base_info.yaw_imu_angle_target -= rc_sensor.info->mouse_x * 0.001f;
+                gimbal->base_info.pitch_imu_angle_target += rc_sensor.info->mouse_y * 0.001f;
+            }
+        }
+        gimbal->base_info.yaw_imu_angle_target = half_cycle(gimbal->base_info.yaw_imu_angle_target, 360.f);
+    }
+
+    // 从其他模式首次切入G_GYRO时，强制将pitch机械目标清零
+    if (gimbal->gimbal_last_mode != G_GYRO)
+    {
+        gimbal->base_info.pitch_imu_angle = 0;
+    }
+
+    gimbal->base_info.yaw_mec_angle_target = gimbal->base_info.yaw_motor_angle;
 }
 
-/*��̨pitch���е�Ƕ���λ*/
-void Gimbal_Pitch_Mec_Angle_Limit(gimbal_t *gimbal)
+/*云台机械模式*/
+static void Gimbal_Mec_Update(gimbal_t *gimbal)
 {
-	float angle = gimbal->base_info.pitch_mec_angle_target;
-	if(angle > GIMBAL_MAX_MEC_ANGEL)
-	{
-		angle = GIMBAL_MAX_MEC_ANGEL;
-	}
-	if(angle < GIMBAL_MIN_MEC_ANGEL)
-	{
-		angle = GIMBAL_MIN_MEC_ANGEL;
-	}
-	gimbal->base_info.pitch_mec_angle_target = angle;
+
+    if ((my_abs(gimbal->base_info.yaw_motor_angle) > PI / 2.f) &&
+        Chassis.rescue_info->rescue_state_mac != RetractLegs &&
+        Chassis.rescue_info->rescue_state_mac != CorrectGimbalDirection &&
+        Chassis.rescue_info->rescue_state_mac != Reset)
+    {
+        gimbal->base_info.yaw_mec_angle_target = sgn(gimbal->base_info.yaw_motor_angle) * PI;
+    }
+    else
+    {
+        gimbal->base_info.yaw_mec_angle_target = 0;
+    }
+    gimbal->base_info.pitch_mec_angle_target += rc_sensor.info->ch1 * 0.001f * 0.003f;
+    gimbal->base_info.pitch_mec_angle_target = half_cycle(gimbal->base_info.pitch_mec_angle_target, 2 * M_PI);
+
+    gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;
+    gimbal->base_info.pitch_imu_angle_target = gimbal->base_info.pitch_imu_angle;
 }
 
-	
-/*��̨��Ϣ����*/
-static float k=0.13;
-static float add ;//��Ư����
-void Gimbal_Extern_Updata(gimbal_t *gimbal)
+/*云台机械头主动模式(调试用)*/
+static void Gimbal_Mec_Move_Update(gimbal_t *gimbal)
 {
-	static float mec = 0;
-	static float yaw = 0;//1Ŀǰ��0�ȴ�
-	add += k*0.001;//��Ư����
-	if(Board_HeartBeat.status == DEV_ONLINE)
-	{
-		gimbal->base_info.yaw_imu_angle = -Board_Rx_Info.yaw_imu + add;
-		gimbal->base_info.yaw_imu_speed = Board_Rx_Info.yaw_v;
-		gimbal->base_info.pitch_motor_angle = Board_Rx_Info.pitch_mec;
-		gimbal->base_info.pitch_motor_speed = Board_Rx_Info.pitch_v;
-		if(gimbal->gimbal_ctrl_mode.gimbal_mode == 2 && mec == 0)
-		{
-			gimbal->base_info.pitch_mec_angle_target = Board_Rx_Info.pitch_mec;     //��ģʽ���¾ͺ���  
-			mec = 1;
-			yaw = 0;
-		}
-		if(gimbal->gimbal_ctrl_mode.gimbal_mode == 1 && yaw == 0)
-		{	
-			gimbal->base_info.pitch_imu_angle_target = Board_Rx_Info.pitch_imu;
-			mec = 0;
-			yaw = 1;
-		}
-	}
-	else
-	{
-		mec = 0;
-		yaw = 1;
-	}
-	float angle=gimbal->base_info.yaw_imu_angle;float max=360;
-	while (my_abs(angle) > (max / 2))//���ܿ���
-	{
-		if (angle >= 0)
-			angle += -max;
-		else
-			angle += max;
-	}
-	gimbal->base_info.yaw_imu_angle = angle;
-  gimbal->base_info.yaw_imu_angle = half_cycle(gimbal->base_info.yaw_imu_angle, 360.f);
-	
-	/*yaw�����Ƕȸ���*/
-	gimbal->base_info.yaw_motor_angle = YAW_MOTOR_ANGLE_MIDDLE - (float)gimbal->gimbal_y->rx_info->motor_angle;
-	gimbal->base_info.yaw_motor_angle = half_cycle(gimbal->base_info.yaw_motor_angle, 2*PI);
-	gimbal->base_info.yaw_motor_speed = -(float)gimbal->gimbal_y->rx_info->speed;
-	
-//	gimbal->gimbal_reset_state = Board_Rx_Info.gimbal_state;
-//	gimbal->gimbal_ctrl_mode.gimbal_mode = Board_Rx_Info.gimbal_mode;
+    gimbal->base_info.yaw_mec_angle_target += rc_sensor.info->ch0 * 0.001f * 0.007f;
+    gimbal->base_info.yaw_mec_angle_target = half_cycle(gimbal->base_info.yaw_mec_angle_target, 2 * M_PI);
+    gimbal->base_info.pitch_mec_angle_target += rc_sensor.info->ch1 * 0.001f * 0.003f;
+    gimbal->base_info.pitch_mec_angle_target = half_cycle(gimbal->base_info.pitch_mec_angle_target, 2 * M_PI);
 
-	/*360�ȱ�׼���Ƕ�*/
-	gimbal->base_info.yaw_mec_360_angle=gimbal->base_info.yaw_motor_angle/(2*PI)*360.f;
+    gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;
+    gimbal->base_info.pitch_imu_angle_target = gimbal->base_info.pitch_imu_angle;
 }
 
-/*��̨yaw��Ƕȼ��*/
-void Gimbal_Yaw_Angle_Check(gimbal_t *gimbal)
+/*云台归中初始化模式，等待Balance完成Init后进入Imu_Mode*/
+static void Gimbal_Init_Update(gimbal_t *gimbal)
 {
-	float angle = gimbal->base_info.yaw_imu_angle_target;//-180��~180��
-	if(angle>=10000)//������
-	{
-		angle =0;
-	}
-	while (my_abs(angle) > 180)//�п��ܿ���
-	{
-		angle -= 360 * sgn(angle);
-	}
-	gimbal->base_info.yaw_imu_angle_target = angle;
+    gimbal->base_info.yaw_mec_angle_target = 0; // yaw归中
+    // gimbal->base_info.pitch_mec_angle_target = 0; // pitch归中
+    gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;
+    gimbal->base_info.pitch_imu_angle_target = gimbal->base_info.pitch_imu_angle;
 }
 
-/*��̨yaw��PID����*/
-void Gimbal_Yaw_Pid_Cal(gimbal_t *gimbal)
+/*云台信息更新*/
+
+static void Gimbal_Extern_Update(gimbal_t *gimbal)
 {
-	float gyro_meas_in,gyro_meas_out,gyro_target,mec_meas_in,mec_meas_out,mec_target;
 
-	switch (gimbal->yaw_pid_mode)
-	{
-	case GYRO_PID:
-		gyro_meas_out = gimbal->base_info.yaw_imu_angle;				//�⻷
-		gyro_meas_in = gimbal->base_info.yaw_imu_speed	;			  //�ڻ�
-		gyro_target = gimbal->base_info.yaw_imu_angle_target;  //Ŀ��ֵ
-		
-		gimbal->base_info.output_gimbal_y = -gimbal->all_pid_calc( gimbal->gimbal_y->ctrl->angle_ctrl_outer,gimbal->gimbal_y->ctrl->angle_ctrl_inner,gyro_target,gyro_meas_out,gyro_meas_in,-1,3);
-		break;
+    gimbal->base_info.pitch_motor_angle = PITCH_MOTOR_ENCODER_MIDDLE - Board_Rx_Info.pitch_mec_angle;
+    gimbal->base_info.pitch_motor_angle = half_cycle(gimbal->base_info.pitch_motor_angle, 2 * PI);
+    gimbal->base_info.pitch_imu_angle = Board_Rx_Info.pitch_imu_angle;
+    gimbal->base_info.pitch_imu_speed = Board_Rx_Info.pitch_imu_speed; // 上板原始的pitch的imu角度变化和速度变化就是反的，奇怪
+    // gimbal->base_info.pitch_motor_speed = Board_Rx_Info.pitch_mec_speed;
 
-	case MEC_PID:
-		mec_meas_out = (float)gimbal->base_info.yaw_motor_angle / PI * 180.f;   //�⻷ תΪ�Ƕ�
-		mec_meas_in = gimbal->base_info.yaw_imu_speed;			            	   //�ڻ� 
-		mec_target = gimbal->base_info.yaw_mec_angle_target / PI * 180.f;
-		
-		gimbal->base_info.output_gimbal_y = -gimbal->all_pid_calc( gimbal->gimbal_y->ctrl->position_out,gimbal->gimbal_y->ctrl->position_inn,mec_target,mec_meas_out,mec_meas_in,-1,3);
-		break;
-	
-	case SPEED_PID:
-		break;
-	default:
-		break;
-	}
+    gimbal->base_info.yaw_imu_angle = Board_Rx_Info.yaw_imu_angle;
+    gimbal->base_info.yaw_imu_speed = Board_Rx_Info.yaw_imu_speed;
+    gimbal->base_info.yaw_imu_angle = half_cycle(gimbal->base_info.yaw_imu_angle, 360.f);
+
+    /*yaw轴电机角度更新*/
+    gimbal->base_info.yaw_motor_angle = YAW_MOTOR_ANGLE_MIDDLE - (float)gimbal->gimbal_y->rx_info->motor_angle;
+    gimbal->base_info.yaw_motor_angle = half_cycle(gimbal->base_info.yaw_motor_angle, 2 * PI);
+    gimbal->base_info.yaw_motor_speed = (float)gimbal->gimbal_y->rx_info->speed;
+
+    /*360度标准化角度*/
+    gimbal->base_info.yaw_mec_360_angle = gimbal->base_info.yaw_motor_angle / (2 * PI) * 360.f;
+    gimbal->base_info.pitch_mec_360_angle = gimbal->base_info.pitch_motor_angle / (2 * PI) * 360.f;
 }
 
-/*��̨��ʼ��*/
-void Gimbal_init(gimbal_t *gimbal)
+/*云台yaw轴角度检查*/
+static void Gimbal_Yaw_Angle_Limit(gimbal_t *gimbal)
 {
-	 gimbal->base_info.init_time_max_count++;
-	gimbal->offset_info->lob_yaw_mec_offset=0;
-	gimbal->lob_info.lob_init_angle_flag=0;
-	//��̨�ͽ���λ		
-	if (my_abs(gimbal->base_info.yaw_motor_angle) > PI/2.f)
-	{
-		gimbal->base_info.yaw_mec_angle_target = sgn(gimbal->base_info.yaw_motor_angle) * PI;
-	}
-	else
-	{
-		gimbal->base_info.yaw_mec_angle_target = 0;
-	}
-		
-	gimbal->yaw_pid_mode = MEC_PID;
-	if(my_abs(gimbal->base_info.yaw_motor_speed) <= 20 && my_abs(my_abs(gimbal->base_info.yaw_motor_angle) 
-		- my_abs(gimbal->base_info.yaw_mec_angle_target)) <= 0.01f  && (my_abs(gimbal->base_info.pitch_motor_angle)
-  	- my_abs(gimbal->base_info.pitch_mec_angle_target)) <= 0.01f && my_abs(gimbal->base_info.pitch_motor_speed) <= 50 )
-	{
-		gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;//car��ʼ�����У����������ܲ���ɾȥ
-		gimbal->base_info.pitch_imu_angle_target = Board_Rx_Info.pitch_imu;
-		gimbal->gimbal_reset_state = DEV_RESET_OK;
-//		car.car_move_mode=gyro_CAR;
-		gimbal->base_info.init_time=0;
-     gimbal->base_info.init_time_max_count=0;
-	}
-	
-	if(gimbal->base_info.init_time_max_count>=gimbal->base_info.init_time_max)
-	{
-		gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;//car��ʼ�����У����������ܲ���ɾȥ
-		gimbal->gimbal_reset_state = DEV_RESET_OK;
-//		car.car_move_mode=gyro_CAR;
-		gimbal->base_info.init_time=0;
-		gimbal->base_info.init_time_max_count=0;
-	}
+    float angle = gimbal->base_info.yaw_imu_angle_target; //-180°~180°
+
+    if (my_abs(angle) > 180.f) // 用while包卡死
+    {
+        angle -= 360.f * sgn(angle);
+    }
+    gimbal->base_info.yaw_imu_angle_target = angle;
 }
 
-/*��̨�Ծ�ģʽ*/
-void Gimbal_Save_Update(gimbal_t *gimbal)
+/*云台pitch轴陀螺仪角度限位*/
+static void Gimbal_Pitch_Gyro_Angle_Limit(gimbal_t *gimbal)
 {
-	//��̨�ͽ���λ		
-	if (my_abs(gimbal->base_info.yaw_motor_angle) > PI/2.f)
-	{
-		gimbal->base_info.yaw_mec_angle_target = sgn(gimbal->base_info.yaw_motor_angle) * PI;
-	}
-	else
-	{
-		gimbal->base_info.yaw_mec_angle_target = 0;
-	}
-	  gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;
-	  gimbal->base_info.pitch_imu_angle_target = Board_Rx_Info.pitch_imu;
+    float angle = gimbal->base_info.pitch_imu_angle_target;
+    if (angle > GIMBAL_MAX_GYRO_ANGEL)
+    {
+        angle = GIMBAL_MAX_GYRO_ANGEL;
+    }
+    if (angle < GIMBAL_MIN_GYRO_ANGEL)
+    {
+        angle = GIMBAL_MIN_GYRO_ANGEL;
+    }
+    gimbal->base_info.pitch_imu_angle_target = angle;
 }
 
-/*��̨������ģʽ*/
-void Gimbal_Gyro_Update(gimbal_t *gimbal,uint8_t ctrl_mode)
+/*云台pitch轴机械角度限位*/
+static void Gimbal_Pitch_Mec_Angle_Limit(gimbal_t *gimbal)
 {
-  if(Balance.Vision.Auto_Catch_Flag != 0 && Board_Rx_Info.vision_state == 1 && Board_Rx_Info.is_find_Target == 1)
-	{
-    gimbal->base_info.yaw_imu_angle_target = - Board_Rx_Info.vision_yaw_tar;
-		gimbal->base_info.pitch_imu_angle_target = Board_Rx_Info.vision_pitch_tar;
-	}
-	else
-	{
-		if(ctrl_mode != KEY_CTRL)
-		{
-			gimbal->base_info.yaw_imu_angle_target += rc_sensor.info->ch0*0.001f*0.2;
-			gimbal->base_info.pitch_imu_angle_target += rc_sensor.info->ch1*0.001f*0.1;
-		}
-		else
-		{
-			gimbal->base_info.yaw_imu_angle_target += rc_sensor.info->mouse_x * 0.001f;
-			gimbal->base_info.pitch_imu_angle_target += rc_sensor.info->mouse_y*0.001f;
-		}
-	}
-	
-	gimbal->base_info.yaw_imu_angle_target = half_cycle(gimbal->base_info.yaw_imu_angle_target,360.f);//////////////////////////////
-//	gimbal->base_info.pitch_mec_angle_target = gimbal->base_info.pitch_motor_angle;
-		
-//	if (my_abs(gimbal->base_info.yaw_motor_angle) > PI/2.f)//��lobģʽ���³�ʼyaw************************************
-//	{
-//		gimbal->base_info.yaw_mec_angle_target = sgn(gimbal->base_info.yaw_motor_angle) * PI;//��̬����Ŀ����������ȥpid����ʱ�İ�Ȧ����
-//	}
-//	else
-//	{
-//		gimbal->base_info.yaw_mec_angle_target = 0 ;
-//	}
-	gimbal->base_info.yaw_mec_angle_target = gimbal->base_info.yaw_motor_angle;
-	gimbal->base_info.pitch_mec_angle_target = Board_Rx_Info.pitch_mec;
+    float angle = gimbal->base_info.pitch_mec_angle_target;
+    if (angle > GIMBAL_MAX_MEC_ANGEL)
+    {
+        angle = GIMBAL_MAX_MEC_ANGEL;
+    }
+    if (angle < GIMBAL_MIN_MEC_ANGEL)
+    {
+        angle = GIMBAL_MIN_MEC_ANGEL;
+    }
+    gimbal->base_info.pitch_mec_angle_target = angle;
+}
+/*云台yaw轴PID计算*/
+static void Gimbal_Pid_Cal(gimbal_t *gimbal)
+{
+    float gyro_meas_in, gyro_meas_out, gyro_target, mec_meas_in, mec_meas_out, mec_target;
 
-	
-	if(Balance.Flag->Turn_Flag == 1)//��ͷ
-	{
-		switch(gimbal->base_info.step)
-		{
-			case Gimbal_Turn_IDLE:
-		    gimbal->base_info.yaw_imu_angle_target += 180.f;
-		    gimbal->base_info.yaw_imu_angle_target = half_cycle(gimbal->base_info.yaw_imu_angle_target,360.f);
-			  gimbal->base_info.step = Gimbal_Turn_Going;
-			  break;
-			case Gimbal_Turn_Going:
-				gimbal->base_info.turn_time++;
-			  if(my_abs(gimbal->base_info.yaw_imu_angle_target - gimbal->base_info.yaw_imu_angle) <= 5.f || gimbal->base_info.turn_time >=gimbal->base_info.turn_time_max)
-				{
-//					Balance.Flag->Turn_Flag = 0;
-					gimbal->base_info.Gimbal_Turn_Finish = 1;
-					gimbal->base_info.step = Gimbal_Turn_IDLE;
-					gimbal->base_info.turn_time = 0;
-				}
-			  break;
-			default:
-				break;
-		}
-//		if(my_abs(gimbal->base_info.yaw_motor_angle) > PI/2.f)
-//		{
-//			gimbal->base_info.yaw_mec_angle_target = 0 ;
-//			if(my_abs(gimbal->base_info.yaw_motor_angle) <= 0.02f || gimbal->base_info.turn_time >=gimbal->base_info.turn_time_max)
-//			{
-//				Balance.Flag->Turn_Flag = 0;
-//				gimbal->base_info.turn_time = 0;
-//			}
-//		}
-//		else
-//		{
-//			gimbal->base_info.yaw_mec_angle_target = sgn(gimbal->base_info.yaw_motor_angle) * PI ;
-//      if((PI - my_abs(gimbal->base_info.yaw_motor_angle)) <= 0.02f || gimbal->base_info.turn_time >=gimbal->base_info.turn_time_max)
-//			{
-//				Balance.Flag->Turn_Flag = 0;
-//				gimbal->base_info.turn_time = 0;
-//			}		
-//		}
-	}
-	gimbal->base_info.yaw_mec_angle_target = gimbal->base_info.yaw_motor_angle;
+    switch (gimbal->mode)
+    {
+    case G_GYRO:
+        // Yaw pid计算
+        gyro_meas_out = gimbal->base_info.yaw_imu_angle;      // 外环
+        gyro_meas_in = gimbal->base_info.yaw_imu_speed;       // 内环
+        gyro_target = gimbal->base_info.yaw_imu_angle_target; // 目标值
+        gimbal->base_info.output_gimbal_y = gimbal->all_pid_calc(gimbal->pid_info->yaw_gyro_outer, gimbal->pid_info->yaw_gyro_inner, gyro_target, gyro_meas_out, gyro_meas_in, -1, 3);
+        // pitch pid计算
+        gyro_meas_out = gimbal->base_info.pitch_imu_angle;      // 外环
+        gyro_meas_in = gimbal->base_info.pitch_imu_speed;       // 内环
+        gyro_target = gimbal->base_info.pitch_imu_angle_target; // 目标值
+        gimbal->base_info.output_gimbal_p = -gimbal->all_pid_calc(gimbal->pid_info->pitch_gyro_outer, gimbal->pid_info->pitch_gyro_inner, gyro_target, gyro_meas_out, gyro_meas_in, -1, 3);
+        break;
+
+    case G_MEC:
+    case G_INIT:
+    case G_MEC_MOVE:
+        // yaw pid计算
+        mec_meas_out = (float)gimbal->base_info.yaw_mec_360_angle; // 外环 转为角度
+        mec_meas_in = gimbal->base_info.yaw_imu_speed;             // 内环
+        mec_target = gimbal->base_info.yaw_mec_angle_target / PI * 180.f;
+        gimbal->base_info.output_gimbal_y = -gimbal->all_pid_calc(gimbal->pid_info->yaw_mec_outer, gimbal->pid_info->yaw_mec_inner, mec_target, mec_meas_out, mec_meas_in, 1, 3);
+
+        // pitch pid计算
+        mec_meas_out = (float)gimbal->base_info.pitch_mec_360_angle; // 外环 转为角度
+        mec_meas_in = gimbal->base_info.pitch_imu_speed;             // 内环
+        mec_target = gimbal->base_info.pitch_mec_angle_target / PI * 180.f;
+        gimbal->base_info.output_gimbal_p = -gimbal->all_pid_calc(gimbal->pid_info->pitch_mec_outer, gimbal->pid_info->pitch_mec_inner, mec_target, mec_meas_out, mec_meas_in, -1, 3);
+        break;
+
+    case GIMB_SLEEP:
+        gimbal->base_info.output_gimbal_y = 0.f;
+        gimbal->base_info.output_gimbal_p = 0.f;
+        break;
+
+    default:
+        gimbal->base_info.output_gimbal_y = 0.f;
+        break;
+    }
 }
 
-/*��̨����ģʽ*/
-void Gimbal_Lob_Update(gimbal_t *gimbal,uint8_t ctrl_mode)
+/*云台检查初始化是否完成*/
+static void Gimbal_Check_init(gimbal_t *gimbal)
 {
-//	//��־λ����
-//	gimbal->lob_info.lob_init_angle_flag=0;
-//	
-//	if(car.car_ctrl_mode==RC_CTRL_MODE)
-//	{
-//		if(my_abs((float)rc_sensor.info->ch1)>=10)
-//		{
-//			gimbal->base_info.pitch_imu_angle_target+=rc_sensor.info->ch1*0.001f*0.01;
-//		}	
-//		if(my_abs((float)rc_sensor.info->ch0)>=10)
-//		{
-//			gimbal->base_info.yaw_mec_angle_target+=rc_sensor.info->ch0*0.001f*0.2;
-//		}	
-//	}
-//	else
-//	{
-//		gimbal->base_info.pitch_imu_angle_target+=rc_sensor.info->mouse_y*0.00005f;
-//////		gimbal->base_info.yaw_mec_angle_target+=rc_sensor.info->mouse_x*0.0005f;
-//	}
-//////	  gimbal->base_info.yaw_imu_angle_target=gimbal->base_info.yaw_imu_angle;
-	
-	//�������õ�
-	
-	
-  if(Balance.Vision.Auto_Catch_Flag != 0 && Board_Rx_Info.vision_state == 1)
-	{
-    gimbal->base_info.yaw_mec_angle_target = - Board_Rx_Info.vision_yaw_tar / 180.f * PI + gimbal->offset_info->lob_yaw_mec_offset ;
-	}
-	else
-	{
-		if(ctrl_mode != KEY_CTRL)
-		{
-			if(my_abs((float)rc_sensor.info->ch0)>=10)
-			{
-				gimbal->base_info.yaw_mec_angle_target += rc_sensor.info->ch0*0.001f*0.0003;
-			}
-			if(my_abs((float)rc_sensor.info->ch1)>=10)
-			{
-				gimbal->base_info.pitch_mec_angle_target += rc_sensor.info->ch1*0.001f*0.2;
-			}
-		}
-		else
-		{
-			gimbal->base_info.yaw_mec_angle_target += rc_sensor.info->mouse_x * 0.0003f;
-			gimbal->base_info.pitch_mec_angle_target += rc_sensor.info->mouse_y*0.0003f;
-		}
-	}
-	  gimbal->base_info.yaw_mec_angle_target = half_cycle(gimbal->base_info.yaw_mec_angle_target, 2*PI);
-		
-	  gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;
-	  gimbal->base_info.pitch_imu_angle_target = Board_Rx_Info.pitch_imu;
-}
+    // 初始化计时: 仅在G_INIT模式、或G_MEC模式且处于RetractLegs/CorrectGimbalDirection阶段时计时
+    // PRNormalBackwardLeg阶段不计时，等进入CorrectGimbalDirection再开始计时
+    if (gimbal->gimbal_reset_state == DEV_RESET_OK)
+    {
+        return;
+    }
+    if (gimbal->mode == G_INIT ||
+        (gimbal->mode == G_MEC && (Chassis.rescue_info->rescue_state_mac == RetractLegs ||
+                                   Chassis.rescue_info->rescue_state_mac == CorrectGimbalDirection)))
+    {
+        if (gimbal->gimbal_reset_state == DEV_RESET_NO)
+        {
+            gimbal->initInfo.init_time++;
+        }
+    }
 
-//void Gimbal_Board_Update(gimbal_t *gimbal)
-//{
-//	Board_Tx_Info.pitch_imu_tar = gimbal->base_info.pitch_imu_angle_target;
-//	Board_Tx_Info.pitch_mec_tar = gimbal->base_info.pitch_mec_angle_target;
-//	Board_Tx_Info.yaw_imu_tar = gimbal->base_info.yaw_imu_angle_target;
-//	
-//}
+    // 到位判断
+    if (gimbal->base_info.yaw_mec_angle_target == 0 &&
+        (my_abs(half_cycle((gimbal->base_info.yaw_motor_angle - gimbal->base_info.yaw_mec_angle_target), 2 * M_PI)) <= gimbal->initInfo.yawInitAngleTolerance) &&
+        (my_abs(half_cycle((gimbal->base_info.pitch_motor_angle - gimbal->base_info.pitch_mec_angle_target), 2 * M_PI)) <= gimbal->initInfo.pitchInitAngleTolerance) &&
+        (my_abs(gimbal->base_info.yaw_motor_speed) <= gimbal->initInfo.yawInitSpeedTolerance))
+    {
+        gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle; // 方便丝滑转陀螺仪控
+        gimbal->base_info.pitch_imu_angle_target = 0;
+        gimbal->gimbal_reset_state = DEV_RESET_OK;
+        gimbal->initInfo.init_time = 0;
+    }
+    // 超时退出
+    if (gimbal->initInfo.init_time >= gimbal->initInfo.init_time_max)
+    {
+        gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle; // 方便丝滑转陀螺仪控
+        gimbal->base_info.pitch_imu_angle_target = 0;
+        gimbal->gimbal_reset_state = DEV_RESET_OK;
+        gimbal->initInfo.init_time = 0;
+    }
+}
 
 void Gimbal_Work(gimbal_t *gimbal)
 {
-	Gimbal_Status_Update(gimbal);
-	Gimbal_Extern_Updata(gimbal);
-	#ifndef TEST
-  switch(gimbal->gimbal_reset_state)
-	{
-		case DEV_RESET_NO:
-			Gimbal_init(gimbal);
-		  gimbal->yaw_pid_mode = MEC_PID;
-		  break;
-		case DEV_RESET_OK:
-			switch(gimbal->gimbal_ctrl_mode.gimbal_mode)
-			{	
-				case 1:
-			    Gimbal_Gyro_Update(gimbal,Balance.ctrl);
-		      gimbal->yaw_pid_mode = GYRO_PID;
-				break;
-				case 2:
-					Gimbal_Lob_Update(gimbal,Balance.ctrl);
-				  gimbal->yaw_pid_mode = MEC_PID;
-				break;
-				case 3:
-					Gimbal_Save_Update(gimbal);
-				  gimbal->yaw_pid_mode = MEC_PID;
-				  break;
-				default:
-		      break;
-			}
-		  break;		
-		default:
-		  break;
-	}
-		Gimbal_Yaw_Angle_Check(gimbal);//Yaw�Ƕȼ��
-	  Gimbal_Pitch_Gyro_Angle_Limit(gimbal);
-	  Gimbal_Pitch_Mec_Angle_Limit(gimbal);
+    Gimbal_Status_Update(gimbal); // 根据车状态更新云台状态
+    Gimbal_Extern_Update(gimbal); // 外部数据更新，导入陀螺仪等速度
 
-//	  Gimbal_Board_Update(gimbal);
-		if(RC_ONLINE)//����
-		{
-			Gimbal_Yaw_Pid_Cal(gimbal);
-			gimbal->gimbal_y->tx_info->torque=gimbal->base_info.output_gimbal_y; 			
-		}
-		else//�ؿ�
-		{
-			gimbal->base_info.step = Gimbal_Turn_IDLE;
-			gimbal->gimbal_reset_state = DEV_RESET_NO;
-			gimbal->gimbal_y->tx_info->torque=0;
-      gimbal->base_info.pitch_mec_angle_target = 0;
-		}
-		#else
-		gimbal->base_info.yaw_imu_angle_target+=rc_sensor.info->ch0*0.001f*0.3;
-		gimbal->base_info.pitch_imu_angle_target+=rc_sensor.info->ch1*0.001f*0.1;
-		gimbal->base_info.pitch_mec_angle_target+=rc_sensor.info->ch1*0.001f*0.5;
-		
-		gimbal->yaw_pid_mode = MEC_PID;
-		Gimbal_Yaw_Pid_Cal(gimbal);
-		if(RC_ONLINE)
-		{
-		gimbal->gimbal_y->tx_info->torque=gimbal->base_info.output_gimbal_y; 	
-		}
-		else
-		{
-		gimbal->gimbal_y->tx_info->torque=0;
-		}
-			#endif
+    switch (gimbal->mode)
+    {
+    case GIMB_SLEEP:
+        // 复位输出
+        gimbal->initInfo.init_time = 0;
+        gimbal->base_info.output_gimbal_y = 0.f;
+        gimbal->base_info.output_gimbal_p = 0.f;
+
+        // 清标志位
+        last_GIMBAL_180_Flag = false;
+
+        // 设置好初始目标值，随时准备好启动
+        gimbal->base_info.yaw_imu_angle_target = gimbal->base_info.yaw_imu_angle;
+        gimbal->base_info.pitch_imu_angle_target = gimbal->base_info.pitch_imu_angle;
+        if (my_abs(gimbal->base_info.yaw_motor_angle) > PI / 2.f)
+        {
+            gimbal->base_info.yaw_mec_angle_target = sgn(gimbal->base_info.yaw_motor_angle) * PI;
+            gimbal->base_info.pitch_mec_angle_target = 30;
+        }
+        else
+        {
+            gimbal->base_info.yaw_mec_angle_target = 0;
+            gimbal->base_info.pitch_mec_angle_target = 0;
+        }
+
+        break;
+
+    case G_GYRO:
+        Gimbal_Gyro_Update(gimbal, Balance.ctrl);
+        break;
+
+    case G_MEC:
+        Gimbal_Mec_Update(gimbal);
+        break;
+
+    case G_MEC_MOVE:
+        Gimbal_Mec_Move_Update(gimbal);
+        break;
+
+    case G_INIT:
+        Gimbal_Init_Update(gimbal);
+        break;
+
+    default:
+        break;
+    }
+    Gimbal_Check_init(gimbal);      // 非Sleep模式且未DEV_RESET_OK时检查是否初始化完成
+    Gimbal_Yaw_Angle_Limit(gimbal); // Yaw角度检查
+    Gimbal_Pitch_Gyro_Angle_Limit(gimbal);
+    Gimbal_Pitch_Mec_Angle_Limit(gimbal);
+
+    if (RC_ONLINE) // 开控
+    {
+        Gimbal_Pid_Cal(gimbal);
+        // 填充到CAN发送入口变量
+        gimbal->gimbal_y->tx_info->torque = gimbal->base_info.output_gimbal_y;
+        // gimbal->base_info.output_gimbal_p = 0;
+        //   Board_Tx_Info.pitch_output = gimbal->base_info.output_gimbal_p;
+    }
+    else if (RC_OFFLINE) // 关控
+    {
+        gimbal->gimbal_reset_state = DEV_RESET_NO;
+        gimbal->base_info.pitch_mec_angle_target = 0;
+        // 填充到CAN发送入口变量
+        Board_Tx_Info.pitch_output = 0;
+        gimbal->gimbal_y->tx_info->torque = 0;
+    }
+
+    // 记录当前模式，供下一周期检测模式跳变
+    gimbal->gimbal_last_mode = gimbal->mode;
 }

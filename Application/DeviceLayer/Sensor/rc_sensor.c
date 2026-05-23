@@ -1,290 +1,412 @@
 /**
+
  * @file        rc_sensor.c
+
  * @author      RobotPilots@2020
+
  * @Version     V1.0
+
  * @date        9-September-2020
+
  * @brief       Device Rc.
+
  */
- 
+
 /* Includes ------------------------------------------------------------------*/
+
 #include "rc_sensor.h"
+
 #include "rp_math.h"
 
 extern void rc_sensor_init(rc_sensor_t *rc_sen);
+
 extern void rc_sensor_update(rc_sensor_t *rc_sen, uint8_t *rxBuf);
 
 /* Private macro -------------------------------------------------------------*/
+
 /* Private function prototypes -----------------------------------------------*/
+
 static void rc_sensor_check(rc_sensor_t *rc_sen);
+
 static void rc_sensor_heart_beat(rc_sensor_t *rc_sen);
 
 /* Private typedef -----------------------------------------------------------*/
+
 /* Private variables ---------------------------------------------------------*/
+
 /* Exported variables --------------------------------------------------------*/
-// Ò£¿ØÆ÷Çý¶¯
-drv_uart_t	rc_sensor_driver = {
-	.id = DRV_UART2,
-	.tx_byte = NULL,
+
+// é¥æŽ§å™¨é©±åŠ¨
+
+drv_uart_t rc_sensor_driver = {
+
+    .id = DRV_UART2,
+
+    .tx_byte = NULL,
+
 };
 
-// Ò£¿ØÆ÷ÐÅÏ¢
-rc_sensor_info_t 	rc_sensor_info = {
-	//Ë³Ðò:ÏàÍ¬·ûºÅÖ®¼ä°´¾ø¶ÔÖµ´Ó´óµ½Ð¡
-	.tw_step_value[RC_TB_UP] = -650,
-	.tw_step_value[RC_TB_MU] = -200,
-	.tw_step_value[RC_TB_DN] = +650,
-	.tw_step_value[RC_TB_MD] = +200,	
-	.offline_max_cnt = 60,
+// é¥æŽ§å™¨ä¿¡æ¯
+
+rc_sensor_info_t rc_sensor_info = {
+
+    // é¡ºåº:ç›¸åŒç¬¦å·ä¹‹é—´æŒ‰ç»å¯¹å€¼ä»Žå¤§åˆ°å°
+
+    .tw_step_value[RC_TB_UP] = -600,
+
+    .tw_step_value[RC_TB_MU] = -200,
+
+    .tw_step_value[RC_TB_DN] = +600,
+
+    .tw_step_value[RC_TB_MD] = +200,
+
+    .offline_max_cnt = 60,
+
 };
 
-// Ò£¿ØÆ÷´«¸ÐÆ÷
-rc_sensor_t	rc_sensor = {
-	.info = &rc_sensor_info,
-	.init = rc_sensor_init,
-	.update = rc_sensor_update,
-	.check = rc_sensor_check,
-	.heart_beat = rc_sensor_heart_beat,
-	.work_state = DEV_OFFLINE,
-	.id = DEV_ID_RC,
+// é¥æŽ§å™¨ä¼ æ„Ÿå™¨
+
+rc_sensor_t rc_sensor = {
+
+    .info = &rc_sensor_info,
+
+    .init = rc_sensor_init,
+
+    .update = rc_sensor_update,
+
+    .check = rc_sensor_check,
+
+    .heart_beat = rc_sensor_heart_beat,
+
+    .work_state = DEV_OFFLINE,
+
+    .id = DEV_ID_RC,
+
 };
 
 /* Private functions ---------------------------------------------------------*/
+
 /**
- *	@brief	Ò£¿ØÆ÷Êý¾Ý¼ì²é
- *  step[0]:²¦ÂÖÍÆµ½¶¥Ìø±ä
- *  step[1]:²¦ÂÖÍùÉÏÍÆÒ»µãÌø±ä
- *  step[2]:²¦ÂÖÍÆµ½µ×Ìø±ä
- *  step[3]:²¦ÂÖÍùÏÂÍÆÒ»µãÌø±ä
- *  ²»ÖªµÀË­Ð´µÄ³éÏóÍæÒâ£¬×¢ÊÍÃ»ÓÐÒ»µã
+
+ *	@brief	é¥æŽ§å™¨æ•°æ®æ£€æŸ¥
+
+ *  step[0]:æ‹¨è½®æŽ¨åˆ°é¡¶è·³å˜
+
+ *  step[1]:æ‹¨è½®å¾€ä¸ŠæŽ¨ä¸€ç‚¹è·³å˜
+
+ *  step[2]:æ‹¨è½®æŽ¨åˆ°åº•è·³å˜
+
+ *  step[3]:æ‹¨è½®å¾€ä¸‹æŽ¨ä¸€ç‚¹è·³å˜
+
+ *  ä¸çŸ¥é“è°å†™çš„æŠ½è±¡çŽ©æ„ï¼Œæ³¨é‡Šæ²¡æœ‰ä¸€ç‚¹
+
  */
+int16_t thumbwheel_record = 0;
+
+uint8_t step_record[2] = {0, 0};
+
 static void rc_sensor_check(rc_sensor_t *rc_sen)
+
 {
-	static int16_t thumbwheel_record = 0;
-	static uint8_t step_record[2] = {0, 0};
-	rc_sensor_info_t *rc_info = rc_sen->info;
 
-	/*²¦ÂÖ²úÉú½×Ô¾ÐÅºÅ*/
-	if((my_abs(rc_info->thumbwheel.value_last) < my_abs(rc_info->thumbwheel.value)) && \
-		 (my_abs(thumbwheel_record) < my_abs(rc_info->thumbwheel.value)))
-	{
-		thumbwheel_record = rc_info->thumbwheel.value;
-	}
-	if((my_abs(rc_info->thumbwheel.value) <=10)&& (thumbwheel_record != 0))
-	{
-			for(char i = 0;i < 4;i++)
-			{
-				if(rc_info->tw_step_value[i] > 0 && thumbwheel_record > 0)
-				{
-					if(thumbwheel_record >= rc_info->tw_step_value[i])
-					{
-						rc_info->thumbwheel.step[i] = !rc_info->thumbwheel.step[i];
-						thumbwheel_record = 0;
-					}
-				}
-				if(rc_info->tw_step_value[i] < 0 && thumbwheel_record < 0)
-				{
-					if(thumbwheel_record <= rc_info->tw_step_value[i])
-					{
-						rc_info->thumbwheel.step[i] = !rc_info->thumbwheel.step[i];
-						thumbwheel_record = 0;
-					}
-				}
-				
-			}
+    
+    rc_sensor_info_t *rc_info = rc_sen->info;
 
-		thumbwheel_record = 0;
-	}
+    /*æ‹¨è½®äº§ç”Ÿé˜¶è·ƒä¿¡å·*/
 
-	rc_info->thumbwheel.value_last = rc_info->thumbwheel.value;
-	
-	if(rc_info->thumbwheel.step[RC_TB_UP] != step_record[0])
-	{
-		rc_info->thumbwheel.step_change[RC_MD_TO_UP] = 1;
-	}
-	else
-	{
-		rc_info->thumbwheel.step_change[RC_MD_TO_UP] = 0;
-	}
-	step_record[0] = rc_info->thumbwheel.step[RC_TB_UP];
-	if(rc_info->thumbwheel.step[RC_TB_DN] != step_record[1])
-	{
-		rc_info->thumbwheel.step_change[RC_MD_TO_DO] = 1;
-	}
-	else
-	{
-		rc_info->thumbwheel.step_change[RC_MD_TO_DO] = 0;
-	}
-	step_record[1] = rc_info->thumbwheel.step[RC_TB_DN];
-	
-	
-	if(my_abs(rc_info->ch0) > 660 ||
-	   my_abs(rc_info->ch1) > 660 ||
-	   my_abs(rc_info->ch2) > 660 ||
-	   my_abs(rc_info->ch3) > 660)
-	{
-		rc_sen->errno = DEV_DATA_ERR;
-		rc_info->ch0 = 0;
-		rc_info->ch1 = 0;
-		rc_info->ch2 = 0;
-		rc_info->ch3 = 0;		
-		rc_info->s1 = RC_SW_MID;
-		rc_info->s2 = RC_SW_MID;
-		rc_info->thumbwheel.value = 0;
-		rc_info->thumbwheel.value_last = 0;
-		rc_info->thumbwheel.step[RC_TB_UP] = 0;
-		rc_info->thumbwheel.step[RC_TB_MU] = 0;
-		rc_info->thumbwheel.step[RC_TB_MD] = 0;
-		rc_info->thumbwheel.step[RC_TB_DN] = 0;
-	}
-	else
-	{
-		rc_sen->errno = NONE_ERR;
-	}
+    if ((my_abs(rc_info->thumbwheel.value_last) < my_abs(rc_info->thumbwheel.value)) &&
+
+        (my_abs(thumbwheel_record) < my_abs(rc_info->thumbwheel.value)))
+
+    {
+
+        thumbwheel_record = rc_info->thumbwheel.value;
+    }
+
+    /* æ‹¨è½®å€¼ç»å¯¹å€¼è¶…è¿‡660æ—¶ä¸æ£€æŸ¥stepè·³å˜ */
+    if ((my_abs(rc_info->thumbwheel.value) <= 10) && 
+		(my_abs(rc_info->thumbwheel.value) <= 660) && 
+		(thumbwheel_record != 0))
+
+    {
+
+        for (char i = 0; i < 4; i++)
+
+        {
+
+            if (rc_info->tw_step_value[i] > 0 && thumbwheel_record > 0)
+
+            {
+
+                if (thumbwheel_record >= rc_info->tw_step_value[i])
+
+                {
+
+                    rc_info->thumbwheel.step[i] = !rc_info->thumbwheel.step[i];
+
+                    thumbwheel_record = 0;
+                }
+            }
+
+            if (rc_info->tw_step_value[i] < 0 && thumbwheel_record < 0)
+
+            {
+
+                if (thumbwheel_record <= rc_info->tw_step_value[i])
+
+                {
+
+                    rc_info->thumbwheel.step[i] = !rc_info->thumbwheel.step[i];
+
+                    thumbwheel_record = 0;
+                }
+            }
+        }
+
+        thumbwheel_record = 0;
+    }
+
+    rc_info->thumbwheel.value_last = rc_info->thumbwheel.value;
+
+    if (rc_info->thumbwheel.step[RC_TB_UP] != step_record[0])
+
+    {
+
+        rc_info->thumbwheel.step_change[RC_MD_TO_UP] = 1;
+    }
+
+    else
+
+    {
+
+        rc_info->thumbwheel.step_change[RC_MD_TO_UP] = 0;
+    }
+
+    step_record[0] = rc_info->thumbwheel.step[RC_TB_UP];
+
+    if (rc_info->thumbwheel.step[RC_TB_DN] != step_record[1])
+
+    {
+
+        rc_info->thumbwheel.step_change[RC_MD_TO_DO] = 1;
+    }
+
+    else
+
+    {
+
+        rc_info->thumbwheel.step_change[RC_MD_TO_DO] = 0;
+    }
+
+    step_record[1] = rc_info->thumbwheel.step[RC_TB_DN];
+
+    if (my_abs(rc_info->ch0) > 660 ||
+
+        my_abs(rc_info->ch1) > 660 ||
+
+        my_abs(rc_info->ch2) > 660 ||
+
+        my_abs(rc_info->ch3) > 660)
+
+    {
+
+        rc_sen->errno = DEV_DATA_ERR;
+
+        rc_info->ch0 = 0;
+
+        rc_info->ch1 = 0;
+
+        rc_info->ch2 = 0;
+
+        rc_info->ch3 = 0;
+
+        rc_info->s1 = RC_SW_MID;
+
+        rc_info->s2 = RC_SW_MID;
+
+        rc_info->thumbwheel.value = 0;
+
+        rc_info->thumbwheel.value_last = 0;
+
+        rc_info->thumbwheel.step[RC_TB_UP] = 0;
+
+        rc_info->thumbwheel.step[RC_TB_MU] = 0;
+
+        rc_info->thumbwheel.step[RC_TB_MD] = 0;
+
+        rc_info->thumbwheel.step[RC_TB_DN] = 0;
+    }
+
+    else
+
+    {
+
+        rc_sen->errno = NONE_ERR;
+    }
 }
 
-/*Ò£¿Ø²¦¸ËÉÏÒ»´ÎÖµ¸üÐÂ*/
+/*é¥æŽ§æ‹¨æ†ä¸Šä¸€æ¬¡å€¼æ›´æ–°*/
+
 void rc_sensor_s_last_update(rc_sensor_t *rc_sen)
+
 {
-	rc_sen->info->s1_last = rc_sen->info->s1;
-	rc_sen->info->s2_last = rc_sen->info->s2;
-	rc_sen->info->thumbwheel.last_step[RC_TB_UP] = rc_sen->info->thumbwheel.step[RC_TB_UP];
-	rc_sen->info->thumbwheel.last_step[RC_TB_MU] = rc_sen->info->thumbwheel.step[RC_TB_MU];
-	rc_sen->info->thumbwheel.last_step[RC_TB_MD] = rc_sen->info->thumbwheel.step[RC_TB_MD];
-	rc_sen->info->thumbwheel.last_step[RC_TB_DN] = rc_sen->info->thumbwheel.step[RC_TB_DN];
+
+    rc_sen->info->s1_last = rc_sen->info->s1;
+
+    rc_sen->info->s2_last = rc_sen->info->s2;
+
+    rc_sen->info->thumbwheel.last_step[RC_TB_UP] = rc_sen->info->thumbwheel.step[RC_TB_UP];
+
+    rc_sen->info->thumbwheel.last_step[RC_TB_MU] = rc_sen->info->thumbwheel.step[RC_TB_MU];
+
+    rc_sen->info->thumbwheel.last_step[RC_TB_MD] = rc_sen->info->thumbwheel.step[RC_TB_MD];
+
+    rc_sen->info->thumbwheel.last_step[RC_TB_DN] = rc_sen->info->thumbwheel.step[RC_TB_DN];
 }
 
 /**
- *	@brief	Ò£¿ØÆ÷ÐÄÌø°ü
- */
-static void rc_sensor_heart_beat(rc_sensor_t *rc_sen)
-{
-	rc_sensor_info_t *rc_info = rc_sen->info;
 
-	rc_info->offline_cnt++;
-	if(rc_info->offline_cnt > rc_info->offline_max_cnt) {
-		rc_info->offline_cnt = rc_info->offline_max_cnt;
-		rc_sen->work_state = DEV_OFFLINE;
-	} 
-	else {
-		/* ÀëÏß->ÔÚÏß */
-		if(rc_sen->work_state == DEV_OFFLINE)
-		{
-			rc_sen->work_state = DEV_ONLINE;
-		}
-	}
+ *	@brief	é¥æŽ§å™¨å¿ƒè·³åŒ…
+
+ */
+
+static void rc_sensor_heart_beat(rc_sensor_t *rc_sen)
+
+{
+
+    rc_sensor_info_t *rc_info = rc_sen->info;
+
+    rc_info->offline_cnt++;
+
+    if (rc_info->offline_cnt > rc_info->offline_max_cnt)
+    {
+
+        rc_info->offline_cnt = rc_info->offline_max_cnt;
+
+        rc_sen->work_state = DEV_OFFLINE;
+    }
+
+    else
+    {
+
+        /* ç¦»çº¿->åœ¨çº¿ */
+
+        if (rc_sen->work_state == DEV_OFFLINE)
+
+        {
+
+            rc_sen->work_state = DEV_ONLINE;
+        }
+    }
 }
 
 /* Exported functions --------------------------------------------------------*/
+
 bool RC_IsChannelReset(void)
+
 {
-	if(  (DeathZoom(rc_sensor_info.ch0, 0, 50) == 0) && 
-		 (DeathZoom(rc_sensor_info.ch1, 0, 50) == 0) && 
-		 (DeathZoom(rc_sensor_info.ch2, 0, 50) == 0) && 
-		 (DeathZoom(rc_sensor_info.ch3, 0, 50) == 0))	
-	{
-		return true;
-	}
-	return false;		
+
+    if ((DeathZoom(rc_sensor_info.ch0, 0, 50) == 0) &&
+
+        (DeathZoom(rc_sensor_info.ch1, 0, 50) == 0) &&
+
+        (DeathZoom(rc_sensor_info.ch2, 0, 50) == 0) &&
+
+        (DeathZoom(rc_sensor_info.ch3, 0, 50) == 0))
+
+    {
+
+        return true;
+    }
+
+    return false;
 }
 
 void RC_ResetData(rc_sensor_t *rc)
-{
-	// Í¨µÀÖµÇ¿ÐÐÉèÖÃ³ÉÖÐ¼äÖµ(²»²¦¶¯Ò¡¸ËµÄ×´Ì¬)
-	rc->info->ch0 = 0;
-	rc->info->ch1 = 0;
-	rc->info->ch2 = 0;
-	rc->info->ch3 = 0;
-	// ×óÓÒ¿ª¹ØÑ¡ÔñÇ¿ÐÐÉèÖÃ³ÉÖÐ¼äÖµ×´Ì¬
-	rc->info->s1 = RC_SW_MID;
-	rc->info->s2 = RC_SW_MID;
-	// Êó±ê
-	rc->info->mouse_vx = 0;
-	rc->info->mouse_vy = 0;
-	rc->info->mouse_vz = 0;
-	rc->info->mouse_x = 0.f;
-	rc->info->mouse_y = 0.f;
-	rc->info->mouse_z = 0.f;
-	rc->info->mouse_btn_l.value = 0;
-	rc->info->mouse_btn_r.value = 0;
-	// ¼üÅÌ
-	rc->info->key_v = 0;
-  rc->info->W.value = 0;
-  rc->info->S.value = 0;
-  rc->info->A.value = 0;
-  rc->info->D.value = 0;
-  rc->info->Shift.value = 0;
-  rc->info->Ctrl.value = 0;
-  rc->info->Q.value = 0;
-  rc->info->E.value = 0;
-  rc->info->R.value = 0;
-  rc->info->F.value = 0;
-  rc->info->G.value = 0;
-  rc->info->Z.value = 0;
-  rc->info->X.value = 0;
-  rc->info->C.value = 0;
-  rc->info->V.value = 0;
-  rc->info->B.value = 0;
-	// ×ó²¦ÂÖ
-	rc->info->thumbwheel.value = 0;
-	rc->info->thumbwheel.value_last = 0;
-	rc->info->thumbwheel.step[RC_TB_UP] = 0;
-	rc->info->thumbwheel.step[RC_TB_MU] = 0;
-	rc->info->thumbwheel.step[RC_TB_MD] = 0;
-	rc->info->thumbwheel.step[RC_TB_DN] = 0;
-}
 
-///**
-//  * @brief  Ò£¿ØÆ÷²¦¸Ë×´Ì¬Ìø±äÅÐ¶Ï²¢¸üÐÂ
-//  */
-//void rc_switch_status_interrupt_update(rc_sensor_info_t *info)
-//{
-//  /* ×ó²¦¸ËÅÐ¶Ï */
-//  if(info->s1.value != info->s1.value_last)
-//  {
-//    switch(info->s1.value)
-//    {
-//      case 1:
-//        info->s1.status = up_R;
-//        break;
-//      case 3:
-//        info->s1.status = mid_R;
-//        break;
-//      case 2:
-//        info->s1.status = down_R;
-//        break;
-//      default:
-//        break;
-//    }
-//    info->s1.value_last = info->s1.value;
-//  }
-//  else 
-//  {
-//    info->s1.status = keep_R;
-//  }
-//  /* ÓÒ²¦¸ËÅÐ¶Ï */
-//  if(info->s2.value != info->s2.value_last)
-//  {
-//    switch(info->s2.value)
-//    {
-//      case 1:
-//        info->s2.status = up_R;
-//        break;
-//      case 3:
-//        info->s2.status = mid_R;
-//        break;
-//      case 2:
-//        info->s2.status = down_R;
-//        break;
-//      default:
-//        break;
-//    }
-//    info->s2.value_last = info->s2.value;
-//  }
-//  else 
-//  {
-//    info->s2.status = keep_R;
-//  }
-//}
-//static uint8_t s1_last_value,s2_last_value;if(rc_info->s1 == s1_last_value){s1_change_flag = 1;}s1_last_value = rc_info->s1;
-//
-//
+{
+
+    // é€šé“å€¼å¼ºè¡Œè®¾ç½®æˆä¸­é—´å€¼(ä¸æ‹¨åŠ¨æ‘‡æ†çš„çŠ¶æ€)
+
+    rc->info->ch0 = 0;
+
+    rc->info->ch1 = 0;
+
+    rc->info->ch2 = 0;
+
+    rc->info->ch3 = 0;
+
+    // å·¦å³å¼€å…³é€‰æ‹©å¼ºè¡Œè®¾ç½®æˆä¸­é—´å€¼çŠ¶æ€
+
+    rc->info->s1 = RC_SW_MID;
+
+    rc->info->s2 = RC_SW_MID;
+
+    // é¼ æ ‡
+
+    rc->info->mouse_vx = 0;
+
+    rc->info->mouse_vy = 0;
+
+    rc->info->mouse_vz = 0;
+
+    rc->info->mouse_x = 0.f;
+
+    rc->info->mouse_y = 0.f;
+
+    rc->info->mouse_z = 0.f;
+
+    rc->info->mouse_btn_l.value = 0;
+
+    rc->info->mouse_btn_r.value = 0;
+
+    // é”®ç›˜
+
+    rc->info->key_v = 0;
+
+    rc->info->W.value = 0;
+
+    rc->info->S.value = 0;
+
+    rc->info->A.value = 0;
+
+    rc->info->D.value = 0;
+
+    rc->info->Shift.value = 0;
+
+    rc->info->Ctrl.value = 0;
+
+    rc->info->Q.value = 0;
+
+    rc->info->E.value = 0;
+
+    rc->info->R.value = 0;
+
+    rc->info->F.value = 0;
+
+    rc->info->G.value = 0;
+
+    rc->info->Z.value = 0;
+
+    rc->info->X.value = 0;
+
+    rc->info->C.value = 0;
+
+    rc->info->V.value = 0;
+
+    rc->info->B.value = 0;
+
+    // å·¦æ‹¨è½®
+
+    rc->info->thumbwheel.value = 0;
+
+    rc->info->thumbwheel.value_last = 0;
+
+    rc->info->thumbwheel.step[RC_TB_UP] = 0;
+
+    rc->info->thumbwheel.step[RC_TB_MU] = 0;
+
+    rc->info->thumbwheel.step[RC_TB_MD] = 0;
+
+    rc->info->thumbwheel.step[RC_TB_DN] = 0;
+}
