@@ -1,1359 +1,1230 @@
 #include "ui.h"
-#include "Balance.h"
-#include "Chassis.h"
+#include "priority_ui.h"
+#include "infantry.h"
 #include "arm_math.h"
-#include "cap.h"
-#include "car_info.h"
-#include "chassis_motor.h"
-#include "communicate.h"
-#include "gimbal.h"
-#include "ui_priority.h"
 #include "ui_protocol.h"
-#include <string.h>
+#include "chassis.h"
+#include "judge.h"
+#include "rp_math.h"
+#include "gimbal.h"
+#include "board_protocol.h"
+#include "vision.h"
+#include "launch.h"
+#include "cap.h"
 
-/*==================== Leg UI Variables Begin ====================*/
-Leg_UI_Config_t Leg_UI_Config = {
-    .scale = 430.0f,
-    .leg_offset_x = 1550,
-    .leg_offset_y = 485,
-    .right_offset_x = 200,
-    .right_offset_y = 0,
-    .body_length = 50, // åŠé•¿åº¦
+
+//UI_Dynamic_Info_t My_UI_Dynamic_Info;
+#define LEFT_UP_X (Client_mid_position_x - 820)
+#define LEFT_UP_Y (Client_mid_position_y + 320)
+#define RIGHT_UP_X (Client_mid_position_x + 820)
+#define RIGHT_UP_Y (Client_mid_position_y + 320)
+
+#define CHAS_CIRCLE_X     (Client_mid_position_x)
+#define CHAS_CIRCLE_Y     (Client_mid_position_y - 250)
+#define CHAS_CIRCLE_R     (65)
+
+#define BODY_CENTER_X     (Client_mid_position_x - 700)
+#define BODY_CENTER_Y     (Client_mid_position_y + 50)
+#define PITCH_LENGTH      100
+
+#define DIAL_CENTER_X     (Client_mid_position_x)
+#define DIAL_CENTER_Y     (Client_mid_position_y + 280)
+
+
+#define ENEMY_BLUE_HERO_AMMO_X  (Client_mid_position_x + 220)
+#define ENEMY_BLUE_HERO_AMMO_Y  (Client_mid_position_y + 360)
+#define ENEMY_RED_HERO_AMMO_X   (Client_mid_position_x - 280)
+#define ENEMY_RED_HERO_AMMO_Y   (Client_mid_position_y + 360)
+#define ENEMY_AMMO_DISTANE   120
+
+
+void rotate_point(__packed uint16_t *x, __packed uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float angle);
+void My_Chas_Circle_Update(float angle);
+static void Motor_Color_Update(uint8_t mmotor_state, uint8_t special_state, uint32_t index);
+static void Gimbal_Line_Update(float angle,uint8_t height);
+static void Robot_Status_Update(uint8_t robot_status,uint32_t index);
+static void Robot_Status_Update(uint8_t robot_status,uint32_t index);
+
+
+ui_info_t dynamic_ui_info [DYNAMIC_NUM] = 
+{
+	[MODE_CHAR] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = HIGH_PRIORITY,
+    .ui_config.ui_type = CHAR,     
+    .ui_config.name = "d1",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,                
+    .ui_config.color = WHITE,            
+		 .ui_config.size = 30,               
+    .ui_config.width = 3,                
+    .ui_config.start_x = Client_mid_position_x + 580,             
+    .ui_config.start_y = Client_mid_position_y + 170,             
+    .ui_config.text = "SLEEP",          
+
+	},
+	
+	
+	[VISION_FRAME] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = LOW_PRIORITY, 
+    .ui_config.ui_type = RECTANGEL,        
+    .ui_config.name = "d2",              
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,           
+    .ui_config.width = 3,               
+     .ui_config.start_x = Client_mid_position_x + 790 ,         
+    .ui_config.start_y = Client_mid_position_y + 110 ,              
+		.ui_config.end_x = Client_mid_position_x + 570 ,
+		.ui_config.end_y = Client_mid_position_y + 50 ,
+		
+	},
+	
+	[VISION_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+		.ui_config.priority = HIGH_PRIORITY,
+    .ui_config.ui_type = INT,          
+    .ui_config.name = "d3",             
+    /*******¿É±äÅäÖÃ*********/
+		.ui_config.operate_type = MODIFY,  
+    .ui_config.layer = 1,               
+    .ui_config.color = CYAN_BLUE,            
+    .ui_config.size = 30,               
+    .ui_config.width = 2,               
+    .ui_config.start_x = Client_mid_position_x + 760,             
+    .ui_config.start_y = Client_mid_position_y + 97,             
+    .ui_config.int_num = 0,
+		
+	},
+	
+	[BULLET_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d4",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,          
+    .ui_config.size = 50,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = Client_mid_position_x - 260,           
+    .ui_config.start_y = Client_mid_position_y + 160,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[CHAS_HEAD_LINE] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = HIGH_PRIORITY,
+    .ui_config.ui_type = LINE,        
+    .ui_config.name = "d5",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 2,               
+    .ui_config.color = PINK,           
+    .ui_config.width = 8,               
+    .ui_config.start_x = CHAS_CIRCLE_X,             
+    .ui_config.start_y = CHAS_CIRCLE_Y,              
+    .ui_config.end_x = CHAS_CIRCLE_X,               
+    .ui_config.end_y = CHAS_CIRCLE_Y + CHAS_CIRCLE_R,               
+  },
+	
+	[CHAS_SIDE_LINE] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = HIGH_PRIORITY,
+    .ui_config.ui_type = LINE,        
+    .ui_config.name = "d6",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 2,                
+    .ui_config.color = PINK,            
+    .ui_config.width = 8,               
+    .ui_config.start_x = CHAS_CIRCLE_X - CHAS_CIRCLE_R,             
+    .ui_config.start_y = CHAS_CIRCLE_Y,              
+    .ui_config.end_x = CHAS_CIRCLE_X + CHAS_CIRCLE_R,               
+    .ui_config.end_y = CHAS_CIRCLE_Y,                
+	},
+	
+	
+	[CAP_LINE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = HIGH_PRIORITY, 
+    .ui_config.ui_type = LINE,         
+    .ui_config.name = "d7",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 25,               
+    .ui_config.start_x = Client_mid_position_x - 250,            
+    .ui_config.start_y = Client_mid_position_y + 220,             
+    .ui_config.end_x = Client_mid_position_x + 250,               
+    .ui_config.end_y = Client_mid_position_y + 220,                
+	},
+	
+	
+	[AUTO_CATCH_FRAME] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = HIGH_PRIORITY, 
+    .ui_config.ui_type = RECTANGEL,      
+    .ui_config.name = "d8",              
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,                
+    .ui_config.color = WHITE,            
+    .ui_config.width = 3,                
+     .ui_config.start_x = Client_mid_position_x - 280,             
+    .ui_config.start_y = Client_mid_position_y + 170 ,             
+		.ui_config.end_x = Client_mid_position_x + 280 ,
+		.ui_config.end_y = Client_mid_position_y - 180 ,
+	},
+	
+	[CAR_SPEED] = {
+		/*******²»±äÅäÖÃ*********/
+  .ui_config.priority = MID_PRIORITY,
+  .ui_config.ui_type = FLOAT,
+	.ui_config.name = "d9",
+  /*********²»±äÅäÖÃ*********/
+  .ui_config.operate_type = MODIFY, 
+  .ui_config.layer = 1, 
+  .ui_config.color = CYAN_BLUE, 
+  .ui_config.size = 30, 
+  .ui_config.width = 2,
+  .ui_config.start_x = Client_mid_position_x - 60,
+  .ui_config.start_y = Client_mid_position_y - 400, 
+  .ui_config.float_num = 0, 
+  .ui_config.decimal = 2, 
+	},
+	
+	[R_FRIC_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY, 
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "d10",              
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,                
+    .ui_config.color = GREEN,            
+    .ui_config.width = 8,                
+    .ui_config.start_x = DIAL_CENTER_X + 35, // Client_mid_position_x + 750,              
+    .ui_config.start_y = DIAL_CENTER_Y + 30,  //Client_mid_position_y + 100,              
+		.ui_config.radius = 20,
+	},
+	
+	[L_FRIC_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = CIRCLE,       
+    .ui_config.name = "d11",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,  
+    .ui_config.layer = 1,              
+    .ui_config.color = GREEN,          
+    .ui_config.width = 8,              
+    .ui_config.start_x = DIAL_CENTER_X - 35,//Client_mid_position_x + 680,            
+    .ui_config.start_y = DIAL_CENTER_Y + 30,//Client_mid_position_y + 100,            
+		.ui_config.radius = 20,
+	},
+	
+	[DIAL_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = CIRCLE,       
+    .ui_config.name = "d12",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,  
+    .ui_config.layer = 1,              
+    .ui_config.color = GREEN,          
+    .ui_config.width = 8,              
+    .ui_config.start_x = DIAL_CENTER_X,//Client_mid_position_x + 715,           
+    .ui_config.start_y = DIAL_CENTER_Y,//Client_mid_position_y + 70,            
+		.ui_config.radius = 20,
+	},
+	
+	
+	[LF_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY, 
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "d13",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 8,               
+    .ui_config.start_x = CHAS_CIRCLE_X - CHAS_CIRCLE_R - 30,    
+    .ui_config.start_y = CHAS_CIRCLE_Y + 30,                    
+		.ui_config.radius = 20,
+	},
+	
+	[LB_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY, 
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "d14",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 8,               
+    .ui_config.start_x = CHAS_CIRCLE_X - CHAS_CIRCLE_R - 30,          
+    .ui_config.start_y = CHAS_CIRCLE_Y - 30,                          
+		.ui_config.radius = 20,
+	},
+	
+	[RF_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = CIRCLE,       
+    .ui_config.name = "d15",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,  
+    .ui_config.layer = 1,              
+    .ui_config.color = GREEN,          
+    .ui_config.width = 8,              
+    .ui_config.start_x = CHAS_CIRCLE_X + CHAS_CIRCLE_R + 30,          
+    .ui_config.start_y = CHAS_CIRCLE_Y + 30,                          
+		.ui_config.radius = 20,
+	},
+	
+	[RB_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = CIRCLE,       
+    .ui_config.name = "d16",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,  
+    .ui_config.layer = 1,              
+    .ui_config.color = GREEN,          
+    .ui_config.width = 8,              
+    .ui_config.start_x = CHAS_CIRCLE_X + CHAS_CIRCLE_R + 30,             
+    .ui_config.start_y = CHAS_CIRCLE_Y - 30,                             
+		.ui_config.radius = 20,
+	},
+	
+	[YAW_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY, 
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "d17",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 8,               
+    .ui_config.start_x = BODY_CENTER_X, 
+    .ui_config.start_y = BODY_CENTER_Y, 
+		.ui_config.radius = 20,
+	},
+	
+	
+	[LEFT_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY, 
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "d18",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 8,               
+    .ui_config.start_x = BODY_CENTER_X - 100,      
+    .ui_config.start_y = BODY_CENTER_Y,            
+		.ui_config.radius = 20,
+	},
+	
+	[PITCH_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY, 
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "d19",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 8,               
+    .ui_config.start_x = BODY_CENTER_X, 
+    .ui_config.start_y = BODY_CENTER_Y + 120,             
+		.ui_config.radius = 20,
+	},
+	
+	
+	[PITCH_LINE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.priority = HIGH_PRIORITY, 
+    .ui_config.ui_type = LINE,         
+    .ui_config.name = "d20",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,                
+    .ui_config.color = WHITE,            
+    .ui_config.width = 4,                
+    .ui_config.start_x = BODY_CENTER_X,  
+    .ui_config.start_y = BODY_CENTER_Y + 120,              
+    .ui_config.end_x = BODY_CENTER_X + PITCH_LENGTH,       
+    .ui_config.end_y = BODY_CENTER_Y + 120,                
+	},
+	
+	[ENEMY_COIN_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d21",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = Client_mid_position_x - 170,           
+    .ui_config.start_y = Client_mid_position_y + 370,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[ENEMY_HERO_AMMO_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d22",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y - 40,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[ENEMY_3_AMMO_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d23",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 2*ENEMY_AMMO_DISTANE,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y - 40,             
+    .ui_config.int_num = 0,            
+	},
+	
+	
+	[ENEMY_4_AMMO_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d24",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 3*ENEMY_AMMO_DISTANE,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y - 40,             
+    .ui_config.int_num = 0,            
+	},
+	
+	
+	[ENEMY_7_AMMO_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d25",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 5*ENEMY_AMMO_DISTANE,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y - 40,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[ENEMY_HERO_HP_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d26",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[ENEMY_3_HP_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d27",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 2*ENEMY_AMMO_DISTANE,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[ENEMY_4_HP_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d28",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 3*ENEMY_AMMO_DISTANE,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y,             
+    .ui_config.int_num = 0,            
+	},
+	
+	[ENEMY_7_HP_NUM] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = INT,           
+    .ui_config.name = "d29",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,   
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,          
+    .ui_config.size = 20,              
+    .ui_config.width = 4,              
+    .ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 5*ENEMY_AMMO_DISTANE,           
+    .ui_config.start_y = ENEMY_BLUE_HERO_AMMO_Y,             
+    .ui_config.int_num = 0,            
+	},
+	
+	
+	
+	
+	[CHARGE_CHAR] = {
+		/*******²»±äÅäÖÃ*********/
+    .ui_config.priority = MID_PRIORITY,
+    .ui_config.ui_type = CHAR,     
+    .ui_config.name = "d30",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.operate_type = MODIFY,    
+    .ui_config.layer = 1,                
+    .ui_config.color = WHITE,            
+		 .ui_config.size = 30,               
+    .ui_config.width = 3,                
+    .ui_config.start_x = Client_mid_position_x + 580,             
+    .ui_config.start_y = Client_mid_position_y + 24,             
+    .ui_config.text = "CHARGED",          
+
+	},
 };
 
-Leg_UI_Var_t Leg_UI_Var;
-/*==================== Leg UI Variables End ====================*/
+ui_info_t const_ui_info [CONST_NUM] = 
+{
 
-#define CHAS_CIRCLE_X (Client_mid_position_x)
-#define CHAS_CIRCLE_Y (Client_mid_position_y - 350)
-#define CHAS_CIRCLE_R 70
+	 [VISION_CHAR] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = CHAR,          
+    .ui_config.name = "g1",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 1,               
+    .ui_config.color = WHITE,           
+    .ui_config.size = 30,               
+    .ui_config.width = 2,               
+    .ui_config.start_x = Client_mid_position_x + 580,           
+    .ui_config.start_y = Client_mid_position_y + 97,              
+    .ui_config.text = "VISION",           
+	 },
+	 
+	 [CHAS_CIRCLE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = CIRCLE,        
+    .ui_config.name = "g2",             
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 0,               
+    .ui_config.color = GREEN,           
+    .ui_config.width = 4,               
+    .ui_config.start_x = CHAS_CIRCLE_X ,
+    .ui_config.start_y = CHAS_CIRCLE_Y, 
+    .ui_config.radius = 65, 
+	 },
+	 
+	 [CAP_FRAME] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = RECTANGEL,    
+    .ui_config.name = "g3",            
+    /*******¿É±äÅäÖÃ*********/
+ 
+    .ui_config.layer = 1,              
+    .ui_config.color = WHITE,          
+    .ui_config.width = 3,              
+    .ui_config.start_x = Client_mid_position_x - 253,            
+    .ui_config.start_y = Client_mid_position_y + 233 ,           
+		.ui_config.end_x = Client_mid_position_x + 253 ,
+		.ui_config.end_y = Client_mid_position_y + 205 ,
+	 },
+	 
+	 [MOVE_L_LINE] = {
+		  /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = LINE,        
+    .ui_config.name = "g4",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 1,             
+    .ui_config.color = WHITE,         
+    .ui_config.width = 1,             
+    .ui_config.start_x = Client_mid_position_x - 334,            
+    .ui_config.start_y = 0,             
+    .ui_config.end_x = Client_mid_position_x - 82,               
+    .ui_config.end_y = Client_mid_position_y - 150 ,             
+		 
+	 },
 
-// è…¿éƒ¨UI
-#define Sd_Circle_Radius 17
-#define Wheel_Circle_Radius 19
+	 [MOVE_R_LINE] = {
+		  /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = LINE,         
+    .ui_config.name = "g5",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 1,              
+    .ui_config.color = WHITE,          
+    .ui_config.width = 1,              
+    .ui_config.start_x = Client_mid_position_x + 334,            
+    .ui_config.start_y = 0,            
+    .ui_config.end_x = Client_mid_position_x + 82,               
+    .ui_config.end_y = Client_mid_position_y - 150 ,             
+		 
+	 },
 
-// è¡€é‡UI
-#define ROBOT_NUM_UI_Y 880
-#define ROBOT_HEALTH_UI_Y 850
-#define RED_ROBOT_1_X 680
-#define RED_ROBOT_2_X 565
-#define RED_ROBOT_3_X 450
-#define RED_ROBOT_4_X 335
-#define RED_ROBOT_5_X 220
-#define BLUE_ROBOT_1_X 1220
-#define BLUE_ROBOT_2_X 1335
-#define BLUE_ROBOT_3_X 1450
-#define BLUE_ROBOT_4_X 1565
-#define BLUE_ROBOT_5_X 1680
-
-// é£é•–é¢„è­¦
-#define DART_WARNING_X 850
-#define DART_WARNING_Y 740
-
-// å·¦ä¾§çŠ¶æ€æ 
-#define LEFT_STATUS_CHAR_SIZE 20
-#define LEFT_STATUS_MODE_X Client_mid_position_x - 800       // å›ºå®šå­—ç¬¦xåæ ‡
-#define LEFT_STATUS_MODE_Y Client_mid_position_y + 17        // å›ºå®šå­—ç¬¦yåæ ‡
-#define LEFT_STATUS_MODE_VALUE_X Client_mid_position_x - 630 // åŠ¨æ€å­—ç¬¦xåæ ‡
-#define LEFT_STATUS_Y_STEP 40
-#define LEFT_STATUS_Fric_Y LEFT_STATUS_MODE_Y + LEFT_STATUS_Y_STEP
-#define LEFT_STATUS_L_Fric_X LEFT_STATUS_MODE_VALUE_X
-#define LEFT_STATUS_R_Fric_X LEFT_STATUS_MODE_VALUE_X + 40
-ui_info_t dynamic_ui_info[DYNAMIC_NUM] = {
-    [CHAS_HEAD_LINE] = {
-        .ui_config.priority = HIGH_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = CYAN_BLUE,
-        .ui_config.width = 4,
-        .ui_config.start_x = CHAS_CIRCLE_X,
-        .ui_config.start_y = CHAS_CIRCLE_Y,
-        .ui_config.end_x = CHAS_CIRCLE_X,
-        .ui_config.end_y = CHAS_CIRCLE_Y + CHAS_CIRCLE_R,
-    },
-    [CHAS_SIDE_LINE] = {
-        .ui_config.priority = HIGH_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = WHITE,
-        .ui_config.width = 2,
-        .ui_config.start_x = CHAS_CIRCLE_X - CHAS_CIRCLE_R,
-        .ui_config.start_y = CHAS_CIRCLE_Y,
-        .ui_config.end_x = CHAS_CIRCLE_X + CHAS_CIRCLE_R,
-        .ui_config.end_y = CHAS_CIRCLE_Y,
-    },
-    [CAP_LINE] = {
-        .ui_config.priority = HIGH_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 1,
-        .ui_config.color = GREEN,
-        .ui_config.width = 25,
-        .ui_config.start_x = Client_mid_position_x - 250,
-        .ui_config.start_y = Client_mid_position_y + 332,
-        .ui_config.end_x = Client_mid_position_x + 250,
-        .ui_config.end_y = Client_mid_position_y + 332,
-    },
-    [VISION_AIM] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.width = 1,
-        .ui_config.start_x = Client_mid_position_x,
-        .ui_config.start_y = Client_mid_position_y,
-        .ui_config.radius = 3,
-    },
-    [AUTO_CATCH_FRAME] = {
-        .ui_config.priority = HIGH_PRIORITY,
-        .ui_config.ui_type = RECTANGEL,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.width = 3,
-        .ui_config.start_x = Client_mid_position_x - 280,
-        .ui_config.start_y = Client_mid_position_y + 170,
-        .ui_config.end_x = Client_mid_position_x + 280,
-        .ui_config.end_y = Client_mid_position_y - 180,
-    },
-    [LENGTH_FRAME] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = RECTANGEL,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 1,
-        .ui_config.color = YELLOW,
-        .ui_config.width = 3,
-        .ui_config.start_x = Client_mid_position_x - 350,
-        .ui_config.start_y = Client_mid_position_y - 125,
-        .ui_config.end_x = Client_mid_position_x - 310,
-        .ui_config.end_y = Client_mid_position_y - 165,
-    },
-    [D_CAR_MODE] = {
-        /*ä¸å˜é…ç½®*/
-        .ui_config.priority = MID_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
-        .ui_config.ui_type = CHAR,          // UIå†…å®¹ç±»å‹
-        /*å¯å˜é…ç½®*/
-        .ui_config.operate_type = MODIFY,                 // æ“ä½œç±»å‹
-        .ui_config.layer = 1,                             // å›¾å±‚æ•°ï¼Œ0~9
-        .ui_config.color = GREEN,                         // é¢œè‰²
-        .ui_config.size = LEFT_STATUS_CHAR_SIZE,          // å­—ä½“å¤§å°
-        .ui_config.width = 2,                             // çº¿æ¡å®½åº¦
-        .ui_config.start_x = Client_mid_position_x - 630, // èµ·ç‚¹ x åæ ‡
-        .ui_config.start_y = Client_mid_position_y + 17,  // èµ·ç‚¹ y åæ ‡
-        .ui_config.text = "Hank Liang",                   // æ˜¾ç¤ºçš„æ–‡å­—
-    },
-    /* å·¦è…¿çº¿æ®µ begin */
-    [L_LEG_BODY_LINE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.end_x = 0,
-        .ui_config.end_y = 0,
-    },
-    [L_LEG_A_TO_D] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = CYAN_BLUE,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.end_x = 0,
-        .ui_config.end_y = 0,
-    },
-    [L_LEG_D_TO_C] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = CYAN_BLUE,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.end_x = 0,
-        .ui_config.end_y = 0,
-    },
-    /* å·¦è…¿çº¿æ®µ end */
-    /* å³è…¿çº¿æ®µ begin */
-    [R_LEG_BODY_LINE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = WHITE,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.end_x = 0,
-        .ui_config.end_y = 0,
-    },
-    [R_LEG_A_TO_D] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = CYAN_BLUE,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.end_x = 0,
-        .ui_config.end_y = 0,
-    },
-    [R_LEG_D_TO_C] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = LINE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = CYAN_BLUE,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.end_x = 0,
-        .ui_config.end_y = 0,
-    },
-    /* å³è…¿çº¿æ®µ end */
-    /* å·¦è…¿åœ†ç‚¹ begin */
-    [L_LEG_BODY_BACK_CIRCLE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.radius = Sd_Circle_Radius,
-    },
-    [L_LEG_BODY_FRONT_CIRCLE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.radius = Sd_Circle_Radius,
-    },
-    [L_LEG_C_CIRCLE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.radius = Wheel_Circle_Radius,
-    },
-    /* å·¦è…¿åœ†ç‚¹ end */
-    /* å³è…¿åœ†ç‚¹ begin */
-    [R_LEG_BODY_BACK_CIRCLE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.radius = Sd_Circle_Radius,
-    },
-    [R_LEG_BODY_FRONT_CIRCLE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.radius = Sd_Circle_Radius,
-    },
-    [R_LEG_C_CIRCLE] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 2,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.radius = Wheel_Circle_Radius,
-    },
-    /* å³è…¿åœ†ç‚¹ end */
-    /* çº¢æ–¹è¡€é‡ UI begin */
-    [D_RED_1_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_1_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_RED_2_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_2_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_RED_3_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_3_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_RED_4_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_4_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_RED_5_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_5_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    /* çº¢æ–¹è¡€é‡ UI end */
-    /* è“æ–¹è¡€é‡ UI begin */
-    [D_BLUE_1_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_1_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_BLUE_2_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_2_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_BLUE_3_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_3_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_BLUE_4_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_4_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    [D_BLUE_5_HEALTH_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_5_X,
-        .ui_config.start_y = ROBOT_HEALTH_UI_Y,
-        .ui_config.text = "0",
-    },
-    /* è“æ–¹è¡€é‡ UI end */
-    /* é£é•–é¢„è­¦ UI begin */
-    [DART_WARNING_CHAR] = {
-        .ui_config.priority = MID_PRIORITY,
-        .ui_config.ui_type = CHAR,
-        .ui_config.operate_type = MODIFY,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 25,
-        .ui_config.width = 3,
-        .ui_config.start_x = 0,
-        .ui_config.start_y = 0,
-        .ui_config.text = "!!!DART!!!",
-    },
-    /* é£é•–é¢„è­¦ UI end */
-    [D_L_FRIC_STATE_CYCLE] = {
-        /*ä¸å˜é…ç½®*/
-        .ui_config.priority = MID_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
-        .ui_config.ui_type = CIRCLE,        // UIå†…å®¹ç±»å‹
-        /*å¯å˜é…ç½®*/
-        .ui_config.operate_type = MODIFY,            // æ“ä½œç±»å‹
-        .ui_config.layer = 1,                        // å›¾å±‚æ•°ï¼Œ0~9
-        .ui_config.color = WHITE,                    // é¢œè‰²
-        .ui_config.width = 20,                       // çº¿æ¡å®½åº¦
-        .ui_config.start_x = LEFT_STATUS_L_Fric_X,   // åœ†å¿ƒ x åæ ‡
-        .ui_config.start_y = LEFT_STATUS_Fric_Y - 7, // åœ†å¿ƒ y åæ ‡
-        .ui_config.radius = 7,                       // åŠå¾„
-    },
-    [D_R_FRIC_STATE_CYCLE] = {
-        /*ä¸å˜é…ç½®*/
-        .ui_config.priority = MID_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
-        .ui_config.ui_type = CIRCLE,        // UIå†…å®¹ç±»å‹
-        /*å¯å˜é…ç½®*/
-        .ui_config.operate_type = MODIFY,            // æ“ä½œç±»å‹
-        .ui_config.layer = 1,                        // å›¾å±‚æ•°ï¼Œ0~9
-        .ui_config.color = WHITE,                    // é¢œè‰²
-        .ui_config.width = 20,                       // çº¿æ¡å®½åº¦
-        .ui_config.start_x = LEFT_STATUS_R_Fric_X,   // åœ†å¿ƒ x åæ ‡
-        .ui_config.start_y = LEFT_STATUS_Fric_Y - 7, // åœ†å¿ƒ y åæ ‡
-        .ui_config.radius = 7,                       // åŠå¾„
-    },
-    [D_VISION_DETECT_ROBOT_HEALTH_INT] = {
-        /*ä¸å˜é…ç½®*/
-        .ui_config.priority = HIGH_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
-        .ui_config.ui_type = INT,            // UIå†…å®¹ç±»å‹
-        /*å¯å˜é…ç½®*/
-        .ui_config.operate_type = MODIFY, // æ“ä½œç±»å‹
-        .ui_config.layer = 0,             // å›¾å±‚æ•°ï¼Œ0~9
-        .ui_config.color = PINK,          // é¢œè‰²
-        .ui_config.size = 20,             // å­—ä½“å¤§å°
-        .ui_config.width = 4,             // çº¿æ¡å®½åº¦
-        .ui_config.start_x = 935,         // èµ·ç‚¹ x åæ ‡
-        .ui_config.start_y = 650,         // èµ·ç‚¹ y åæ ‡
-        .ui_config.int_num = 0,           // æ˜¾ç¤ºçš„æ•°å­—
-    },
-    [D_ENERMY_MONEY_INT] = {
-        /*ä¸å˜é…ç½®*/
-        .ui_config.priority = HIGH_PRIORITY, // UIä¼˜å…ˆçº§(ä»…åŠ¨æ€UIéœ€è¦é…ç½®)
-        .ui_config.ui_type = INT,            // UIå†…å®¹ç±»å‹
-        /*å¯å˜é…ç½®*/
-        .ui_config.operate_type = MODIFY, // æ“ä½œç±»å‹
-        .ui_config.layer = 0,             // å›¾å±‚æ•°ï¼Œ0~9
-        .ui_config.color = WHITE,         // é¢œè‰²
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = 930, // èµ·ç‚¹ x åæ ‡
-        .ui_config.start_y = 910, // èµ·ç‚¹ y åæ ‡
-        .ui_config.int_num = 0,   // æ˜¾ç¤ºçš„æ•°å­—
-    },
+	 
+	 [CAP_DIVISION_1] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = LINE,         
+    .ui_config.name = "g6",            
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 0,              
+    .ui_config.color = WHITE,          
+    .ui_config.width = 2,              
+    .ui_config.start_x = Client_mid_position_x - 250 + 70,        
+    .ui_config.start_y = Client_mid_position_y + 243,             
+    .ui_config.end_x = Client_mid_position_x - 250 + 70,          
+    .ui_config.end_y = Client_mid_position_y + 193 ,              
+	 },
+//	 
+	 [CAP_DIVISION_2] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = LINE,        
+    .ui_config.name = "g7",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 0,             
+    .ui_config.color = WHITE,         
+    .ui_config.width = 2,             
+    .ui_config.start_x = Client_mid_position_x - 250 + 195,        
+    .ui_config.start_y = Client_mid_position_y + 243,              
+    .ui_config.end_x = Client_mid_position_x - 250 + 195,          
+    .ui_config.end_y = Client_mid_position_y + 193 ,               
+	 },
+	
+	 
+	 [BODY_LINE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = LINE,        
+    .ui_config.name = "g8",           
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 0,             
+    .ui_config.color = WHITE,         
+    .ui_config.width = 4,             
+    .ui_config.start_x = BODY_CENTER_X - 100,      
+    .ui_config.start_y = BODY_CENTER_Y,            
+    .ui_config.end_x = BODY_CENTER_X + 100,        
+    .ui_config.end_y = BODY_CENTER_Y ,             
+	 },
+	
+	 
+	  [LEFT_LINE] = {
+		 /*******²»±äÅäÖÃ*********/
+    .ui_config.ui_type = LINE,       
+    .ui_config.name = "g9",          
+    /*******¿É±äÅäÖÃ*********/
+    .ui_config.layer = 0,            
+    .ui_config.color = WHITE,        
+    .ui_config.width = 4,            
+    .ui_config.start_x = BODY_CENTER_X,           
+    .ui_config.start_y = BODY_CENTER_Y,           
+    .ui_config.end_x = BODY_CENTER_X,             
+    .ui_config.end_y = BODY_CENTER_Y + 120 ,      
+	 },
+	 
 };
 
-ui_info_t const_ui_info[CONST_NUM] = {
-    [CHAS_CIRCLE] = {
-        .ui_config.ui_type = CIRCLE,
-        .ui_config.layer = 0,
-        .ui_config.color = GREEN,
-        .ui_config.width = 2,
-        .ui_config.start_x = CHAS_CIRCLE_X,
-        .ui_config.start_y = CHAS_CIRCLE_Y,
-        .ui_config.radius = CHAS_CIRCLE_R,
-    },
-    [CAP_FRAME] = {
-        .ui_config.ui_type = RECTANGEL,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.width = 3,
-        .ui_config.start_x = Client_mid_position_x - 253,
-        .ui_config.start_y = Client_mid_position_y + 345,
-        .ui_config.end_x = Client_mid_position_x + 253,
-        .ui_config.end_y = Client_mid_position_y + 317,
-    },
-    [LOW_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.size = 30,
-        .ui_config.width = 2,
-        .ui_config.start_x = Client_mid_position_x - 340,
-        .ui_config.start_y = Client_mid_position_y - 130,
-        .ui_config.text = "L",
-    },
-    [MID_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.size = 30,
-        .ui_config.width = 2,
-        .ui_config.start_x = Client_mid_position_x - 340,
-        .ui_config.start_y = Client_mid_position_y - 70,
-        .ui_config.text = "M",
-    },
-    [HIGH_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.size = 30,
-        .ui_config.width = 2,
-        .ui_config.start_x = Client_mid_position_x - 340,
-        .ui_config.start_y = Client_mid_position_y - 10,
-        .ui_config.text = "H",
-    },
-    [C_CAR_MODE_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = LEFT_STATUS_CHAR_SIZE,
-        .ui_config.width = 2,
-        .ui_config.start_x = Client_mid_position_x - 800,
-        .ui_config.start_y = Client_mid_position_y + 17,
-        .ui_config.text = "MODE:",
-    },
-    [C_RED_1_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_1_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "1",
-    },
-    [C_RED_2_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_2_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "2",
-    },
-    [C_RED_3_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_3_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "3",
-    },
-    [C_RED_4_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_4_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "4",
-    },
-    [C_RED_5_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = RED_ROBOT_5_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "5",
-    },
-    [C_BLUE_1_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_1_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "1",
-    },
-    [C_BLUE_2_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_2_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "2",
-    },
-    [C_BLUE_3_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_3_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "3",
-    },
-    [C_BLUE_4_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 1,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_4_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "4",
-    },
-    [C_BLUE_5_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 3,
-        .ui_config.start_x = BLUE_ROBOT_5_X,
-        .ui_config.start_y = ROBOT_NUM_UI_Y,
-        .ui_config.text = "5",
-    },
-    [C_Fric_CHAR] = {
-        .ui_config.ui_type = CHAR,
-        .ui_config.layer = 0,
-        .ui_config.color = WHITE,
-        .ui_config.size = 20,
-        .ui_config.width = 2,
-        .ui_config.start_x = LEFT_STATUS_MODE_X,
-        .ui_config.start_y = LEFT_STATUS_Fric_Y,
-        .ui_config.text = "Fric:",
-    },
-};
 
-/* æ—‹è½¬åæ ‡ç‚¹ */
-static void rotate_point_f(float *x, float *y,
-                           float raw_x, float raw_y,
-                           float mid_x, float mid_y, float angle)
-{
-    float s = sin(angle);
-    float c = cos(angle);
-    float origin_x = raw_x - mid_x;
-    float origin_y = raw_y - mid_y;
-    float new_x = origin_x * c - origin_y * s;
-    float new_y = origin_x * s + origin_y * c;
-    *x = new_x + mid_x;
-    *y = new_y + mid_y;
-}
 
-/* è¯»å–å·¦è…¿ADCåæ ‡å¹¶å–è´Ÿ */
-static void read_left_leg_raw_coords(void)
-{
-    Link_Coord_t *coord = Chassis.Leg_Unit[L_Leg]->Link->info->coord;
-    Leg_UI_Var.raw_A_l_x = -coord->xa * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_A_l_y = -coord->ya * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_D_l_x = -coord->xd * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_D_l_y = -coord->yd * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_C_l_x = -coord->xc * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_C_l_y = -coord->yc * Leg_UI_Config.scale;
-}
 
-/* è¯»å–å³è…¿ADCåæ ‡å¹¶å–è´Ÿ */
-static void read_right_leg_raw_coords(void)
-{
-    Link_Coord_t *coord = Chassis.Leg_Unit[R_Leg]->Link->info->coord;
-    Leg_UI_Var.raw_A_r_x = -coord->xa * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_A_r_y = -coord->ya * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_D_r_x = -coord->xd * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_D_r_y = -coord->yd * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_C_r_x = -coord->xc * Leg_UI_Config.scale;
-    Leg_UI_Var.raw_C_r_y = -coord->yc * Leg_UI_Config.scale;
-}
-
-/* æ ¹æ®ç”µæœºå®ä¾‹åˆ¤æ–­åœ¨çº¿çŠ¶æ€ */
-static uint8_t is_sd_motor_online(Motor_DM_t *motor)
-{
-    return (motor->state->status == DEV_ONLINE) ? 1 : 0;
-}
-
-static uint8_t is_wheel_motor_online(Motor_RM_t *motor)
-{
-    return (motor->state->status == DEV_ONLINE) ? 1 : 0;
-}
-
-/**
- * @brief è…¿éƒ¨ã€æœºä½“UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-static void update_leg_ui(void)
-{
-    static float last_pitch = 0.f;
-    float pitch_now = Chassis.Posture->info->pitch;
-
-    // è¯»å–åŸå§‹åæ ‡
-    read_left_leg_raw_coords();
-    read_right_leg_raw_coords();
-
-    // è®¡ç®—å·¦è…¿ä¸–ç•Œåæ ‡ï¼ˆç»•Aç‚¹æ—‹è½¬pitchï¼‰
-    float ax_l = Leg_UI_Var.raw_A_l_x + Leg_UI_Config.leg_offset_x;
-    float ay_l = Leg_UI_Var.raw_A_l_y + Leg_UI_Config.leg_offset_y;
-    rotate_point_f(&Leg_UI_Var.world_A_l_x, &Leg_UI_Var.world_A_l_y,
-                   Leg_UI_Var.raw_A_l_x + Leg_UI_Config.leg_offset_x,
-                   Leg_UI_Var.raw_A_l_y + Leg_UI_Config.leg_offset_y,
-                   ax_l, ay_l,
-                   pitch_now);
-    rotate_point_f(&Leg_UI_Var.world_D_l_x, &Leg_UI_Var.world_D_l_y,
-                   Leg_UI_Var.raw_D_l_x + Leg_UI_Config.leg_offset_x,
-                   Leg_UI_Var.raw_D_l_y + Leg_UI_Config.leg_offset_y,
-                   ax_l, ay_l,
-                   pitch_now);
-    rotate_point_f(&Leg_UI_Var.world_C_l_x, &Leg_UI_Var.world_C_l_y,
-                   Leg_UI_Var.raw_C_l_x + Leg_UI_Config.leg_offset_x,
-                   Leg_UI_Var.raw_C_l_y + Leg_UI_Config.leg_offset_y,
-                   ax_l, ay_l,
-                   pitch_now);
-
-    // è®¡ç®—å³è…¿ä¸–ç•Œåæ ‡
-    float ax_r = Leg_UI_Var.raw_A_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x;
-    float ay_r = Leg_UI_Var.raw_A_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y;
-    rotate_point_f(&Leg_UI_Var.world_A_r_x, &Leg_UI_Var.world_A_r_y,
-                   Leg_UI_Var.raw_A_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x,
-                   Leg_UI_Var.raw_A_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y,
-                   ax_r, ay_r,
-                   pitch_now);
-    rotate_point_f(&Leg_UI_Var.world_D_r_x, &Leg_UI_Var.world_D_r_y,
-                   Leg_UI_Var.raw_D_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x,
-                   Leg_UI_Var.raw_D_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y,
-                   ax_r, ay_r,
-                   pitch_now);
-    rotate_point_f(&Leg_UI_Var.world_C_r_x, &Leg_UI_Var.world_C_r_y,
-                   Leg_UI_Var.raw_C_r_x + Leg_UI_Config.leg_offset_x + Leg_UI_Config.right_offset_x,
-                   Leg_UI_Var.raw_C_r_y + Leg_UI_Config.leg_offset_y + Leg_UI_Config.right_offset_y,
-                   ax_r, ay_r,
-                   pitch_now);
-
-    // å‡å°‘è®¡ç®—é‡
-    float cos_pitch = cos(pitch_now);
-    float sin_pitch = sin(pitch_now);
-
-    // è®¡ç®—æœºä½“æ†ç«¯ç‚¹ï¼ˆå·¦è…¿ï¼‰
-    Leg_UI_Var.body_back_l_x = ax_l - Leg_UI_Config.body_length * cos_pitch;
-    Leg_UI_Var.body_back_l_y = ay_l - Leg_UI_Config.body_length * sin_pitch;
-    Leg_UI_Var.body_front_l_x = ax_l + Leg_UI_Config.body_length * cos_pitch;
-    Leg_UI_Var.body_front_l_y = ay_l + Leg_UI_Config.body_length * sin_pitch;
-
-    // è®¡ç®—æœºä½“æ†ç«¯ç‚¹ï¼ˆå³è…¿ï¼‰
-    Leg_UI_Var.body_back_r_x = ax_r - Leg_UI_Config.body_length * cos_pitch;
-    Leg_UI_Var.body_back_r_y = ay_r - Leg_UI_Config.body_length * sin_pitch;
-    Leg_UI_Var.body_front_r_x = ax_r + Leg_UI_Config.body_length * cos_pitch;
-    Leg_UI_Var.body_front_r_y = ay_r + Leg_UI_Config.body_length * sin_pitch;
-
-    // æ›´æ–°å·¦è…¿çº¿æ®µåæ ‡
-    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_l_x;
-    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_l_y;
-    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.end_x = (uint16_t)Leg_UI_Var.body_front_l_x;
-    dynamic_ui_info[L_LEG_BODY_LINE].ui_config.end_y = (uint16_t)Leg_UI_Var.body_front_l_y;
-
-    dynamic_ui_info[L_LEG_A_TO_D].ui_config.start_x = (uint16_t)Leg_UI_Var.world_A_l_x;
-    dynamic_ui_info[L_LEG_A_TO_D].ui_config.start_y = (uint16_t)Leg_UI_Var.world_A_l_y;
-    dynamic_ui_info[L_LEG_A_TO_D].ui_config.end_x = (uint16_t)Leg_UI_Var.world_D_l_x;
-    dynamic_ui_info[L_LEG_A_TO_D].ui_config.end_y = (uint16_t)Leg_UI_Var.world_D_l_y;
-
-    dynamic_ui_info[L_LEG_D_TO_C].ui_config.start_x = (uint16_t)Leg_UI_Var.world_D_l_x;
-    dynamic_ui_info[L_LEG_D_TO_C].ui_config.start_y = (uint16_t)Leg_UI_Var.world_D_l_y;
-    dynamic_ui_info[L_LEG_D_TO_C].ui_config.end_x = (uint16_t)Leg_UI_Var.world_C_l_x;
-    dynamic_ui_info[L_LEG_D_TO_C].ui_config.end_y = (uint16_t)Leg_UI_Var.world_C_l_y;
-
-    // æ›´æ–°å³è…¿çº¿æ®µåæ ‡
-    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_r_x;
-    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_r_y;
-    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.end_x = (uint16_t)Leg_UI_Var.body_front_r_x;
-    dynamic_ui_info[R_LEG_BODY_LINE].ui_config.end_y = (uint16_t)Leg_UI_Var.body_front_r_y;
-
-    dynamic_ui_info[R_LEG_A_TO_D].ui_config.start_x = (uint16_t)Leg_UI_Var.world_A_r_x;
-    dynamic_ui_info[R_LEG_A_TO_D].ui_config.start_y = (uint16_t)Leg_UI_Var.world_A_r_y;
-    dynamic_ui_info[R_LEG_A_TO_D].ui_config.end_x = (uint16_t)Leg_UI_Var.world_D_r_x;
-    dynamic_ui_info[R_LEG_A_TO_D].ui_config.end_y = (uint16_t)Leg_UI_Var.world_D_r_y;
-
-    dynamic_ui_info[R_LEG_D_TO_C].ui_config.start_x = (uint16_t)Leg_UI_Var.world_D_r_x;
-    dynamic_ui_info[R_LEG_D_TO_C].ui_config.start_y = (uint16_t)Leg_UI_Var.world_D_r_y;
-    dynamic_ui_info[R_LEG_D_TO_C].ui_config.end_x = (uint16_t)Leg_UI_Var.world_C_r_x;
-    dynamic_ui_info[R_LEG_D_TO_C].ui_config.end_y = (uint16_t)Leg_UI_Var.world_C_r_y;
-
-    // æ›´æ–°å·¦è…¿åœ†ç‚¹åæ ‡
-    dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_l_x;
-    dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_l_y;
-    dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_front_l_x;
-    dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_front_l_y;
-    dynamic_ui_info[L_LEG_C_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.world_C_l_x;
-    dynamic_ui_info[L_LEG_C_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.world_C_l_y;
-
-    // æ›´æ–°å³è…¿åœ†ç‚¹åæ ‡
-    dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_back_r_x;
-    dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_back_r_y;
-    dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.body_front_r_x;
-    dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.body_front_r_y;
-    dynamic_ui_info[R_LEG_C_CIRCLE].ui_config.start_x = (uint16_t)Leg_UI_Var.world_C_r_x;
-    dynamic_ui_info[R_LEG_C_CIRCLE].ui_config.start_y = (uint16_t)Leg_UI_Var.world_C_r_y;
-
-    // æ›´æ–°ç”µæœºåœ¨çº¿çŠ¶æ€é¢œè‰²
-    uint8_t l_front_sd_online = is_sd_motor_online(Sd_Group.motor[L_F_Sd_M]);
-    uint8_t l_back_sd_online = is_sd_motor_online(Sd_Group.motor[L_B_Sd_M]);
-    uint8_t l_wheel_online = is_wheel_motor_online(Wheel_Group.motor[L_WHEEL_M]);
-    uint8_t r_front_sd_online = is_sd_motor_online(Sd_Group.motor[R_F_Sd_M]);
-    uint8_t r_back_sd_online = is_sd_motor_online(Sd_Group.motor[R_B_Sd_M]);
-    uint8_t r_wheel_online = is_wheel_motor_online(Wheel_Group.motor[R_WHEEL_M]);
-
-    dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE].ui_config.color = l_back_sd_online ? GREEN : FUCHSIA;
-    dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE].ui_config.color = l_front_sd_online ? GREEN : FUCHSIA;
-    dynamic_ui_info[L_LEG_C_CIRCLE].ui_config.color = l_wheel_online ? GREEN : FUCHSIA;
-    dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE].ui_config.color = r_back_sd_online ? GREEN : FUCHSIA;
-    dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE].ui_config.color = r_front_sd_online ? GREEN : FUCHSIA;
-    dynamic_ui_info[R_LEG_C_CIRCLE].ui_config.color = r_wheel_online ? GREEN : FUCHSIA;
-
-    // å‘é€è…¿éƒ¨UI
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_BODY_LINE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_A_TO_D]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_D_TO_C]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_BODY_LINE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_A_TO_D]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_D_TO_C]);
-
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_BODY_BACK_CIRCLE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_BODY_FRONT_CIRCLE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[L_LEG_C_CIRCLE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_BODY_BACK_CIRCLE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_BODY_FRONT_CIRCLE]);
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[R_LEG_C_CIRCLE]);
-}
-
-/**
- * @brief è¶…ç”µæ¡UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-static void update_cap_line(void)
-{
-    static uint16_t cap_line_last = 0;
-    float cap_voltage = cap.info.cap_u;
-    uint16_t cap_line = (uint16_t)(((cap_voltage * cap_voltage) / (24.f * 24.f)) * 500);
-
-    if (cap_line_last != cap_line)
-    {
-        dynamic_ui_info[CAP_LINE].ui_config.end_x = (Client_mid_position_x - 250) + cap_line;
-
-        float ratio = (cap_voltage * cap_voltage) / (24.f * 24.f);
-        if (ratio <= 0.3f)
-        {
-            dynamic_ui_info[CAP_LINE].ui_config.color = FUCHSIA;
-        }
-        else if (ratio <= 0.7f)
-        {
-            dynamic_ui_info[CAP_LINE].ui_config.color = ORANGE;
-        }
-        else
-        {
-            dynamic_ui_info[CAP_LINE].ui_config.color = GREEN;
-        }
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[CAP_LINE]);
-    }
-    cap_line_last = cap_line;
-}
-
-/**
- * @brief åº•ç›˜æ–¹ä½UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-static void update_chas_circle(void)
-{
-    static float angle_last = 0.f;
-    float angle_now = -(gimbal.base_info.yaw_motor_angle);
-    if (my_abs(angle_now) > PI)
-    {
-        angle_now -= sgn(angle_now) * 2 * PI;
-    }
-
-    if (my_abs(angle_now - angle_last) > 0.001f)
-    {
-        float end_x = (float)dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_x;
-        float end_y = (float)dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_y;
-        rotate_point_f(&end_x, &end_y,
-                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y + CHAS_CIRCLE_R,
-                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y, angle_now);
-        dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_x = (uint16_t)end_x;
-        dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_y = (uint16_t)end_y;
-
-        float start_x = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_x;
-        float start_y = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_y;
-        float end_x2 = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_x;
-        float end_y2 = (float)dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_y;
-        rotate_point_f(&start_x, &start_y,
-                       CHAS_CIRCLE_X - CHAS_CIRCLE_R, CHAS_CIRCLE_Y,
-                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y, angle_now);
-        rotate_point_f(&end_x2, &end_y2,
-                       CHAS_CIRCLE_X + CHAS_CIRCLE_R, CHAS_CIRCLE_Y,
-                       CHAS_CIRCLE_X, CHAS_CIRCLE_Y, angle_now);
-        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_x = (uint16_t)start_x;
-        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_y = (uint16_t)start_y;
-        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_x = (uint16_t)end_x2;
-        dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_y = (uint16_t)end_y2;
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_HEAD_LINE]);
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_SIDE_LINE]);
-    }
-    angle_last = angle_now;
-}
-
-/**
- * @brief è‡ªç„æ¡†UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-static void update_auto_catch_frame(void)
-{
-    uint8_t vision_offline = !Board_Rx_Info.flag.is_vision_online;
-    uint8_t target_found = Board_Rx_Info.flag.is_find_target && Board_Rx_Info.flag.hit_enable;
-
-    if (vision_offline)
-    {
-        dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = BLACK;
-    }
-    else if (target_found)
-    {
-        dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = PINK;
-    }
-    else
-    {
-        dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = WHITE;
-    }
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[AUTO_CATCH_FRAME]);
-}
-
-/**
- * @brief è…¿é•¿æ¨¡å¼æ¡†UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-static void update_length_frame(void)
-{
-    static uint8_t last_mode = 1;
-    uint8_t now_mode = 1;
-    if (Balance.Flag->KNEE_STRIKE_Flag)
-        now_mode = 3;
-    else if (Balance.Flag->Middle_Flag)
-        now_mode = 2;
-
-    if (last_mode != now_mode)
-    {
-        if (now_mode == 1)
-        {
-            dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 125;
-            dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 165;
-        }
-        else if (now_mode == 2)
-        {
-            dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 65;
-            dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 105;
-        }
-        else if (now_mode == 3)
-        {
-            dynamic_ui_info[LENGTH_FRAME].ui_config.start_y = Client_mid_position_y - 5;
-            dynamic_ui_info[LENGTH_FRAME].ui_config.end_y = Client_mid_position_y - 45;
-        }
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[LENGTH_FRAME]);
-    }
-    last_mode = now_mode;
-}
-
-/**
- * @brief è½¦æ¨¡å¼UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-static void update_car_mode(void)
-{
-    static uint8_t last_car_mode = 255;
-    uint8_t car_mode = Balance.mode;
-
-    if (last_car_mode != car_mode)
-    {
-        memset(dynamic_ui_info[D_CAR_MODE].ui_config.text, 0, sizeof(dynamic_ui_info[D_CAR_MODE].ui_config.text));
-        switch (car_mode)
-        {
-        case Sleep_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "SLEEP");
-            break;
-        case Init_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "INIT");
-            break;
-        case Imu_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "IMU");
-            break;
-        case SitDown_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "SIT DOWN");
-            break;
-        case Mec_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "MEC");
-            break;
-        case Cycle_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "CYCLE");
-            break;
-        case Rescue_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "RESCUE");
-            break;
-        case Manual_Rescue_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "HELP YOURSELF");
-            break;
-        case LEG_TEST_Mode:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "TEST");
-            break;
-        default:
-            strcpy(dynamic_ui_info[D_CAR_MODE].ui_config.text, "UNKNOWN");
-            break;
-        }
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_CAR_MODE]);
-    }
-    last_car_mode = car_mode;
-}
-
-/**
- * @brief æœºå™¨äººè¡€é‡UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-void update_robot_health(void)
-{
-    static uint32_t last_health_update_timestamp;
-    static uint8_t health_value_color; // 0ç™½1ç»¿
-    uint32_t health_update_timestamp = My_Judge.org_info->radio_information_data.health.update_timestamp;
-
-    if (My_Judge.info->my_color == 0) // çº¢è‰²
-    {
-        if (health_update_timestamp != last_health_update_timestamp)
-        {
-            sprintf(dynamic_ui_info[D_BLUE_1_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.hero_health);
-            sprintf(dynamic_ui_info[D_BLUE_2_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.engineer_health);
-            sprintf(dynamic_ui_info[D_BLUE_3_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry1_health);
-            sprintf(dynamic_ui_info[D_BLUE_4_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry2_health);
-            sprintf(dynamic_ui_info[D_BLUE_5_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.sentry_health);
-
-            if (health_value_color == 0)
-            {
-                dynamic_ui_info[D_BLUE_1_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_BLUE_2_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_BLUE_3_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_BLUE_4_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_BLUE_5_HEALTH_CHAR].ui_config.color = WHITE;
-                health_value_color = !health_value_color;
-            }
-            else
-            {
-                dynamic_ui_info[D_BLUE_1_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_BLUE_2_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_BLUE_3_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_BLUE_4_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_BLUE_5_HEALTH_CHAR].ui_config.color = GREEN;
-                health_value_color = !health_value_color;
-            }
-
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_1_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_2_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_3_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_4_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_BLUE_5_HEALTH_CHAR]);
-        }
-    }
-    else // è“è‰²
-    {
-        if (health_update_timestamp != last_health_update_timestamp)
-        {
-            sprintf(dynamic_ui_info[D_RED_1_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.hero_health);
-            sprintf(dynamic_ui_info[D_RED_2_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.engineer_health);
-            sprintf(dynamic_ui_info[D_RED_3_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry1_health);
-            sprintf(dynamic_ui_info[D_RED_4_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.infantry2_health);
-            sprintf(dynamic_ui_info[D_RED_5_HEALTH_CHAR].ui_config.text, "%d", My_Judge.org_info->radio_information_data.health.sentry_health);
-            if (health_value_color == 0)
-            {
-                dynamic_ui_info[D_RED_1_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_RED_2_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_RED_3_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_RED_4_HEALTH_CHAR].ui_config.color = WHITE;
-                dynamic_ui_info[D_RED_5_HEALTH_CHAR].ui_config.color = WHITE;
-                health_value_color = !health_value_color;
-            }
-            else
-            {
-                dynamic_ui_info[D_RED_1_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_RED_2_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_RED_3_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_RED_4_HEALTH_CHAR].ui_config.color = GREEN;
-                dynamic_ui_info[D_RED_5_HEALTH_CHAR].ui_config.color = GREEN;
-                health_value_color = !health_value_color;
-            }
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_1_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_2_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_3_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_4_HEALTH_CHAR]);
-            Enqueue_Ui_For_Sending(&dynamic_ui_info[D_RED_5_HEALTH_CHAR]);
-        }
-    }
-
-    last_health_update_timestamp = health_update_timestamp;
-}
-
-/**
- * @brief é£é•–é¢„è­¦UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- */
-void update_dart_warning(void)
-{
-    static uint32_t last_dart_warning_timestamp;
-    static uint8_t dart_warning_color; // 0ç™½1ç²‰çº¢
-    static uint8_t last_dart_state;
-    static uint32_t dart_warning_enable_tick; // ä¸Šå‡æ²¿è§¦å‘æ—¶çš„æ—¶é—´æˆ³
-    uint32_t current_tick = HAL_GetTick();
-    uint8_t current_dart_state = My_Judge.org_info->radio_dart_state_data.state;
-    uint8_t need_send = 0;
-
-    // æ£€æµ‹ä¸Šå‡æ²¿è·³å˜ï¼ˆ0â†’1ï¼‰
-    if (last_dart_state == 0 && current_dart_state == 1)
-    {
-        dart_warning_enable_tick = current_tick; // è®°å½•è§¦å‘æ—¶é—´
-    }
-    last_dart_state = current_dart_state;
-
-    // 20sè¶…æ—¶åˆ¤æ–­ï¼Œè¶…è¿‡20såˆ™å…³é—­UI
-    if (current_tick - dart_warning_enable_tick > 20000)
-    {
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_x = 0;
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_y = 0;
-        return;
-    }
-
-    if (current_dart_state == 1)
-    { // é£é•–èˆ±é—¨å¼€å¯
-        if (current_tick - last_dart_warning_timestamp >= 1000)
-        { // æ¯1000msåˆ‡æ¢é¢œè‰²
-            last_dart_warning_timestamp = current_tick;
-            uint8_t new_color = !dart_warning_color;
-            if (new_color != dart_warning_color)
-            {
-                dart_warning_color = new_color;
-                need_send = 1;
-            }
-        }
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_x = DART_WARNING_X;
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_y = DART_WARNING_Y;
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.color = (dart_warning_color == 0) ? BLACK : PINK;
-    }
-    else
-    {
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_x = 0;
-        dynamic_ui_info[DART_WARNING_CHAR].ui_config.start_y = 0;
-    }
-
-    if (need_send)
-    {
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[DART_WARNING_CHAR]);
-    }
-}
 
 void My_Ui_Init(void)
 {
-    Init_Ui_List(dynamic_ui_info, sizeof(dynamic_ui_info) / sizeof(ui_info_t),
-                 const_ui_info, sizeof(const_ui_info) / sizeof(ui_info_t));
-}
-
-/**
- * @brief æ‘©æ“¦è½®çŠ¶æ€ç¯UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- * @note  ç¦»çº¿=é»‘è‰², åœ¨çº¿ä¸è½¬=é’è‰², åœ¨çº¿æ—‹è½¬=ç»¿è‰²; ä»…é¢œè‰²å˜åŒ–æ—¶Enqueue_Ui_For_Sending
- */
-void update_fric_state_cycles(void)
-{
-    static graphic_color_e last_color[2] = {0}; // [0]=å·¦è½®, [1]=å³è½®
-    uint8_t L_online = shoot.extern_input.fric.L_online;
-    uint8_t R_online = shoot.extern_input.fric.R_online;
-    uint8_t L_spinning = (shoot.adapt_info.final_fric_target_speed > 0);
-    uint8_t R_spinning = L_spinning;
-
-    // å·¦æ‘©æ“¦è½®
-    graphic_color_e L_color = (!L_online) ? BLACK : (L_spinning ? GREEN : CYAN_BLUE);
-    if (L_color != last_color[0])
-    {
-        last_color[0] = L_color;
-        dynamic_ui_info[D_L_FRIC_STATE_CYCLE].ui_config.color = L_color;
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_L_FRIC_STATE_CYCLE]);
-    }
-
-    // å³æ‘©æ“¦è½®
-    graphic_color_e R_color = (!R_online) ? BLACK : (R_spinning ? GREEN : CYAN_BLUE);
-    if (R_color != last_color[1])
-    {
-        last_color[1] = R_color;
-        dynamic_ui_info[D_R_FRIC_STATE_CYCLE].ui_config.color = R_color;
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_R_FRIC_STATE_CYCLE]);
-    }
-}
-
-/**
- * @brief è§†è§‰æ£€æµ‹åˆ°çš„æ•Œæ–¹æœºå™¨äººè¡€é‡UIæ›´æ–°
- * @author RobotPilots 2026 LYQ
- * @note  detect_num 0-4æ˜¾ç¤ºå¯¹åº”è¡€é‡ï¼Œå¦åˆ™éšè—; update_timestampå˜åŒ–æ—¶é¢œè‰²åœ¨ç™½çº¢é—´è·³å˜
- */
-void update_vision_detect_robot_health(void)
-{
-    static uint32_t last_health_timestamp = 0;
-    static uint8_t last_detect_num = 15;
-    static uint8_t last_health_value = 0;
-    static uint8_t last_valid_target = 0;
-    static graphic_color_e last_color = WHITE;
-    uint8_t detect_num = Board_Rx_Info.flag.vision_detect_num;
-    uint32_t current_timestamp = My_Judge.org_info->radio_information_data.health.update_timestamp;
-
-    // æ ¹æ®detect_numè·å–å¯¹åº”è¡€é‡
-    uint16_t health_value = 0;
-    uint8_t valid_target = 0;
-    if (Board_Rx_Info.flag.is_find_target == 1)
-    {
-        if (detect_num <= 4)
-        {
-            switch (detect_num)
-            {
-            case 0:
-                health_value = My_Judge.org_info->radio_information_data.health.sentry_health;
-                break;
-            case 1:
-                health_value = My_Judge.org_info->radio_information_data.health.hero_health;
-                break;
-            case 2:
-                health_value = My_Judge.org_info->radio_information_data.health.engineer_health;
-                break;
-            case 3:
-                health_value = My_Judge.org_info->radio_information_data.health.infantry1_health;
-                break;
-            case 4:
-                health_value = My_Judge.org_info->radio_information_data.health.infantry2_health;
-                break;
-            default:
-                valid_target = 0;
-                break;
-            }
-            valid_target = 1;
-        }
-    }
-    else
-    {
-        valid_target = 0;
-    }
-
-    // åˆ¤æ–­æ˜¯å¦æœ‰å˜åŒ–éœ€è¦å‘é€
-    uint8_t need_send = 0;
-    if (detect_num != last_detect_num)
-    {
-        need_send = 1;
-        last_detect_num = detect_num;
-    }
-    if (health_value != last_health_value)
-    {
-        need_send = 1;
-        last_health_value = health_value;
-    }
-    if (current_timestamp != last_health_timestamp)
-    {
-        last_health_timestamp = current_timestamp;
-        last_color = (last_color == WHITE) ? PINK : WHITE; // ç™½çº¢è·³å˜
-        need_send = 1;
-    }
-    if (valid_target != last_valid_target)
-    {
-        last_valid_target = valid_target;
-        need_send = 1;
-    }
-
-    if (!need_send)
-    {
-        return;
-    }
-
-    // è®¾ç½®ä½ç½®å’Œæ•°å€¼
-    if (valid_target)
-    {
-        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_x = 935;
-        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_y = 650;
-        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.int_num = health_value;
-    }
-    else
-    {
-        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_x = 0;
-        dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.start_y = 0;
-    }
-    dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT].ui_config.color = last_color;
-    Enqueue_Ui_For_Sending(&dynamic_ui_info[D_VISION_DETECT_ROBOT_HEALTH_INT]);
-}
-
-void update_enermy_money(void)
-{
-    static uint32_t last_update_timestamp = 0;
-    static uint16_t last_coins = 65535;
-
-    uint32_t current_timestamp = My_Judge.org_info->radio_information_data.status.update_timestamp;
-    uint16_t current_coins = My_Judge.org_info->radio_information_data.status.coins_left;
-
-    if (current_timestamp != last_update_timestamp && current_coins != last_coins)
-    {
-        static uint8_t money_color = 0;
-        if (money_color == 0)
-        {
-            dynamic_ui_info[D_ENERMY_MONEY_INT].ui_config.color = WHITE;
-            money_color = 1;
-        }
-        else
-        {
-            dynamic_ui_info[D_ENERMY_MONEY_INT].ui_config.color = ORANGE;
-            money_color = 0;
-        }
-
-        dynamic_ui_info[D_ENERMY_MONEY_INT].ui_config.int_num = current_coins;
-        Enqueue_Ui_For_Sending(&dynamic_ui_info[D_ENERMY_MONEY_INT]);
-
-        last_update_timestamp = current_timestamp;
-        last_coins = current_coins;
-    }
+  Init_Ui_List(dynamic_ui_info, sizeof(dynamic_ui_info)/sizeof(ui_info_t),const_ui_info, sizeof(const_ui_info)/sizeof(ui_info_t));
 }
 
 void Ui_Info_Update(void)
 {
-    client_info_update();
-    update_cap_line();
-    update_chas_circle();
-    update_auto_catch_frame();
-    update_length_frame();
-    update_car_mode();
-    update_leg_ui();
-    update_robot_health();
-    update_dart_warning();
-    update_fric_state_cycles();
-    update_vision_detect_robot_health();
-    update_enermy_money();
+	client_info_update();
+	
+	//Õû³µÄ£Ê½¸üĞÂ
+	static Infantry_Mode_e  last_mode = I_SLEEP;
+	
+	if(last_mode != infantry.mode)
+	{
+		if(infantry.mode == I_SLEEP)
+		{
+			strcpy(dynamic_ui_info[MODE_CHAR].ui_config.text, "SLEEP");
+		}
+		else if(infantry.mode == I_INIT)
+		{
+			strcpy(dynamic_ui_info[MODE_CHAR].ui_config.text, "INIT");
+		}
+		else if(infantry.mode == I_IMU)
+		{
+			strcpy(dynamic_ui_info[MODE_CHAR].ui_config.text, "IMU");
+		}
+		else if(infantry.mode == I_MEC)
+		{
+			strcpy(dynamic_ui_info[MODE_CHAR].ui_config.text, "MEC");
+		}
+		else if(infantry.mode == I_TURN)
+		{
+			strcpy(dynamic_ui_info[MODE_CHAR].ui_config.text, "TOP");
+		}
+		else if(infantry.mode == I_HOLE)
+		{
+			strcpy(dynamic_ui_info[MODE_CHAR].ui_config.text, "HOLE");
+		}
+		
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[MODE_CHAR]);
+
+	}
+	
+	last_mode = infantry.mode;
+	
+	
+	//·¢Éä»ú¹¹×´Ì¬¸üĞÂ
+	static uint8_t last_r_fric_state = 0;
+	static uint8_t last_l_fric_state = 0;
+	static uint8_t last_dial_state = 0;
+	static uint8_t last_launch_state = 0;
+	
+	if(last_r_fric_state != launch.heart.r_fric_heart || last_launch_state != launch.state)
+	{
+		Motor_Color_Update(launch.heart.r_fric_heart, launch.state, R_FRIC_CIRCLE);
+	}
+	if(last_l_fric_state != launch.heart.l_fric_heart || last_launch_state != launch.state)
+	{
+		Motor_Color_Update(launch.heart.l_fric_heart, launch.state, L_FRIC_CIRCLE);
+	}
+	if(last_dial_state != launch.heart.dial_heart || last_launch_state != launch.state)
+	{
+		Motor_Color_Update(launch.heart.dial_heart, launch.state, DIAL_CIRCLE);
+	}
+  
+	last_r_fric_state = launch.heart.r_fric_heart;
+  last_l_fric_state = launch.heart.l_fric_heart;
+  last_dial_state = launch.heart.dial_heart ;
+  last_launch_state = launch.state;
+
+
+  //µ×ÅÌÂÖ×é×´Ì¬¸üĞÂ
+	static uint8_t last_lf_state = 0;
+	static uint8_t last_lb_state = 0;
+	static uint8_t last_rf_state = 0;
+	static uint8_t last_rb_state = 0;
+	
+	static uint8_t  last_burst_flag = 0;
+	
+	if(last_lf_state != chassis.state.wheel_heart[WHEEL_LF] || last_burst_flag != chassis.burst_flag)
+	{
+		Motor_Color_Update(chassis.state.wheel_heart[WHEEL_LF], chassis.burst_flag, LF_CIRCLE);
+	}
+	if(last_lb_state != chassis.state.wheel_heart[WHEEL_LB]|| last_burst_flag != chassis.burst_flag)
+	{
+		Motor_Color_Update(chassis.state.wheel_heart[WHEEL_LB], chassis.burst_flag, LB_CIRCLE);
+	}
+	if(last_rf_state != chassis.state.wheel_heart[WHEEL_RF]|| last_burst_flag != chassis.burst_flag)
+	{
+		 Motor_Color_Update(chassis.state.wheel_heart[WHEEL_RF], chassis.burst_flag, RF_CIRCLE);
+	}
+	if(last_rb_state != chassis.state.wheel_heart[WHEEL_RB]|| last_burst_flag != chassis.burst_flag)
+	{
+		 Motor_Color_Update(chassis.state.wheel_heart[WHEEL_RB], chassis.burst_flag, RB_CIRCLE);
+	}
+	
+	last_lf_state = chassis.state.wheel_heart[WHEEL_LF];
+	last_lb_state = chassis.state.wheel_heart[WHEEL_LB];
+  last_rf_state = chassis.state.wheel_heart[WHEEL_RF];
+	last_rb_state = chassis.state.wheel_heart[WHEEL_RB];
+	
+	last_burst_flag = chassis.burst_flag;
+	
+	
+	//ÔÆÌ¨µç»ú×´Ì¬¸üĞÂ
+	static uint8_t last_yaw_state = 0;
+	static uint8_t last_pitch_state = 0;
+	static uint8_t last_left_state = 0;
+	
+	if(last_yaw_state != gimbal.state.yaw_heart)
+	{
+		Motor_Color_Update(gimbal.state.yaw_heart, 0, YAW_CIRCLE);
+	}
+	if(last_pitch_state != gimbal.state.pitch_heart)
+	{
+		Motor_Color_Update(gimbal.state.pitch_heart, 0, PITCH_CIRCLE);
+	}
+	if(last_left_state != gimbal.state.left_heart)
+	{
+		Motor_Color_Update(gimbal.state.left_heart, 0, LEFT_CIRCLE);
+	}
+	
+	last_yaw_state = gimbal.state.yaw_heart;
+  last_pitch_state = gimbal.state.pitch_heart;
+	last_left_state = gimbal.state.left_heart;
+	
+	
+	//ÔÆÌ¨×´Ì¬¸üĞÂ
+	Gimbal_Line_Update(board.rx_meg->gimbal_meg.pitch_mec,board.rx_meg->state_meg.is_down);
+	
+	//Ê£Óà·¢µ¯Á¿¸üĞÂ
+	static int16_t bullet_remain = 0;
+	
+	if(bullet_remain != judge.pkt->projectile_allowance_17mm)
+	{
+		dynamic_ui_info[BULLET_NUM].ui_config.int_num = (int16_t)judge.pkt->projectile_allowance_17mm;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[BULLET_NUM]);
+	}
+	
+	bullet_remain = judge.pkt->projectile_allowance_17mm;
+	
+	
+	//ÊÓ¾õÊı×Ö¸üĞÂ
+	static uint8_t vision_last_mode = 0;
+	
+	if(vision_last_mode != vision.mode)
+	{
+		if(vision.mode == 1)
+		{
+			dynamic_ui_info[VISION_NUM].ui_config.int_num = 1;
+		}
+		else if(vision.mode == 2)
+		{
+			dynamic_ui_info[VISION_NUM].ui_config.int_num = 2;
+		}
+		else if(vision.mode == 3)
+		{
+			dynamic_ui_info[VISION_NUM].ui_config.int_num = 3;
+		}
+		else if(vision.mode == 4)
+		{
+			dynamic_ui_info[VISION_NUM].ui_config.int_num = 4;
+		}
+		else if(vision.mode == 5)
+		{
+			dynamic_ui_info[VISION_NUM].ui_config.int_num = 5;
+		}
+		else
+		{
+			dynamic_ui_info[VISION_NUM].ui_config.int_num = 0;
+		}
+		
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[VISION_NUM]);
+	}
+	vision_last_mode = vision.mode;
+	
+	
+	
+	//ÊÓ¾õ¿ò¸üĞÂ
+	static uint8_t vision_last_state = 0;
+	
+	if(vision_last_state != vision.info.vision_heart)
+	{
+		if(board.rx_meg->state_meg.vision_state == 1)
+		{
+			dynamic_ui_info[VISION_FRAME].ui_config.color = GREEN;
+		}
+		else
+		{
+			dynamic_ui_info[VISION_FRAME].ui_config.color = BLACK;
+		}
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[VISION_FRAME]);
+	}
+	vision_last_state = vision.info.vision_heart;
+	
+	
+
+	//³¬µçÌõ¸üĞÂ,24.f:500
+	float cap_V = 0;
+	static uint16_t cap_line = 0,cap_line_last = 0;
+	static uint8_t last_cap_ability = 1;
+	
+	cap_line = (uint16_t)(((cap.info->cap_Ucr * cap.info->cap_Ucr) / (24.f * 24.f)) * 500);
+	
+	if(cap_line_last != cap_line || last_cap_ability != cap.info->ability)
+	{
+		dynamic_ui_info[CAP_LINE].ui_config.end_x = (Client_mid_position_x -250) + cap_line;
+//		dynamic_ui_info[CAP_LINE].ui_config.end_y = Client_mid_position_y + 320;
+		
+		if(cap.info->ability == 0)
+		{
+			dynamic_ui_info[CAP_LINE].ui_config.color = FUCHSIA;
+		}
+		else{
+	  	if(((cap.info->cap_Ucr * cap.info->cap_Ucr) / (24.f * 24.f)) <= 0.14)
+		  {
+			  dynamic_ui_info[CAP_LINE].ui_config.color = FUCHSIA;
+		  }			
+		  else if(((cap.info->cap_Ucr * cap.info->cap_Ucr) / (24.f * 24.f)) <= 0.39)
+		  {
+			  dynamic_ui_info[CAP_LINE].ui_config.color = ORANGE;
+		  }
+		  else
+		  {
+			  dynamic_ui_info[CAP_LINE].ui_config.color = GREEN;
+		  }
+		
+		}
+		
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[CAP_LINE]);
+	}
+	cap_line_last = cap_line;
+	last_cap_ability = cap.info->ability;
+	
+	
+	//µ×ÅÌ·½Î»½Ç¸üĞÂ
+	static float chas_angle_err_last = 0.f,test_chas_angle = 0.f;
+	
+	test_chas_angle = gimbal.info.yaw_mec - YAW_MEC_ZERO_ANGLE;
+	if(fabs(test_chas_angle) > PI)
+	{
+		test_chas_angle -= sgn(test_chas_angle) * 2 * PI;
+	}
+	
+	if(chas_angle_err_last != test_chas_angle)
+	{
+		My_Chas_Circle_Update(test_chas_angle);
+		
+	}
+	
+	//×ÔÃé¿ò¸üĞÂ
+	static uint8_t last_vision_state = 0,now_vision_state = 0;
+	static uint8_t last_vision_heart = 0;
+	
+	if((vision.mode == 1 || vision.mode == 5) && vision.info.is_find_target == 1)
+	{
+		now_vision_state = 1;
+	}
+	else if(vision.mode == 4 && vision.info.is_find_target == 1)
+	{
+		now_vision_state = 2;
+	}
+	else if((vision.mode == 2 || vision.mode == 3) && vision.info.is_find_target == 1)
+	{
+		now_vision_state = 3;
+	}
+	else
+	{
+		now_vision_state = 0;
+	}
+	
+	if(last_vision_state != now_vision_state || last_vision_heart != vision.info.vision_heart)
+	{
+		if(vision.info.vision_heart == 0)
+		{
+			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = BLACK;
+		}
+		else if(now_vision_state == 1)
+		{
+			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = GREEN;
+		}
+		else if(now_vision_state == 2)
+		{
+			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = ORANGE;
+		}
+		else if(now_vision_state == 3)
+		{
+			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = PINK;
+		}
+		else if(now_vision_state == 0)
+		{
+			dynamic_ui_info[AUTO_CATCH_FRAME].ui_config.color = WHITE;
+		}
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[AUTO_CATCH_FRAME]);
+	}
+	
+	last_vision_state = now_vision_state;
+	last_vision_heart = vision.info.vision_heart;
+	
+	
+	//³µÌåËÙ¶È¸üĞÂ
+	static float speed_last = 0.f,speed_now = 0.f;
+	
+//	speed_now = -board.tx_pkt->car_pkt.v_x;
+	
+	if(infantry.flag.turn_flag == true)
+	{
+		speed_now = chassis.measure.cycle_speed;
+	}
+	else if(abs(chassis.measure.front_speed) >= abs(chassis.measure.left_speed))
+	{
+		speed_now = chassis.measure.front_speed;
+	}
+	else{
+	  speed_now = chassis.measure.left_speed;
+	}
+	if(speed_last != speed_now)
+	{
+		dynamic_ui_info[CAR_SPEED].ui_config.float_num = speed_now;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[CAR_SPEED]);
+	}
+	speed_last = speed_now;
+	
+	
+	
+	if(judge.pkt->robot_id <= 10)
+	{
+		dynamic_ui_info[ENEMY_COIN_NUM].ui_config.start_x = Client_mid_position_x + 50;
+		
+		dynamic_ui_info[ENEMY_HERO_AMMO_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X;
+		dynamic_ui_info[ENEMY_3_AMMO_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 2*ENEMY_AMMO_DISTANE;
+		dynamic_ui_info[ENEMY_4_AMMO_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 3*ENEMY_AMMO_DISTANE;
+		dynamic_ui_info[ENEMY_7_AMMO_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 5*ENEMY_AMMO_DISTANE;
+		
+		dynamic_ui_info[ENEMY_HERO_HP_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X;
+		dynamic_ui_info[ENEMY_3_HP_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 2*ENEMY_AMMO_DISTANE;
+	  dynamic_ui_info[ENEMY_4_HP_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 3*ENEMY_AMMO_DISTANE;
+		dynamic_ui_info[ENEMY_7_HP_NUM].ui_config.start_x = ENEMY_BLUE_HERO_AMMO_X + 5*ENEMY_AMMO_DISTANE;
+
+
+	}
+	else{
+		dynamic_ui_info[ENEMY_COIN_NUM].ui_config.start_x = Client_mid_position_x - 170;
+		
+	  dynamic_ui_info[ENEMY_HERO_AMMO_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X;
+		dynamic_ui_info[ENEMY_3_AMMO_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X - 2*ENEMY_AMMO_DISTANE;
+		dynamic_ui_info[ENEMY_4_AMMO_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X - 3*ENEMY_AMMO_DISTANE;
+		dynamic_ui_info[ENEMY_7_AMMO_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X - 5*ENEMY_AMMO_DISTANE;
+
+		
+		dynamic_ui_info[ENEMY_HERO_HP_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X;
+		dynamic_ui_info[ENEMY_3_HP_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X - 2*ENEMY_AMMO_DISTANE;
+	  dynamic_ui_info[ENEMY_4_HP_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X - 3*ENEMY_AMMO_DISTANE;
+		dynamic_ui_info[ENEMY_7_HP_NUM].ui_config.start_x = ENEMY_RED_HERO_AMMO_X - 5*ENEMY_AMMO_DISTANE;
+
+		
+	}
+	
+	
+	static uint32_t last_enemy_coin_timestamp = 0;
+	if(last_enemy_coin_timestamp != judge.info->radar_information_status.radar_enemy_team_status.update_timestamp)
+	{
+		dynamic_ui_info[ENEMY_COIN_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_team_status.remaining_gold_coin;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[ENEMY_COIN_NUM]);
+		
+	}
+	last_enemy_coin_timestamp = judge.info->radar_information_status.radar_enemy_team_status.update_timestamp;
+	
+	static uint32_t last_enemy_ammo_timestamp = 0;
+	if(last_enemy_ammo_timestamp != judge.info->radar_information_status.radar_enemy_ammo.update_timestamp)
+	{
+		dynamic_ui_info[ENEMY_HERO_AMMO_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_ammo.enemy_hero_ammo;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[ENEMY_HERO_AMMO_NUM]);
+		
+		dynamic_ui_info[ENEMY_3_AMMO_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_ammo.enemy_infantry_3_ammo;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[ENEMY_3_AMMO_NUM]);
+		
+		dynamic_ui_info[ENEMY_4_AMMO_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_ammo.enemy_infantry_4_ammo;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[ENEMY_4_AMMO_NUM]);
+		
+		dynamic_ui_info[ENEMY_7_AMMO_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_ammo.enemy_sentry_ammo;
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[ENEMY_7_AMMO_NUM]);
+		
+	}
+  last_enemy_ammo_timestamp = judge.info->radar_information_status.radar_enemy_ammo.update_timestamp;
+
+	
+	static uint32_t last_enemy_hp_timestamp = 0;
+	static uint32_t last_enemy_status_timestamp = 0;
+	
+	if(last_enemy_hp_timestamp != judge.info->radar_information_status.radar_enemy_HP.update_timestamp || last_enemy_status_timestamp != judge.info->radar_information_status.radar_enemy_robot_status.update_timestamp) 
+	{
+		dynamic_ui_info[ENEMY_HERO_HP_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_HP.enemy_hero_HP;
+		Robot_Status_Update(judge.info->radar_information_status.radar_enemy_robot_status.hero_status,ENEMY_HERO_HP_NUM);
+		
+		dynamic_ui_info[ENEMY_3_HP_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_HP.enemy_infantry_3_HP;
+		Robot_Status_Update(judge.info->radar_information_status.radar_enemy_robot_status.infantry_3_status,ENEMY_3_HP_NUM);
+		
+		dynamic_ui_info[ENEMY_4_HP_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_HP.enemy_infantry_4_HP;
+		Robot_Status_Update(judge.info->radar_information_status.radar_enemy_robot_status.infantry_4_status,ENEMY_4_HP_NUM);
+		
+		dynamic_ui_info[ENEMY_7_HP_NUM].ui_config.int_num = judge.info->radar_information_status.radar_enemy_HP.enemy_sentry_HP;
+		Robot_Status_Update(judge.info->radar_information_status.radar_enemy_robot_status.sentry_status,ENEMY_7_HP_NUM);
+		
+		
+		
+	}
+	last_enemy_hp_timestamp = judge.info->radar_information_status.radar_enemy_HP.update_timestamp;
+	last_enemy_status_timestamp = judge.info->radar_information_status.radar_enemy_robot_status.update_timestamp;
+	
+	
+	static uint8_t last_charge = 0;
+	if(last_charge != wireless_rx_info.is_charging)
+	{
+		if(wireless_rx_info.is_charging == 1)
+		{
+			strcpy(dynamic_ui_info[CHARGE_CHAR].ui_config.text, "CHARGING");
+		}
+		else{
+		  strcpy(dynamic_ui_info[CHARGE_CHAR].ui_config.text, "CHARGED");
+		}
+		
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[CHARGE_CHAR]);
+	}
+	last_charge = wireless_rx_info.is_charging;
+}
+
+
+/**
+ * @brief °ÑÄ³µãÈÆÄ³µãĞı×ªÒ»¶¨½Ç¶È
+ * 
+ * @param x ´æ´¢Ğı×ªºóxµÄµØÖ·
+ * @param y ´æ´¢Ğı×ªºóyµÄµØÖ·
+ * @param raw_x Ğı×ªÇ°xµÄÖµ
+ * @param raw_y Ğı×ªºóyµÄÖµ
+ * @param mid_x Ğı×ªÔ­µãx
+ * @param mid_y Ğı×ªÔ­µãy
+ * @param angle Ğı×ªµÄ½Ç¶Èrad
+ */
+void rotate_point(__packed uint16_t *x, __packed uint16_t *y, uint16_t raw_x, uint16_t raw_y, float mid_x, float mid_y, float angle) 
+{
+  float s = sin(angle);
+  float c = cos(angle);
+ // Æ½ÒÆµ½Ô­µã
+  float origin_x = raw_x - mid_x;
+  float origin_y = raw_y - mid_y;
+  // Ğı×ª
+  float new_x = origin_x * c - origin_y * s;
+  float new_y = origin_x * s + origin_y * c;
+  // Æ½ÒÆ»ØÈ¥²¢¸üĞÂÔ­Ê¼×ø±ê
+  *x = new_x + mid_x;
+  *y = new_y + mid_y;
+}
+
+/*µ×ÅÌ·½Î»½Ç¸üĞÂ*/
+void My_Chas_Circle_Update(float angle)
+{
+	rotate_point(&dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_x,&dynamic_ui_info[CHAS_HEAD_LINE].ui_config.end_y,
+	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y + CHAS_CIRCLE_R,
+	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y,
+	              angle);
+	
+	rotate_point(&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_x,&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.start_y,
+	              CHAS_CIRCLE_X - CHAS_CIRCLE_R,CHAS_CIRCLE_Y,
+	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y,
+	              angle);
+	
+	rotate_point(&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_x,&dynamic_ui_info[CHAS_SIDE_LINE].ui_config.end_y,
+	              CHAS_CIRCLE_X + CHAS_CIRCLE_R,CHAS_CIRCLE_Y,
+	              CHAS_CIRCLE_X,CHAS_CIRCLE_Y,
+	              angle);
+	
+	Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_HEAD_LINE]);
+	Enqueue_Ui_For_Sending(&dynamic_ui_info[CHAS_SIDE_LINE]);
+}
+
+
+//·¢Éä»ú¹¹×´Ì¬¸üĞÂ
+static void Motor_Color_Update(uint8_t motor_state, uint8_t special_state, uint32_t index)
+{
+	if(motor_state == 0)       //µç»ú²»ÔÚÏß
+  {
+    dynamic_ui_info[index].ui_config.color = BLACK;
+  }
+  else                 
+  {
+    if(special_state == 1)   
+    {
+      dynamic_ui_info[index].ui_config.color = FUCHSIA;
+    }
+    else
+    {
+      dynamic_ui_info[index].ui_config.color = GREEN;
+    }
+  }
+		
+  Enqueue_Ui_For_Sending(&dynamic_ui_info[index]);
+	
+}
+
+
+
+static void Gimbal_Line_Update(float angle,uint8_t height)
+{
+	static float last_angle = 0;
+	static uint8_t last_height = 2;
+	
+	if(last_angle != angle || last_height != height)
+	{
+		dynamic_ui_info[PITCH_CIRCLE].ui_config.start_y = BODY_CENTER_Y +40 + height * 40;
+		dynamic_ui_info[PITCH_LINE].ui_config.start_y = BODY_CENTER_Y + 40 + height * 40;
+		dynamic_ui_info[PITCH_LINE].ui_config.end_y = BODY_CENTER_Y + 40 + height * 40;
+		
+		
+		rotate_point(&dynamic_ui_info[PITCH_LINE].ui_config.end_x,&dynamic_ui_info[PITCH_LINE].ui_config.end_y,
+	              BODY_CENTER_X + PITCH_LENGTH, BODY_CENTER_Y + 40 + height * 40,
+	              BODY_CENTER_X, BODY_CENTER_Y + 40 + height * 40,   
+	              angle);
+		
+		
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[PITCH_CIRCLE]);
+		Enqueue_Ui_For_Sending(&dynamic_ui_info[PITCH_LINE]);
+	}
+	
+	last_angle = angle;
+	last_height = height;
+}
+
+
+static void Robot_Status_Update(uint8_t robot_status,uint32_t index)
+{
+	if(robot_status == 1)
+	{
+		dynamic_ui_info[index].ui_config.color = BLACK;
+	}
+	else if(robot_status == 2 || robot_status == 3)
+	{
+	  dynamic_ui_info[index].ui_config.color = GREEN;
+	}
+	else{
+    dynamic_ui_info[index].ui_config.color = WHITE;
+
+	}
+	
+	 Enqueue_Ui_For_Sending(&dynamic_ui_info[index]);
+
+}
+
+
+static void Radar_Enemy_Status_Update(int16_t coin,int16_t* robot_ammo,uint8_t* robot_status)
+{
+	
 }

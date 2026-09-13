@@ -14,65 +14,65 @@
 
 #define Client_mid_position_y 540
 
-/********************è£åˆ¤ç³»ç»Ÿå¸§ç»“æ„begin********************/
+/********************²ÃÅĞÏµÍ³Ö¡½á¹¹begin********************/
 
-/* å¸§å¤´ */
+/* Ö¡Í· */
 
 typedef struct __attribute__((packed))
 
 {
 
-    uint8_t SOF; // æ•°æ®å¸§èµ·å§‹å­—èŠ‚ï¼Œå›ºå®šå€¼ä¸º 0xA5
+    uint8_t SOF; // Êı¾İÖ¡ÆğÊ¼×Ö½Ú£¬¹Ì¶¨ÖµÎª 0xA5
 
-    uint16_t data_length; // æ•°æ®å¸§ä¸­ data çš„é•¿åº¦
+    uint16_t data_length; // Êı¾İÖ¡ÖĞ data µÄ³¤¶È
 
-    uint8_t seq; // åŒ…åºå·
+    uint8_t seq; // °üĞòºÅ
 
-    uint8_t CRC8; // å¸§å¤´ CRC8 æ ¡éªŒ
+    uint8_t CRC8; // Ö¡Í· CRC8 Ğ£Ñé
 
 } frame_header_t;
 
-/* æ•°æ®æ®µå¤´ç»“æ„ */
+/* Êı¾İ¶ÎÍ·½á¹¹ */
 
 typedef struct __attribute__((packed))
 
 {
 
-    uint16_t data_cmd_id; // å†…å®¹ID
+    uint16_t data_cmd_id; // ÄÚÈİID
 
-    uint16_t sender_ID; // å‘é€è€…çš„ ID
+    uint16_t sender_ID; // ·¢ËÍÕßµÄ ID
 
-    uint16_t receiver_ID; // æ¥æ”¶è€…çš„ ID
+    uint16_t receiver_ID; // ½ÓÊÕÕßµÄ ID
 
 } ext_student_interactive_header_data_t;
 
-/********************è£åˆ¤ç³»ç»Ÿå¸§ç»“æ„end********************/
+/********************²ÃÅĞÏµÍ³Ö¡½á¹¹end********************/
 
-/********************æšä¸¾begin********************/
+/********************Ã¶¾Ùbegin********************/
 
-/* å†…å®¹ID */
+/* ÄÚÈİID */
 
 typedef enum
 
 {
 
-    // 0x200-0x02ff 	é˜Ÿä¼è‡ªå®šä¹‰å‘½ä»¤ æ ¼å¼  INTERACT_ID_XXXX
+    // 0x200-0x02ff 	¶ÓÎé×Ô¶¨ÒåÃüÁî ¸ñÊ½  INTERACT_ID_XXXX
 
-    ID_delete_graphic = 0x0100, // å®¢æˆ·ç«¯åˆ é™¤å›¾å½¢
+    ID_delete_graphic = 0x0100, // ¿Í»§¶ËÉ¾³ıÍ¼ĞÎ
 
-    ID_draw_one_graphic = 0x0101, // å®¢æˆ·ç«¯ç»˜åˆ¶ä¸€ä¸ªå›¾å½¢
+    ID_draw_one_graphic = 0x0101, // ¿Í»§¶Ë»æÖÆÒ»¸öÍ¼ĞÎ
 
-    ID_draw_two_graphic = 0x0102, // å®¢æˆ·ç«¯ç»˜åˆ¶äºŒä¸ªå›¾å½¢
+    ID_draw_two_graphic = 0x0102, // ¿Í»§¶Ë»æÖÆ¶ş¸öÍ¼ĞÎ
 
-    ID_draw_five_graphic = 0x0103, // å®¢æˆ·ç«¯ç»˜åˆ¶äº”ä¸ªå›¾å½¢
+    ID_draw_five_graphic = 0x0103, // ¿Í»§¶Ë»æÖÆÎå¸öÍ¼ĞÎ
 
-    ID_draw_seven_graphic = 0x0104, // å®¢æˆ·ç«¯ç»˜åˆ¶ä¸ƒä¸ªå›¾å½¢
+    ID_draw_seven_graphic = 0x0104, // ¿Í»§¶Ë»æÖÆÆß¸öÍ¼ĞÎ
 
-    ID_draw_char_graphic = 0x0110, // å®¢æˆ·ç«¯ç»˜åˆ¶å­—ç¬¦å›¾å½¢
+    ID_draw_char_graphic = 0x0110, // ¿Í»§¶Ë»æÖÆ×Ö·ûÍ¼ĞÎ
 
 } data_cmd_id_e;
 
-/* æ•°æ®æ®µé•¿åº¦ */
+/* Êı¾İ¶Î³¤¶È */
 
 enum
 
@@ -88,32 +88,32 @@ enum
 
     LEN_ID_draw_seven_graphic = 111, // 6+15*7
 
-    LEN_ID_draw_char_graphic = 51, // 6+15+30ï¼ˆå­—ç¬¦ä¸²å†…å®¹ï¼‰
+    LEN_ID_draw_char_graphic = 51, // 6+15+30£¨×Ö·û´®ÄÚÈİ£©
 };
 
-/* æ“ä½œç±»å‹ */
+/* ²Ù×÷ÀàĞÍ */
 
 typedef enum
 
 {
 
-    NONE = 0, /*ç©ºæ“ä½œ*/
+    NONE = 0, /*¿Õ²Ù×÷*/
 
-    ADD = 1, /*å¢åŠ å›¾å±‚*/
+    ADD = 1, /*Ôö¼ÓÍ¼²ã*/
 
-    MODIFY = 2, /*ä¿®æ”¹å›¾å±‚*/
+    MODIFY = 2, /*ĞŞ¸ÄÍ¼²ã*/
 
-    DELETE = 3, /*åˆ ifé™¤å›¾å±‚*/
+    DELETE = 3, /*É¾if³ıÍ¼²ã*/
 
 } operate_tpye_e;
 
-/* é¢œè‰² */
+/* ÑÕÉ« */
 
 typedef enum
 
 {
 
-    RED_BLUE = 0, // çº¢è“ä¸»è‰²
+    RED_BLUE = 0, // ºìÀ¶Ö÷É«
 
     YELLOW = 1,
 
@@ -121,11 +121,11 @@ typedef enum
 
     ORANGE = 3,
 
-    FUCHSIA = 4, // ç´«çº¢è‰²
+    FUCHSIA = 4, // ×ÏºìÉ«
 
     PINK = 5,
 
-    CYAN_BLUE = 6, // é’è‰²
+    CYAN_BLUE = 6, // ÇàÉ«
 
     BLACK = 7,
 
@@ -133,11 +133,11 @@ typedef enum
 
 } graphic_color_e;
 
-/********************æšä¸¾end********************/
+/********************Ã¶¾Ùend********************/
 
-/********************æ•°æ®æ®µç»“æ„ä½“begin********************/
+/********************Êı¾İ¶Î½á¹¹Ìåbegin********************/
 
-/* å›¾å½¢æ•°æ® */
+/* Í¼ĞÎÊı¾İ */
 
 typedef struct __attribute__((packed))
 
@@ -171,7 +171,7 @@ typedef struct __attribute__((packed))
 
 } graphic_data_struct_t;
 
-/* å®¢æˆ·ç«¯ç»˜åˆ¶ä¸€ä¸ªå›¾å½¢æ•°æ®æ®µ */
+/* ¿Í»§¶Ë»æÖÆÒ»¸öÍ¼ĞÎÊı¾İ¶Î */
 
 typedef struct __attribute__((packed))
 
@@ -181,7 +181,7 @@ typedef struct __attribute__((packed))
 
 } ext_client_custom_graphic_single_t;
 
-/* å®¢æˆ·ç«¯ç»˜åˆ¶äºŒä¸ªå›¾å½¢æ•°æ®æ®µ */
+/* ¿Í»§¶Ë»æÖÆ¶ş¸öÍ¼ĞÎÊı¾İ¶Î */
 
 typedef struct __attribute__((packed))
 
@@ -191,7 +191,7 @@ typedef struct __attribute__((packed))
 
 } ext_client_custom_graphic_double_t;
 
-/* å®¢æˆ·ç«¯ç»˜åˆ¶äº”ä¸ªå›¾å½¢æ•°æ®æ®µ */
+/* ¿Í»§¶Ë»æÖÆÎå¸öÍ¼ĞÎÊı¾İ¶Î */
 
 typedef struct __attribute__((packed))
 
@@ -201,7 +201,7 @@ typedef struct __attribute__((packed))
 
 } ext_client_custom_graphic_five_t;
 
-/* å®¢æˆ·ç«¯ç»˜åˆ¶ä¸ƒä¸ªå›¾å½¢æ•°æ®æ®µ */
+/* ¿Í»§¶Ë»æÖÆÆß¸öÍ¼ĞÎÊı¾İ¶Î */
 
 typedef struct __attribute__((packed))
 
@@ -211,7 +211,7 @@ typedef struct __attribute__((packed))
 
 } ext_client_custom_graphic_seven_t;
 
-/* å®¢æˆ·ç«¯ç»˜åˆ¶å­—ç¬¦æ•°æ®æ®µ */
+/* ¿Í»§¶Ë»æÖÆ×Ö·ûÊı¾İ¶Î */
 
 typedef struct __attribute__((packed))
 
@@ -233,27 +233,27 @@ typedef struct __attribute__((packed))
 
 } ext_client_custom_graphic_delete_t;
 
-/********************æ•°æ®æ®µç»“æ„ä½“end********************/
+/********************Êı¾İ¶Î½á¹¹Ìåend********************/
 
-/********************å…¶ä»–begin********************/
+/********************ÆäËûbegin********************/
 
-/* æœºå™¨äººé—´äº¤äº’æ•°æ®ä¸“ç”¨å¸§ç»“æ„ */
+/* »úÆ÷ÈË¼ä½»»¥Êı¾İ×¨ÓÃÖ¡½á¹¹ */
 
 typedef struct __attribute__((packed))
 
 {
 
-    frame_header_t frame_header; // å¸§å¤´
+    frame_header_t frame_header; // Ö¡Í·
 
-    uint16_t cmd_id; // å‘½ä»¤ç  ID
+    uint16_t cmd_id; // ÃüÁîÂë ID
 
-    ext_student_interactive_header_data_t data_header; // æ•°æ®æ®µå¤´ç»“æ„
+    ext_student_interactive_header_data_t data_header; // Êı¾İ¶ÎÍ·½á¹¹
 
-    uint16_t frame_tail; // å¸§å°¾
+    uint16_t frame_tail; // Ö¡Î²
 
 } frame_t;
 
-/* å®¢æˆ·ç«¯ä¿¡æ¯ */
+/* ¿Í»§¶ËĞÅÏ¢ */
 
 typedef struct
 
@@ -265,173 +265,173 @@ typedef struct
 
 } client_info_t;
 
-/********************å…¶ä»–end********************/
+/********************ÆäËûend********************/
 
 void client_info_update(void);
 
-// ç”»ç›´çº¿
+// »­Ö±Ïß
 
-graphic_data_struct_t draw_line(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_line(char *name, // Í¼ĞÎÃû
 
-                                uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                                uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                                uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                                uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                                uint8_t color, // é¢œè‰²
+                                uint8_t color, // ÑÕÉ«
 
-                                uint16_t width, // çº¿æ¡å®½åº¦
+                                uint16_t width, // ÏßÌõ¿í¶È
 
-                                uint16_t start_x, // èµ·ç‚¹ x åæ ‡
+                                uint16_t start_x, // Æğµã x ×ø±ê
 
-                                uint16_t start_y, // èµ·ç‚¹ y åæ ‡
+                                uint16_t start_y, // Æğµã y ×ø±ê
 
-                                uint16_t end_x, // ç»ˆç‚¹ x åæ ‡
+                                uint16_t end_x, // ÖÕµã x ×ø±ê
 
-                                uint16_t end_y); // ç»ˆç‚¹ y åæ ‡
+                                uint16_t end_y); // ÖÕµã y ×ø±ê
 
-// ç”»çŸ©å½¢
+// »­¾ØĞÎ
 
-graphic_data_struct_t draw_rectangle(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_rectangle(char *name, // Í¼ĞÎÃû
 
-                                     uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                                     uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                                     uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                                     uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                                     uint8_t color, // é¢œè‰²
+                                     uint8_t color, // ÑÕÉ«
 
-                                     uint16_t width, // çº¿æ¡å®½åº¦
+                                     uint16_t width, // ÏßÌõ¿í¶È
 
-                                     uint16_t start_x, // èµ·ç‚¹ x åæ ‡
+                                     uint16_t start_x, // Æğµã x ×ø±ê
 
-                                     uint16_t start_y, // èµ·ç‚¹ y åæ ‡
+                                     uint16_t start_y, // Æğµã y ×ø±ê
 
-                                     uint16_t end_x, // å¯¹è§’é¡¶ç‚¹ x åæ ‡
+                                     uint16_t end_x, // ¶Ô½Ç¶¥µã x ×ø±ê
 
-                                     uint16_t end_y); // å¯¹è§’é¡¶ç‚¹ y åæ ‡
+                                     uint16_t end_y); // ¶Ô½Ç¶¥µã y ×ø±ê
 
-// ç”»æ•´åœ†
+// »­ÕûÔ²
 
-graphic_data_struct_t draw_circle(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_circle(char *name, // Í¼ĞÎÃû
 
-                                  uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                                  uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                                  uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                                  uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                                  uint8_t color, // é¢œè‰²
+                                  uint8_t color, // ÑÕÉ«
 
-                                  uint16_t width, // çº¿æ¡å®½åº¦
+                                  uint16_t width, // ÏßÌõ¿í¶È
 
-                                  uint16_t start_x, // åœ†å¿ƒ x åæ ‡
+                                  uint16_t start_x, // Ô²ĞÄ x ×ø±ê
 
-                                  uint16_t start_y, // åœ†å¿ƒ y åæ ‡
+                                  uint16_t start_y, // Ô²ĞÄ y ×ø±ê
 
-                                  uint16_t radius); // åŠå¾„
+                                  uint16_t radius); // °ë¾¶
 
-// ç”»æ¤­åœ†
+// »­ÍÖÔ²
 
-graphic_data_struct_t draw_ellipse(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_ellipse(char *name, // Í¼ĞÎÃû
 
-                                   uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                                   uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                                   uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                                   uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                                   uint8_t color, // é¢œè‰²
+                                   uint8_t color, // ÑÕÉ«
 
-                                   uint16_t width, // çº¿æ¡å®½åº¦
+                                   uint16_t width, // ÏßÌõ¿í¶È
 
-                                   uint16_t start_x, // åœ†å¿ƒ x åæ ‡
+                                   uint16_t start_x, // Ô²ĞÄ x ×ø±ê
 
-                                   uint16_t start_y, // åœ†å¿ƒ y åæ ‡
+                                   uint16_t start_y, // Ô²ĞÄ y ×ø±ê
 
-                                   uint16_t end_x, // x åŠè½´é•¿åº¦
+                                   uint16_t end_x, // x °ëÖá³¤¶È
 
-                                   uint16_t end_y); // y åŠè½´é•¿åº¦
+                                   uint16_t end_y); // y °ëÖá³¤¶È
 
-// ç”»åœ†å¼§
+// »­Ô²»¡
 
-graphic_data_struct_t draw_arc(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_arc(char *name, // Í¼ĞÎÃû
 
-                               uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                               uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                               uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                               uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                               uint8_t color, // é¢œè‰²
+                               uint8_t color, // ÑÕÉ«
 
-                               uint16_t start_angle, // èµ·å§‹è§’åº¦
+                               uint16_t start_angle, // ÆğÊ¼½Ç¶È
 
-                               uint16_t end_angle, // ç»ˆæ­¢è§’åº¦
+                               uint16_t end_angle, // ÖÕÖ¹½Ç¶È
 
-                               uint16_t width, // çº¿æ¡å®½åº¦
+                               uint16_t width, // ÏßÌõ¿í¶È
 
-                               uint16_t start_x, // åœ†å¿ƒ x åæ ‡
+                               uint16_t start_x, // Ô²ĞÄ x ×ø±ê
 
-                               uint16_t start_y, // åœ†å¿ƒ y åæ ‡
+                               uint16_t start_y, // Ô²ĞÄ y ×ø±ê
 
-                               uint16_t end_x, // x åŠè½´é•¿åº¦
+                               uint16_t end_x, // x °ëÖá³¤¶È
 
-                               uint16_t end_y); // y åŠè½´é•¿åº¦
+                               uint16_t end_y); // y °ëÖá³¤¶È
 
-// ç”»æµ®ç‚¹æ•°
+// »­¸¡µãÊı
 
-graphic_data_struct_t draw_float(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_float(char *name, // Í¼ĞÎÃû
 
-                                 uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                                 uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                                 uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                                 uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                                 uint8_t color, // é¢œè‰²
+                                 uint8_t color, // ÑÕÉ«
 
-                                 uint16_t size, // å­—ä½“å¤§å°
+                                 uint16_t size, // ×ÖÌå´óĞ¡
 
-                                 uint16_t decimal, // å°æ•°ä½æœ‰æ•ˆä¸ªæ•°
+                                 uint16_t decimal, // Ğ¡ÊıÎ»ÓĞĞ§¸öÊı
 
-                                 uint16_t width, // çº¿æ¡å®½åº¦
+                                 uint16_t width, // ÏßÌõ¿í¶È
 
-                                 uint16_t start_x, // èµ·ç‚¹ x åæ ‡
+                                 uint16_t start_x, // Æğµã x ×ø±ê
 
-                                 uint16_t start_y, // èµ·ç‚¹ y åæ ‡
+                                 uint16_t start_y, // Æğµã y ×ø±ê
 
-                                 int32_t num); // ä¹˜ä»¥ 1000 åï¼Œä»¥ 32 ä½æ•´å‹æ•°ï¼Œint32_t
+                                 int32_t num); // ³ËÒÔ 1000 ºó£¬ÒÔ 32 Î»ÕûĞÍÊı£¬int32_t
 
-// ç”»æ•´å‹æ•°
+// »­ÕûĞÍÊı
 
-graphic_data_struct_t draw_int(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_int(char *name, // Í¼ĞÎÃû
 
-                               uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                               uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                               uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                               uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                               uint8_t color, // é¢œè‰²
+                               uint8_t color, // ÑÕÉ«
 
-                               uint16_t size, // å­—ä½“å¤§å°
+                               uint16_t size, // ×ÖÌå´óĞ¡
 
-                               uint16_t width, // çº¿æ¡å®½åº¦
+                               uint16_t width, // ÏßÌõ¿í¶È
 
-                               uint16_t start_x, // èµ·ç‚¹ x åæ ‡
+                               uint16_t start_x, // Æğµã x ×ø±ê
 
-                               uint16_t start_y, // èµ·ç‚¹ y åæ ‡
+                               uint16_t start_y, // Æğµã y ×ø±ê
 
-                               int32_t num); // 32 ä½æ•´å‹æ•°ï¼Œint32_t
+                               int32_t num); // 32 Î»ÕûĞÍÊı£¬int32_t
 
-// ç”»å­—ç¬¦ä¸²
+// »­×Ö·û´®
 
-graphic_data_struct_t draw_char(char *name, // å›¾å½¢å
+graphic_data_struct_t draw_char(char *name, // Í¼ĞÎÃû
 
-                                uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
+                                uint8_t operate_tpye, // Í¼ĞÎ²Ù×÷
 
-                                uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
+                                uint8_t layer, // Í¼²ãÊı£¬0~9
 
-                                uint8_t color, // é¢œè‰²
+                                uint8_t color, // ÑÕÉ«
 
-                                uint16_t size, // å­—ä½“å¤§å°
+                                uint16_t size, // ×ÖÌå´óĞ¡
 
-                                uint16_t length, // å­—ç¬¦é•¿åº¦
+                                uint16_t length, // ×Ö·û³¤¶È
 
-                                uint16_t width, // çº¿æ¡å®½åº¦
+                                uint16_t width, // ÏßÌõ¿í¶È
 
-                                uint16_t start_x, // èµ·ç‚¹ x åæ ‡
+                                uint16_t start_x, // Æğµã x ×ø±ê
 
-                                uint16_t start_y); // èµ·ç‚¹ y åæ ‡
+                                uint16_t start_y); // Æğµã y ×ø±ê
 
 uint8_t client_send_single_graphic(ext_client_custom_graphic_single_t data);
 

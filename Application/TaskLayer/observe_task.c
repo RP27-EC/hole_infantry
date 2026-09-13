@@ -1,38 +1,24 @@
 #include "observe_task.h"
 
+extern osSemaphoreId_t semTaskObserveToCtrl;
+extern osSemaphoreId_t semTaskCtrlToObserve;
 
-
-
-void StartUpdataTask(void const *argument)
-
+void StartUpdataTask(void const * argument)
 {
+	for(;;)
+	{
+		
+		
+		if(imu_sensor.work_state.err_code == IMU_NONE_ERR ||
+			imu_sensor.work_state.err_code == IMU_DATA_CALI)
+		{
+			imu_sensor.update(&imu_sensor);
+		}
+		
 
-    for (;;)
+		osSemaphoreRelease(semTaskObserveToCtrl);
+		osSemaphoreAcquire(semTaskCtrlToObserve, osWaitForever); 
 
-    {
-
-
-
-        if (imu_sensor.work_state.err_code == IMU_NONE_ERR ||
-
-            imu_sensor.work_state.err_code == IMU_DATA_CALI)
-
-        {
-
-            imu_sensor.update(&imu_sensor);
-
-        }
-
-        Chassis.data_update(&Chassis); // 含目标值更新
-
-
-
-
-
-
-        osDelay(1);
-
-    }
-
+		 osDelay(1);
+	}
 }
-

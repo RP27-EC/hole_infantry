@@ -3,9 +3,9 @@
 
 #include "cmsis_os.h"
 #include "main.h"
-#include "Chassis.h"
-#include "command.h"
-#include "RP_Log.h"
-void StartCtrlTask(void const * argument);
+#include "device.h"
+
+void StartControlTask(void const * argument);
+
 
 #endif

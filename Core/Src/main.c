@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * @file           : main.c
- * @brief          : Main program body
- ******************************************************************************
- * @attention
- *
- * Copyright (c) 2025 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * @file           : main.c
+  * @brief          : Main program body
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -29,10 +29,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "SEGGER_RTT.h"
-#include "ui.h"
 #include "device.h"
 #include "driver.h"
+#include "ui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,15 +115,15 @@ int main(void)
   MX_FDCAN3_Init();
   MX_USART10_UART_Init();
   MX_UART5_Init();
-  MX_UART7_Init();
-  MX_IWDG1_Init();
+//  MX_IWDG1_Init();
   MX_USART1_UART_Init();
+  MX_USART6_UART_Init();
   MX_UART8_Init();
+  MX_UART9_Init();
+  MX_UART7_Init();
   /* USER CODE BEGIN 2 */
-  My_Ui_Init();
-  SEGGER_RTT_Init();
-  DEVICE_Init();
-  DRIVER_Init();
+	DEVICE_Init();
+	DRIVER_Init();
 
   /* USER CODE END 2 */
 

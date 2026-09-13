@@ -1,40 +1,112 @@
-#include "Power_Limit.h"
-
-
-/*-ç¥–ä¼ åŠŸç‡-*/
-void Chassis_Motor_Power_Limit(int16_t *data)
-{
-	float buffer = judge.info->power_heat_data.chassis_power_buffer;
-	float heat_rate, Limit_k, CHAS_LimitOutput, CHAS_TotalOutput;
-	
-	float OUT_MAX = 0.f;
-	
-	OUT_MAX = CHAS_SP_MAX_OUT * 4.f;
-	
-	if(buffer > 60.f)buffer = 60.f;//é˜²æ­¢é£å¡ä¹‹åç¼“å†²250Jå˜ä¸ºæ­£å¢ç›Šç³»æ•°
-	
-	Limit_k = buffer / 60.f;
-	
-	if(buffer < 25.f)
-		Limit_k = Limit_k * Limit_k ;// * Limit_k; //3æ–¹
-	else
-		Limit_k = Limit_k;// * str->Limit_k; //å¹³æ–¹
-	
-	if(buffer < 60.f)
-		CHAS_LimitOutput = Limit_k * OUT_MAX;
-	else 
-		CHAS_LimitOutput = OUT_MAX;    
-	
-	CHAS_TotalOutput = abs(data[0]) + abs(data[1]) + abs(data[2]) + abs(data[3]) ;
-	
-	heat_rate = CHAS_LimitOutput / CHAS_TotalOutput;
-	
-  if(CHAS_TotalOutput >= CHAS_LimitOutput)
-  {
-		for(char i = 0 ; i < 4 ; i++)
-		{	
-			data[i] = (int16_t)(data[i] * heat_rate);	
-		}
-	}
-}
-
+#include "Power_Limit.h"
+#include "judge.h"
+
+
+///*-×æ´«¹¦ÂÊ-*/
+//void Chassis_Motor_Power_Limit(int16_t *data)
+//{
+//	float buffer = judge.pkt->buffer_energy;
+//	float heat_rate, Limit_k, CHAS_LimitOutput, CHAS_TotalOutput;
+//	
+//	float OUT_MAX = 0.f;
+//	
+//	OUT_MAX = CHAS_SP_MAX_OUT * 4.f;
+//	
+//	if(buffer > 60.f)buffer = 60.f;//·ÀÖ¹·ÉÆÂÖ®ºó»º³å250J±äÎªÕıÔöÒæÏµÊı
+//	
+//	Limit_k = buffer / 60.f;
+//	
+//	if(buffer < 25.f)
+//		Limit_k = Limit_k * Limit_k ;// * Limit_k; //3·½
+//	else
+//		Limit_k = Limit_k;// * str->Limit_k; //Æ½·½
+//	
+//	if(buffer < 60.f)
+//		CHAS_LimitOutput = Limit_k * OUT_MAX;
+//	else 
+//		CHAS_LimitOutput = OUT_MAX;    
+//	
+//	CHAS_TotalOutput = abs(data[0]) + abs(data[1]) + abs(data[2]) + abs(data[3]) ;
+//	
+//	heat_rate = CHAS_LimitOutput / CHAS_TotalOutput;
+//	
+//  if(CHAS_TotalOutput >= CHAS_LimitOutput)
+//  {
+//		for(char i = 0 ; i < 4 ; i++)
+//		{	
+//			data[i] = (int16_t)(data[i] * heat_rate);	
+//		}
+//	}
+//}
+
+
+
+//static void Chassis_Power_Limit(Chassis_t * chassis)
+//{
+//	  static float last_buffer = 0;
+//		float limit_output_speed[4];
+//	
+//		float buffer = (float)judge.pkt->buffer_energy;
+//		float heat_rate;//Êä³öµçÁ÷Ëõ·Å±ÈÀı
+//		float Limit_k; //ÂÖ×éËÙ¶ÈºÍËõ·Å±ÈÀı
+//		float CHAS_LimitOutput;//Ëõ·ÅºóÂÖ×é×î´óËÙ¶ÈÖ®ºÍ
+//		float CHAS_TotalOutput;//ÂÖ×éµçÁ÷Ö®ºÍ
+//		
+//		//»ñÈ¡ÀíÏëµÄµ×ÅÌÊä³ö
+//		for(uint8_t i = 0;i<4;i++)
+//		{
+//			limit_output_speed[i] = chassis->wheel->motor[i]->rx_info->speed;
+//		}
+//		
+//		float OUT_MAX = 0;
+//	
+//		OUT_MAX = CHASSIS_MAX_SPEED * 4;//×î´óËÙ¶ÈÖ®ºÍ
+//		
+//		if(buffer > 60.f)
+//		{
+//			buffer = 60.f;//·ÀÖ¹·ÉÆÂÖ®ºó»º³å250J±äÎªÕıÔöÒæÏµÊı
+//		}
+//		
+//		Limit_k = buffer / 60.f;  //×î´óÎª1£¬·ÉÆÂºóµ×ÅÌÒ»Ö±×î´óËÙ¶ÈÔËĞĞ
+//		
+//		if(buffer < 25.f)
+//		{
+//			Limit_k = Limit_k * Limit_k ;//»º³åÃ»¶àĞ¡¾Í¸üÂıÒ»µã
+//		}
+//		else
+//		{
+//			Limit_k = Limit_k;// »º³åÄÜÁ¿»¹ÓĞ±È½Ï¶à¾ÍÏŞÖÆÒ»µã
+//		}
+//			
+//		if(buffer < 60.f)
+//		{
+//			CHAS_LimitOutput = Limit_k * OUT_MAX; //Ö»Òª»º³åÄÜÁ¿Ã»Âú²ÅÏŞÖÆ
+//		}
+//		else 
+//		{
+//			CHAS_LimitOutput = OUT_MAX;    //»º³åÄÜÁ¿ÂúµÄ¾ÍÈ«ËÙÇ°½ø
+//		}
+//			
+//		CHAS_TotalOutput = fabs(limit_output_speed[0]) + fabs(limit_output_speed[1]) + fabs(limit_output_speed[2]) + fabs(limit_output_speed[3]) ;
+//		
+//		if(CHAS_TotalOutput >= CHAS_LimitOutput)
+//		{
+//			heat_rate = CHAS_LimitOutput / CHAS_TotalOutput;//µçÁ÷Ëõ·Å±ÈÀı = ÀûÓÃÏÖÔÚÊ£Óà»º³åÄÜÁ¿Ëã³öµÄËÙ¶ÈºÍÏŞÖÆ±ÈÀı * ÂÖ×é×î´óËÙ¶ÈºÍ / ½âËã³öµÄÀíÏëÂÖ×éËÙ¶ÈºÍ
+//		}
+//		else{
+//		  heat_rate = 1.f;
+//		}
+//		
+//		for(uint8_t i = 0 ; i < 4 ; i++) 
+//		{	
+//			chassis->out.wheel_powerd_out[i] = (float)(chassis->out.wheel_initial_out[i] * heat_rate);	
+//		}
+//		
+//		if(buffer <= 0 && last_buffer > 0)
+//		{
+//			power_fail ++;
+//		}
+//		
+//		last_buffer = buffer;
+//		
+//}

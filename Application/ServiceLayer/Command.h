@@ -1,89 +1,89 @@
-#ifndef __COMMAND_H
-#define __COMMAND_H
-
-
-#include "stdbool.h"
-#include "stdint.h"
-#include "stm32h7xx_hal.h"
-#define OUT_TIME_OFF  (0xFFFF)//å…³é—­è¶…æ—¶é€€å‡º
-
-/**
- * @brief å‘½ä»¤ç±»å‹æšä¸¾
- */
-typedef enum
-{
-  HIGH_TRIGER_C, //é«˜ç”µå¹³è§¦å‘
-  LOW_TRIGER_C,  //ä½ç”µå¹³è§¦å‘
-  RISE_TRIGER_C, //ä¸Šå‡æ²¿è§¦å‘
-  FALL_TRIGER_C, //ä¸‹é™æ²¿è§¦å‘
-  NO_CMD,		 //ä¸è§¦å‘
-}Cmd_Type_e;
-
-/**
- * @brief ç”¨æˆ·å‘½ä»¤çŠ¶æ€æšä¸¾
- */
-typedef enum 
-{
-  KEEP_U,         // ä¿æŒ
-  SWITCH_HIGHT_U, // è§¦å‘(ä¸Šå‡æ²¿)
-  SWITCH_LOW_U,   // æ¾å¼€(ä¸‹é™æ²¿)
-}User_Status_e;
-
-/**
- * @brief å‘½ä»¤çŠ¶æ€æšä¸¾
- */
-typedef enum 
-{
-	FINISH_C, //æ‰§è¡Œå®Œæˆ
-	RUNING_C, //æ‰§è¡Œä¸­
-}Cmd_Status_e;
-
-/**
- * @brief å‘½ä»¤åˆå§‹åŒ–çŠ¶æ€æšä¸¾
- * 
- */
-typedef enum
-{
-  DEINIT_C, //æœªåˆå§‹åŒ–
-  INIT_C,   //åˆå§‹åŒ–
-}Cmd_Init_e;
-/**
- * @brief å‘½ä»¤æ—¶é—´é”
- */
-typedef struct 
-{
-  uint8_t Trigger_lock_on;
-  uint32_t lock_time;
-
-}Trigger_lock_t;
-
-/**
- * @brief å‘½ä»¤ç»“æ„ä½“
- */
-typedef struct command_class_t
-{
-  bool cmd_value;//å‘½ä»¤å€¼ï¼ˆç¬¦åˆè§¦å‘æ¡ä»¶ï¼šTrueï¼‰
-  Cmd_Status_e cmd_status;//å‘½ä»¤çŠ¶æ€
-
-  Cmd_Type_e cmd_type;//å‘½ä»¤ç±»å‹
-  
-  bool user_value;//å½“å‰ç”¨æˆ·å‘½ä»¤
-  bool user_value_last;//ä¸Šä¸€æ¬¡ç”¨æˆ·å‘½ä»¤
-  User_Status_e user_status;//ç”¨æˆ·å‘½ä»¤çŠ¶æ€
-
-  uint16_t run_time;//å‘½ä»¤æ‰§è¡Œæ—¶é—´
-  uint16_t run_time_max;//å‘½ä»¤æ‰§è¡Œæ—¶é—´ä¸Šé™
-
-  Cmd_Init_e init_flag;//å‘½ä»¤åˆå§‹åŒ–çŠ¶æ€
-  Trigger_lock_t   Trigger_lock;
-  void (*init)(struct command_class_t *command);//å‘½ä»¤åˆå§‹åŒ–
-  void (*heartbeat)(struct command_class_t *command);//å‘½ä»¤å¿ƒè·³
-  void (*update)(struct command_class_t *command,bool condition);//è·å–ç”¨æˆ·å‘½ä»¤
-  void (*clean)(struct command_class_t *command);//å‘½ä»¤æ¸…é™¤
-  void (*s_run)(struct command_class_t *command);//å‘½ä»¤åˆ‡æ¢åˆ°æ­£åœ¨æ‰§è¡Œ
-  void (*s_finish)(struct command_class_t *command);//å‘½ä»¤åˆ‡æ¢åˆ°æ‰§è¡Œå®Œæˆ
-}command_t;
-
-
-void Cmd_Class_Init(command_t *commond);
-#endif
+#ifndef __COMMAND_H
+#define __COMMAND_H
+
+
+#include "stdbool.h"
+#include "stdint.h"
+#include "stm32h7xx_hal.h"
+#define OUT_TIME_OFF  (0xFFFF)//¹Ø±Õ³¬Ê±ÍË³ö
+
+/**
+ * @brief ÃüÁîÀàĞÍÃ¶¾Ù
+ */
+typedef enum
+{
+ HIGH_TRIGER_C, //¸ßµçÆ½´¥·¢
+  LOW_TRIGER_C,  //µÍµçÆ½´¥·¢
+  RISE_TRIGER_C, //ÉÏÉıÑØ´¥·¢
+  FALL_TRIGER_C, //ÏÂ½µÑØ´¥·¢
+  NO_CMD,		 //²»´¥·¢
+}Cmd_Type_e;
+
+/**
+ * @brief ÓÃ»§ÃüÁî×´Ì¬Ã¶¾Ù
+ */
+typedef enum 
+{
+  KEEP_U,         // ±£³Ö
+  SWITCH_HIGHT_U, // ´¥·¢(ÉÏÉıÑØ)
+  SWITCH_LOW_U,   // ËÉ¿ª(ÏÂ½µÑØ)
+}User_Status_e;
+
+/**
+ * @brief ÃüÁî×´Ì¬Ã¶¾Ù
+ */
+typedef enum 
+{
+	FINISH_C, //Ö´ĞĞÍê³É
+	RUNING_C, //Ö´ĞĞÖĞ
+}Cmd_Status_e;
+
+/**
+ * @brief ÃüÁî³õÊ¼»¯×´Ì¬Ã¶¾Ù
+ * 
+ */
+typedef enum
+{
+  DEINIT_C, //Î´³õÊ¼»¯
+  INIT_C,   //³õÊ¼»¯
+}Cmd_Init_e;
+/**
+ * @brief ÃüÁîÊ±¼äËø
+ */
+typedef struct 
+{
+  uint8_t Trigger_lock_on;
+  uint32_t lock_time;
+
+}Trigger_lock_t;
+
+/**
+ * @brief ÃüÁî½á¹¹Ìå
+ */
+typedef struct command_class_t
+{
+  bool cmd_value;//ÃüÁîÖµ£¨·ûºÏ´¥·¢Ìõ¼ş£ºTrue£©
+  Cmd_Status_e cmd_status;//ÃüÁî×´Ì¬
+
+  Cmd_Type_e cmd_type;//ÃüÁîÀàĞÍ
+  
+  bool user_value;//µ±Ç°ÓÃ»§ÃüÁî
+  bool user_value_last;//ÉÏÒ»´ÎÓÃ»§ÃüÁî
+  User_Status_e user_status;//ÓÃ»§ÃüÁî×´Ì¬
+
+  uint16_t run_time;//ÃüÁîÖ´ĞĞÊ±¼ä
+  uint16_t run_time_max;//ÃüÁîÖ´ĞĞÊ±¼äÉÏÏŞ
+
+  Cmd_Init_e init_flag;//ÃüÁî³õÊ¼»¯×´Ì¬
+  Trigger_lock_t   Trigger_lock;
+  void (*init)(struct command_class_t *command);//ÃüÁî³õÊ¼»¯
+  void (*heartbeat)(struct command_class_t *command);//ÃüÁîĞÄÌø
+  void (*update)(struct command_class_t *command,bool condition);//»ñÈ¡ÓÃ»§ÃüÁî
+  void (*clean)(struct command_class_t *command);//ÃüÁîÇå³ı
+  void (*s_run)(struct command_class_t *command);//ÃüÁîÇĞ»»µ½ÕıÔÚÖ´ĞĞ
+  void (*s_finish)(struct command_class_t *command);//ÃüÁîÇĞ»»µ½Ö´ĞĞÍê³É
+}command_t;
+
+
+void Cmd_Class_Init(command_t *commond);
+#endif

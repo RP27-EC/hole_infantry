@@ -1,245 +1,245 @@
-/**
- * @file command.c
- * @author your name (you@domain.com)
- * @brief å‘½ä»¤åŒ…
- * @version 0.1
- * @date 2023-11-25
- *
- * @copyright Copyright (c) 2023
- *
- */
-
-/* Includes ------------------------------------------------------------------*/
-#include "command.h"
-
-/* Private function prototypes -----------------------------------------------*/
-
-void User_Status_Update(command_t *command);
-void Cmd_Switch_Run(command_t *command);
-void Cmd_Switch_Finish(command_t *command);
-void Cmd_Value_Update(command_t *command);
-void Cmd_HeartBeat(command_t *command);
-void Cmd_Class_Update(command_t *command, bool condition);
-void Cmd_Clean(command_t *command);
-
-/* Function  body --------------------------------------------------------*/
-
-/**
- * @brief å‘½ä»¤åˆå§‹åŒ–
- *
- * @param command
- */
-void Cmd_Class_Init(command_t *command)
-{
-  command->user_value = false;
-  command->user_value_last = false;
-  command->user_status = KEEP_U;
-
-  command->cmd_value = false;
-  command->cmd_status = FINISH_C;
-
-  command->run_time = 0;
-
-  command->update = Cmd_Class_Update;
-  command->s_run = Cmd_Switch_Run;
-  command->s_finish = Cmd_Switch_Finish;
-  command->clean = Cmd_Clean;
-  command->heartbeat = Cmd_HeartBeat;
-
-  command->init_flag = INIT_C; // å‘½ä»¤åˆå§‹åŒ–å®Œæˆ
-}
-/**
- * @brief ç”¨æˆ·å‘½ä»¤çŠ¶æ€æ›´æ–°
- *
- * @param command
- */
-void User_Status_Update(command_t *command)
-{
-  /* ç”¨æˆ·å‘½ä»¤çŠ¶æ€æ›´æ–° */
-  static uint32_t last_lock_tick;
-
-  if (command->user_value == true && command->user_value_last == false)
-  {
-    // é˜²æ­¢åŒå‘å‘½ä»¤
-    if (command->Trigger_lock.Trigger_lock_on == 1)
-    {
-      if (HAL_GetTick() - last_lock_tick > command->Trigger_lock.lock_time)
-      {
-
-        command->user_status = SWITCH_HIGHT_U;
-        // last_lock_tick=HAL_GetTick();//è¿žç‚¹åˆæ¬¡è§¦å‘
-      }
-    }
-
-    else
-    {
-      command->user_status = SWITCH_HIGHT_U;
-    }
-    last_lock_tick = HAL_GetTick(); // è¿žç‚¹æœ«å°¾è§¦å‘
-  }
-  else if (command->user_value == false && command->user_value_last == true)
-  {
-    command->user_status = SWITCH_LOW_U;
-  }
-  else
-  {
-    command->user_status = KEEP_U;
-  }
-  /* å½“å‰å‘½ä»¤å€¼ä¸ºå‰ä¸€æ¬¡å‘½ä»¤å€¼ */
-  command->user_value_last = command->user_value;
-}
-
-/**
- * @brief å‘½ä»¤æ‰§è¡Œæ—¶é—´æ›´æ–°
- *
- * @param command
- */
-void Cmd_HeartBeat(command_t *command)
-{
-  /* å‘½ä»¤æ‰§è¡Œæ—¶é—´æ›´æ–° */
-  if (command->cmd_status == RUNING_C) // å‘½ä»¤æ­£åœ¨æ‰§è¡Œ
-  {
-    if (command->run_time_max != OUT_TIME_OFF) // æ²¡æœ‰å…³é—­è¶…æ—¶é€€å‡º
-    {
-      command->run_time++;
-    }
-  }
-  else // å‘½ä»¤ä¸åœ¨æ‰§è¡Œ
-  {
-    command->run_time = 0;
-  }
-
-  /*è¶…æ—¶é€€å‡º*/
-  if (command->run_time > command->run_time_max)
-  {
-    Cmd_Clean(command);
-  }
-  /*å‘½ä»¤å€¼æ›´æ–°*/
-   Cmd_Value_Update(command);
-}
-
-/**
- * @brief å‘½ä»¤å€¼æ›´æ–°
- *
- * @param command
- */
-void Cmd_Value_Update(command_t *command)
-{
-  /* å‘½ä»¤å€¼æ›´æ–° */
-  switch (command->cmd_type)
-  {
-  case RISE_TRIGER_C:
-    if (command->user_status == SWITCH_HIGHT_U)
-    {
-      command->cmd_value = true;
-    }
-    else
-    {
-      command->cmd_value = false;
-    }
-    break;
-
-  case FALL_TRIGER_C:
-    if (command->user_status == SWITCH_LOW_U)
-    {
-      command->cmd_value = true;
-    }
-    else
-    {
-      command->cmd_value = false;
-    }
-    break;
-
-  case HIGH_TRIGER_C:
-    if (command->user_value == true)
-    {
-      command->cmd_value = true;
-    }
-    else
-    {
-      command->cmd_value = false;
-    }
-    break;
-
-  case LOW_TRIGER_C:
-    if (command->user_value == false)
-    {
-      command->cmd_value = true;
-    }
-    else
-    {
-      command->cmd_value = false;
-    }
-    break;
-
-  case NO_CMD:
-    command->cmd_value = false;
-    break;
-
-  default:
-    break;
-  }
-}
-
-/**
- * @brief å‘½ä»¤ç±»æ›´æ–° å‘½ä»¤æœ‰åˆå§‹åŒ–æ‰ä¼šæ›´æ–°
- *
- * @param command
- * @param condition é«˜ç”µå¹³æ¡ä»¶
- */
-void Cmd_Class_Update(command_t *command, bool condition)
-{
-  if (command->init_flag == INIT_C)
-  {
-    if (condition == true)
-    {
-      command->user_value = true;
-    }
-    else
-    {
-      command->user_value = false;
-    }
-  }
-
-  /*ç”¨æˆ·å‘½ä»¤çŠ¶æ€æ›´æ–°*/
-  User_Status_Update(command);
-  /*å‘½ä»¤å€¼æ›´æ–°*/
- // Cmd_Value_Update(command);
-}
-
-/**
- * @brief å‘½ä»¤æ ‡å¿—ä½æ¸…é›¶
- *
- * @param command
- */
-void Cmd_Clean(command_t *command)
-{
-  command->user_value = false;
-  command->user_value_last = false;
-  command->user_status = KEEP_U;
-
-  command->cmd_value = false;
-  command->cmd_status = FINISH_C;
-
-  command->run_time = 0;
-}
-
-/**
- * @brief å‘½ä»¤åˆ‡æ¢ä¸ºæ­£åœ¨æ‰§è¡Œ
- *
- * @param command
- */
-void Cmd_Switch_Run(command_t *command)
-{
-  command->cmd_status = RUNING_C;
-}
-
-/**
- * @brief å‘½ä»¤åˆ‡æ¢ä¸ºæ‰§è¡Œå®Œæˆ
- *
- * @param command
- */
-void Cmd_Switch_Finish(command_t *command)
-{
-  command->cmd_status = FINISH_C;
-}
+/**
+ * @file command.c
+ * @author your name (you@domain.com)
+ * @brief ÃüÁî°ü
+ * @version 0.1
+ * @date 2023-11-25
+ *
+ * @copyright Copyright (c) 2023
+ *
+ */
+
+/* Includes ------------------------------------------------------------------*/
+#include "command.h"
+
+/* Private function prototypes -----------------------------------------------*/
+
+void User_Status_Update(command_t *command);
+void Cmd_Switch_Run(command_t *command);
+void Cmd_Switch_Finish(command_t *command);
+void Cmd_Value_Update(command_t *command);
+void Cmd_HeartBeat(command_t *command);
+void Cmd_Class_Update(command_t *command, bool condition);
+void Cmd_Clean(command_t *command);
+
+/* Function  body --------------------------------------------------------*/
+
+/**
+ * @brief ÃüÁî³õÊ¼»¯
+ *
+ * @param command
+ */
+void Cmd_Class_Init(command_t *command)
+{
+  command->user_value = false;
+  command->user_value_last = false;
+  command->user_status = KEEP_U;
+
+  command->cmd_value = false;
+  command->cmd_status = FINISH_C;
+
+  command->run_time = 0;
+
+  command->update = Cmd_Class_Update;
+  command->s_run = Cmd_Switch_Run;
+  command->s_finish = Cmd_Switch_Finish;
+  command->clean = Cmd_Clean;
+  command->heartbeat = Cmd_HeartBeat;
+
+  command->init_flag = INIT_C; // ÃüÁî³õÊ¼»¯Íê³É
+}
+/**
+ * @brief ÓÃ»§ÃüÁî×´Ì¬¸üÐÂ
+ *
+ * @param command
+ */
+void User_Status_Update(command_t *command)
+{
+  /* ÓÃ»§ÃüÁî×´Ì¬¸üÐÂ */
+  static uint32_t last_lock_tick;
+
+  if (command->user_value == true && command->user_value_last == false)
+  {
+    // ·ÀÖ¹Ë«·¢ÃüÁî
+    if (command->Trigger_lock.Trigger_lock_on == 1)
+    {
+      if (HAL_GetTick() - last_lock_tick > command->Trigger_lock.lock_time)
+      {
+
+        command->user_status = SWITCH_HIGHT_U;
+        // last_lock_tick=HAL_GetTick();//Á¬µã³õ´Î´¥·¢
+      }
+    }
+
+    else
+    {
+      command->user_status = SWITCH_HIGHT_U;
+    }
+    last_lock_tick = HAL_GetTick(); // Á¬µãÄ©Î²´¥·¢
+  }
+  else if (command->user_value == false && command->user_value_last == true)
+  {
+    command->user_status = SWITCH_LOW_U;
+  }
+  else
+  {
+    command->user_status = KEEP_U;
+  }
+  /* µ±Ç°ÃüÁîÖµÎªÇ°Ò»´ÎÃüÁîÖµ */
+  command->user_value_last = command->user_value;
+}
+
+/**
+ * @brief ÃüÁîÖ´ÐÐÊ±¼ä¸üÐÂ
+ *
+ * @param command
+ */
+void Cmd_HeartBeat(command_t *command)
+{
+  /* ÃüÁîÖ´ÐÐÊ±¼ä¸üÐÂ */
+  if (command->cmd_status == RUNING_C) // ÃüÁîÕýÔÚÖ´ÐÐ
+  {
+    if (command->run_time_max != OUT_TIME_OFF) // Ã»ÓÐ¹Ø±Õ³¬Ê±ÍË³ö
+    {
+      command->run_time++;
+    }
+  }
+  else // ÃüÁî²»ÔÚÖ´ÐÐ
+  {
+    command->run_time = 0;
+  }
+
+  /*³¬Ê±ÍË³ö*/
+  if (command->run_time > command->run_time_max)
+  {
+    Cmd_Clean(command);
+  }
+  /*ÃüÁîÖµ¸üÐÂ*/
+   Cmd_Value_Update(command);
+}
+
+/**
+ * @brief ÃüÁîÖµ¸üÐÂ
+ *
+ * @param command
+ */
+void Cmd_Value_Update(command_t *command)
+{
+  /* ÃüÁîÖµ¸üÐÂ */
+  switch (command->cmd_type)
+  {
+  case RISE_TRIGER_C:
+    if (command->user_status == SWITCH_HIGHT_U)
+    {
+      command->cmd_value = true;
+    }
+    else
+    {
+      command->cmd_value = false;
+    }
+    break;
+
+  case FALL_TRIGER_C:
+    if (command->user_status == SWITCH_LOW_U)
+    {
+      command->cmd_value = true;
+    }
+    else
+    {
+      command->cmd_value = false;
+    }
+    break;
+
+  case HIGH_TRIGER_C:
+    if (command->user_value == true)
+    {
+      command->cmd_value = true;
+    }
+    else
+    {
+      command->cmd_value = false;
+    }
+    break;
+
+  case LOW_TRIGER_C:
+    if (command->user_value == false)
+    {
+      command->cmd_value = true;
+    }
+    else
+    {
+      command->cmd_value = false;
+    }
+    break;
+
+  case NO_CMD:
+    command->cmd_value = false;
+    break;
+
+  default:
+    break;
+  }
+}
+
+/**
+ * @brief ÃüÁîÀà¸üÐÂ ÃüÁîÓÐ³õÊ¼»¯²Å»á¸üÐÂ
+ *
+ * @param command
+ * @param condition ¸ßµçÆ½Ìõ¼þ
+ */
+void Cmd_Class_Update(command_t *command, bool condition)
+{
+  if (command->init_flag == INIT_C)
+  {
+    if (condition == true)
+    {
+      command->user_value = true;
+    }
+    else
+    {
+      command->user_value = false;
+    }
+  }
+
+  /*ÓÃ»§ÃüÁî×´Ì¬¸üÐÂ*/
+  User_Status_Update(command);
+  /*ÃüÁîÖµ¸üÐÂ*/
+ // Cmd_Value_Update(command);
+}
+
+/**
+ * @brief ÃüÁî±êÖ¾Î»ÇåÁã
+ *
+ * @param command
+ */
+void Cmd_Clean(command_t *command)
+{
+  command->user_value = false;
+  command->user_value_last = false;
+  command->user_status = KEEP_U;
+
+  command->cmd_value = false;
+  command->cmd_status = FINISH_C;
+
+  command->run_time = 0;
+}
+
+/**
+ * @brief ÃüÁîÇÐ»»ÎªÕýÔÚÖ´ÐÐ
+ *
+ * @param command
+ */
+void Cmd_Switch_Run(command_t *command)
+{
+  command->cmd_status = RUNING_C;
+}
+
+/**
+ * @brief ÃüÁîÇÐ»»ÎªÖ´ÐÐÍê³É
+ *
+ * @param command
+ */
+void Cmd_Switch_Finish(command_t *command)
+{
+  command->cmd_status = FINISH_C;
+}

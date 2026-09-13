@@ -5,9 +5,6 @@
 #include "cmsis_os.h"
 #include "drv_uart.h"
 #include "chassis.h"
-#include "Balance.h"
-#include "ui.h"
-#include "ui_priority.h"
-void StartRCTask(void const * argument);
+void StartUITask(void const * argument);
 
 #endif

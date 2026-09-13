@@ -15,7 +15,7 @@
  
 /* Includes ------------------------------------------------------------------*/
 #include "driver.h"
-#include "WL_debug_uart.h"
+
 /* Private macro -------------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 /* Private typedef -----------------------------------------------------------*/
@@ -28,9 +28,9 @@ void DRIVER_Init(void)
 {
 	USART1_Init();
 	USART5_Init();
-	USART7_Init();
-	USART10_Init();
 	USART8_Init();
+	USART9_Init();
+    USART10_Init();
 	CAN1_Filter_Init();
 	CAN2_Filter_Init();
 	CAN3_Filter_Init();

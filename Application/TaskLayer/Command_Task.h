@@ -5,7 +5,7 @@
 #include "cmsis_os.h"
 #include "rc_sensor.h"
 #include "rc_protocol.h"
-#include "Balance.h"
+#include "Board_protocol.h"
 void StartCommandTask(void const * argument);
 
 #endif

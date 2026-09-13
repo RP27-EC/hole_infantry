@@ -1,3 +1,4 @@
+
 /**
  * @file        rp_math.c
  * @author      RobotPilots
@@ -6,7 +7,7 @@
  * @update
  *              v1.0(11-September-2020)
  *              v1.1(13-November-2021)
- *                  1.å¢åŠ ä½æ“ä½œå‡½æ•°
+ *                  1.Ôö¼ÓÎ»²Ù×÷º¯Êı
  */
 
 /* Includes ------------------------------------------------------------------*/
@@ -21,225 +22,166 @@
 /* Exported functions --------------------------------------------------------*/
 
 /**
- *	@brief	è¿‡åŠåœˆå¤„ç† angleï¼šæºæ•°æ® cycle:æ•°æ®èŒƒå›´
+ * @brief  µÍÍ¨ÂË²¨,K¡Ê(0,1)£¬K Ô½´ó£¬ÂË²¨Ğ§¹ûÔ½Èõ
+ * @param  ÉÏ´ÎµÄÂË²¨Êä³öX_last  £¬ĞÂµÄÊäÈëX_new £¬ÂË²¨ÏµÊıK
+ * @return  ÂË²¨ºóÊıÖµ
  */
-float half_cycle(float angle, float max)
+float Lowpass(float X_last, float X_new, float K)
 {
-    if (my_abs(angle) > (max / 2.f))
-    {
-        if (angle >= 0)
-            angle += -max;
-        else
-            angle += max;
-    }
-    return angle;
+	return (X_last + (X_new - X_last) * K);
 }
 
 /**
- * @brief æ­¥è¿›å¼é™å¹…æ»¤æ³¢å‡½æ•°
- * @param new_value å½“å‰é‡‡æ ·å€¼
- * @param last_value ä¸Šä¸€æ¬¡çš„æ»¤æ³¢è¾“å‡ºå€¼
- * @param max_step æœ€å¤§æ­¥è¿›å€¼ï¼ˆæ­»åŒºé˜ˆå€¼ï¼‰
- * @return æœ¬æ¬¡æ»¤æ³¢åçš„å€¼
- new50,last0,max10,dif50>10,fil=0+10     new0,last20,max10,dif20>10,fil=20-10    new-50,last20,max10,dif70>10,fil=20-10   new10,last
+ *	@brief	¹ı°ëÈ¦´¦Àí angle£ºÔ´Êı¾İ cycle:Êı¾İ·¶Î§
+ */
+float motor_half_cycle(float angle, float max)
+{
+	if (abs(angle) > (max / 2))
+	{
+		if (angle >= 0)
+			angle += -max;
+		else
+			angle += max;
+	}
+	return angle;
+}
+
+int16_t RampInt(int16_t final, int16_t now, int16_t ramp)
+{
+	int32_t buffer = 0;
+
+	buffer = final - now;
+	if (buffer > 0)
+	{
+		if (buffer > ramp)
+			now += ramp;
+		else
+			now += buffer;
+	}
+	else
+	{
+		if (buffer < -ramp)
+			now += -ramp;
+		else
+			now += buffer;
+	}
+
+	return now;
+}
+
+float RampFloat(float final, float now, float ramp)
+{
+	float buffer = 0;
+
+	buffer = final - now;
+	if (buffer > 0)
+	{
+		if (buffer > ramp)
+			now += ramp;
+		else
+			now += buffer;
+	}
+	else
+	{
+		if (buffer < -ramp)
+			now += -ramp;
+		else
+			now += buffer;
+	}
+
+	return now;
+}
+
+
+
+
+float DeathZoom(float input, float center, float death)
+{
+	if (abs(input - center) < death)
+		return center;
+	return input;
+}
+/**
+  * @name   Time_Trigger_inloop
+  * @brief  ÔÚÑ­»·Àï¶¨Ê±´¥·¢
+  * @note   ¢ÙĞèÒªÍâ²¿¶¨Òå±äÁ¿´æÊ±¼ä¡¢µÚÒ»´Î²»Ö±½Ó´¥·¢±êÖ¾Î»,·ÀÖ¹¶à´¦µ÷ÓÃ¹²ÓÃÊ±¼ä»ò±êÖ¾Î»µ¼ÖÂ´íÎó
+  *         ¢ÚÒªÃ´×Ô¼ºÍâ²¿Çå±êÖ¾Î»£¬ÒªÃ´Ö´ĞĞµÄÄÚÈİÒª½ô¸úÕâ¸öº¯ÊıºóÃæ£¬²»È»ÈİÒ×´í¹ı´¥·¢Ê±¼ä
+  *         ¢Û*ignore_first_trigger_flagĞèÒª³õÊ¼Îª0
+			 ¢Ü*ignore_first_trigger_flag ÍË³ö³¤°´ºóÒªÇåÁã
+  * @param  private_flag: ±êÖ¾Î»Ö¸Õë£¬ÓÃÓÚÖ¸Ê¾ÊÇ·ñ´¥·¢£¨1Îª´¥·¢£©
+  * @param  last_trigger_tick: ÓÃÓÚ´æ´¢ÉÏ´Î´¥·¢µÄÊ±¼ä£¨Íâ²¿±äÁ¿£¬Ğè³õÊ¼»¯Îª0£©
+  * @param  ignore_first_trigger_flag: ÊÇ·ñºöÂÔµÚÒ»´Î´¥·¢µÄ±êÖ¾Î»£¨Íâ²¿±äÁ¿£¬Ğè³õÊ¼»¯Îª0,ÍË³ö³¤°´ºóÒªÇåÁã£©
+  * @param  delay_tick: ´¥·¢µÄÊ±¼ä¼ä¸ô£¨µ¥Î»£ººÁÃë£©
+  * @param  if_ignore_first: ÊÇ·ñºöÂÔµÚÒ»´Î´¥·¢£¨1ÎªºöÂÔ£¬0Îª²»ºöÂÔ£©
+  * @author HERMIT_PURPLE
+  */
+void Time_Trigger_inloop(Time_trigger_t *Time_trigger_struct)
+{
+	if (Time_trigger_struct->private_flag == NULL || Time_trigger_struct->last_trigger_tick == NULL || Time_trigger_struct->ignore_first_trigger_flag == NULL)
+	{
+		return;
+	}
+
+	// Èç¹û½øÀ´Õâ¸öº¯Êı²»Ö±½Ó´¥·¢Ò»´Î,¾ÍÏÈ¸³ÖµÒ»´ÎÉÏ´ÎµÄÊ±¼ä
+	if (Time_trigger_struct->if_ignore_first == 1 && Time_trigger_struct->ignore_first_trigger_flag == 0)
+	{
+		*Time_trigger_struct->ignore_first_trigger_flag = 1;
+		*Time_trigger_struct->last_trigger_tick = HAL_GetTick();
+	}
+
+	if ((HAL_GetTick() - *Time_trigger_struct->last_trigger_tick > Time_trigger_struct->delay_tick) && (Time_trigger_struct->ignore_first_trigger_flag != 0 || Time_trigger_struct->if_ignore_first == 0))
+	{
+		*Time_trigger_struct->private_flag = 1;
+		*Time_trigger_struct->last_trigger_tick = HAL_GetTick();
+	}
+	/*ÄÚ²¿Çå±êÖ¾Î»*/
+	else
+	{
+		*Time_trigger_struct->private_flag = Time_trigger_struct->flag_before_trigger;
+	}
+}
+
+
+uint16_t float_to_uint(float x, float x_min, float x_max, uint8_t bits)
+{
+    float span = x_max - x_min;
+    float offset = x_min;
+    
+    return (uint16_t) ((x-offset)*((float)((1<<bits)-1))/span);
+}
+
+/**
+  * @brief  ½«uint×ªÎªfloat£¬²¢¶ÔÕı¸º×ö´¦Àí
+  * @param
+  * @retval 
+  */
+float uint_to_float(uint16_t x_int, float x_min, float x_max, uint8_t bits)
+{
+    float span = x_max - x_min;
+    float offset = x_min;
+    return ((float)x_int)*span/((float)((1<<bits)-1)) + offset;
+}
+
+/**
+ * @brief ²½½øÊ½ÏŞ·ùÂË²¨º¯Êı
+ * @param new_value µ±Ç°²ÉÑùÖµ
+ * @param last_value ÉÏÒ»´ÎµÄÂË²¨Êä³öÖµ
+ * @param max_step ×î´ó²½½øÖµ£¨ËÀÇøãĞÖµ£©
+ * @return ±¾´ÎÂË²¨ºóµÄÖµ
  */
 float step_limit_filter(float new_value, float last_value, float max_step)
 {
     float filtered_value;
     float difference = new_value - last_value;
 
-    // å¦‚æœå˜åŒ–é‡è¶…è¿‡æœ€å¤§æ­¥è¿›å€¼ï¼Œåˆ™è¿›è¡Œé™å¹…æ­¥è¿›å¤„ç†
-    if (fabsf(difference) > max_step)
-    {
+    // Èç¹û±ä»¯Á¿³¬¹ı×î´ó²½½øÖµ£¬Ôò½øĞĞÏŞ·ù²½½ø´¦Àí
+    if (fabs(difference) > max_step) {
         filtered_value = last_value + sgn(difference) * max_step;
-    }
-    else
-    {
-        // å˜åŒ–é‡åœ¨å…è®¸èŒƒå›´å†…ï¼Œç›´æ¥é‡‡ç”¨æ–°é‡‡æ ·å€¼
+    } else {
+        // ±ä»¯Á¿ÔÚÔÊĞí·¶Î§ÄÚ£¬Ö±½Ó²ÉÓÃĞÂ²ÉÑùÖµ
         filtered_value = new_value;
     }
-
-    return filtered_value;
+    
+    return filtered_value; 
 }
 
-/*æµ®ç‚¹æ•°çº¿æ€§æ˜ å°„æˆæ•´æ•°*/
-int float_to_uint(float x, float x_min, float x_max, int bits)
-{
-    /// Converts a float to an unsigned int, given range and number of bits
-    ///
-    float span = x_max - x_min;
-    float offset = x_min;
-    return (int)((x - offset) * ((float)((1 << bits) - 1)) / span);
-}
-
-/*æ•´æ•°çº¿æ€§æ˜ å°„æˆæµ®ç‚¹æ•°*/
-float uint_to_float(int x_int, float x_min, float x_max, int bits)
-{
-    /// converts unsigned int to float, given range and number of bits ///
-    float span = x_max - x_min;
-    float offset = x_min;
-    return ((float)x_int) * span / ((float)((1 << bits) - 1)) + offset;
-}
-
-/**
- * @brief  å°†int16_tæ•´æ•°çº¿æ€§æ˜ å°„åˆ°æµ®ç‚¹æ•°ï¼ˆæŒ‡å®šè¾“å…¥è¾“å‡ºèŒƒå›´ï¼‰
- * @param  x_int: è¾“å…¥æ•´æ•°
- * @param  x_min, x_max: è¾“å…¥æ•´æ•°èŒƒå›´
- * @param  y_min, y_max: è¾“å‡ºæµ®ç‚¹æ•°èŒƒå›´
- * @retval æ˜ å°„åçš„æµ®ç‚¹æ•°
- */
-float int16_to_float(int16_t x_int, int16_t x_min, int16_t x_max, float y_min, float y_max)
-{
-    if (x_max == x_min)
-        return (y_max + y_min) / 2.0f;
-
-    float ratio = (float)(x_int - x_min) / (float)(x_max - x_min);
-    return ratio * (y_max - y_min) + y_min;
-}
-
-/**
- * @brief  å¿«é€Ÿå¼€æ–¹
- * @param
- * @retval
- */
-float my_sqrt(float num)
-{
-    float halfnum = 0.5f * num;
-    float y = num;
-    long i = *(long *)&y;
-    i = 0x5f3759df - (i >> 1);
-    y = *(float *)&i;
-    y = y * (1.5f - (halfnum * y * y));
-    return y;
-}
-
-/**
- * @brief  ä½é€šæ»¤æ³¢,kè¶Šå°æ»¤æ³¢è¶Šå¥½
- */
-float Lowpass(float X_last, float X_new, float K)
-{
-    return (X_last + (X_new - X_last) * K);
-}
-
-int16_t RampInt(int16_t final, int16_t now, int16_t ramp)
-{
-    int32_t buffer = 0;
-
-    buffer = final - now;
-    if (buffer > 0)
-    {
-        if (buffer > ramp)
-            now += ramp;
-        else
-            now += buffer;
-    }
-    else
-    {
-        if (buffer < -ramp)
-            now += -ramp;
-        else
-            now += buffer;
-    }
-
-    return now;
-}
-
-/**
- * @brief  angleumè·å–ä¸‹ä¸€ä¸ªå‘¨æœŸçš„å€¼ï¼Œæ–¹å‘ä¸ºæ­£
- */
-float get_next_periodic_value(float init_value, float current_value, float period)
-{
-    // è®¡ç®—å½“å‰å€¼ç›¸å¯¹äºåˆå§‹å€¼å·²ç»ç»å†äº†å¤šå°‘ä¸ªå®Œæ•´çš„å‘¨æœŸ
-    // æ³¨æ„: (int32_t)æˆªæ–­å–æ•´å¯¹è´Ÿæ•°è¡Œä¸ºä¸æ­£ç¡®ï¼Œå¿…é¡»ç”¨floor
-    int32_t cycles_completed = (int32_t)floorf((current_value - init_value) / period);
-
-    // è®¡ç®—ä¸‹ä¸€ä¸ªå‘¨æœŸçš„å€¼
-    float next_value = init_value + (float)(cycles_completed + 1) * period;
-
-    return next_value;
-}
-
-/**
- * @brief  angleè·å–ä¸‹ä¸€ä¸ªå‘¨æœŸçš„å€¼ï¼Œæ–¹å‘ä¸ºæ­£
- */
-float get_next_periodic_circle_value(float min, float max, float init_value, float current, float period)
-{
-    if (max <= min)
-        return current;
-
-    float range = max - min;
-    int32_t cycles_completed = (int32_t)((current - init_value) / period);
-    // è®¡ç®—ä¸‹ä¸€ä¸ªå‘¨æœŸçš„å€¼
-    float next_value = init_value + (cycles_completed + 1) * period;
-
-    if (next_value > max)
-    {
-        next_value -= range;
-    }
-    else if (next_value < min)
-    {
-        next_value += range;
-    }
-    return next_value;
-}
-
-float RampFloat(float final, float now, float ramp)
-{
-    float buffer = 0;
-
-    buffer = final - now;
-    if (buffer > 0)
-    {
-        if (buffer > ramp)
-            now += ramp;
-        else
-            now += buffer;
-    }
-    else
-    {
-        if (buffer < -ramp)
-            now += -ramp;
-        else
-            now += buffer;
-    }
-
-    return now;
-}
-
-float DeathZoom(float input, float center, float death)
-{
-    if (my_abs(input - center) < death)
-        return center;
-    return input;
-}
-
-/**
- * @brief  è·å–ç¦»current_valueæœ€è¿‘çš„å‘¨æœŸå€¼
- * @param  init_value: åˆå§‹å‘¨æœŸèµ·ç‚¹
- * @param  current_value: å½“å‰å€¼
- * @param  period: å‘¨æœŸé•¿åº¦
- * @retval ç¦»current_valueæœ€è¿‘çš„å‘¨æœŸå€¼ï¼ˆinit_value + n*period ä¸­çš„æŸä¸€ä¸ªï¼‰
- */
-float get_nearest_periodic_value(float init_value, float current_value, float period)
-{
-    float err = current_value - init_value;
-
-    /* è®¡ç®—ç›¸å¯¹äºinit_valueèµ°è¿‡çš„å®Œæ•´å‘¨æœŸæ•°ï¼ˆå‘é›¶å–æ•´ï¼‰ */
-    int32_t cycles_completed = (int32_t)(err / period);
-
-    /* ä»¥init_value + cycles_completed * periodä¸ºåŸºå‡† */
-    float nearest = init_value + cycles_completed * period;
-
-    /* å¦‚æœå½“å‰å€¼åå‘ä¸‹ä¸€ä¸ªå‘¨æœŸï¼Œåˆ™é€‰ä¸‹ä¸€ä¸ªå‘¨æœŸå€¼ */
-    if (err - cycles_completed * period > period * 0.5f)
-    {
-        nearest += period;
-    }
-    /* å¦‚æœå½“å‰å€¼åå‘ä¸Šä¸€ä¸ªå‘¨æœŸï¼Œåˆ™é€‰ä¸Šä¸€ä¸ªå‘¨æœŸå€¼ */
-    else if (err - cycles_completed * period < -period * 0.5f)
-    {
-        nearest -= period;
-    }
-
-    return nearest;
-}

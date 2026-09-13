@@ -1,133 +1,133 @@
-/**
-  ******************************************************************************
-  * @file    BRT_code.h
-  * @brief   BRTå•åœˆç»å¯¹å€¼ç¼–ç å™¨é©±åŠ¨
-  ******************************************************************************
-  * @attention
-  * 
-  * 
-  ******************************************************************************
-  */
-	
-#ifndef __BRT_CODE_H
-#define __BRT_CODE_H
-/* Includes ------------------------------------------------------------------*/
-#include "rp_config.h"
-#include "drv_can.h"
-
-/* Exported typedef ----------------------------------------------------------*/
-/*ç¼–ç å™¨æŒ‡ä»¤é›†*/
-typedef enum Code_BRT_Command
-{
-	Read_encoder = 0x01,//è¯»å–ç¼–ç å™¨å€¼
-	Set_Id,//è®¾ç½®ç¼–ç å™¨ID
-	Set_Baud,//è®¾ç½®CANé€šä¿¡æ³¢ç‰¹ç‡
-	Set_Code_Mode,//è®¾ç½®ç¼–ç å™¨æ¨¡å¼
-	Set_Receive_Time,//è®¾ç½®å›ä¼ æ—¶é—´
-	Set_Zero_Pole,//è®¾ç½®é›¶ç‚¹
-	Set_Dire,//è®¾ç½®æ–¹å‘
-	Read_sum_encoder,//è¯»å–å¤šåœˆå€¼
-	Read_Turn,//è¯»å–è™šæ‹Ÿåœˆæ•°
-	Read_speed,//è¯»å–ç¼–ç å™¨è§’é€Ÿåº¦å€¼
-	Set_Sample_Time,//è®¾ç½®é‡‡æ ·æ—¶é—´
-	Set_Mid_Pole,//è®¾ç½®ä¸­ç‚¹
-	Set_Num_Pole,//è®¾ç½®å½“å‰ä½ç½®å€¼
-	BRT_Command_Num,
-}Code_BRT_Command_e;
-
-
-typedef struct Code_BRT_Born_Info_struct_t
-{
-		uint32_t stdId;//æ ‡è¯†ID
-	
-    FDCAN_HandleTypeDef *hcan;
-}Code_BRT_Born_Info_t;
-
-
-typedef struct Code_BRT_Rx_Info_struct_t
-{
-    uint16_t angle_raw;//0~4096
-	
-    float angle;//0~2PI
-
-		int32_t speed_raw;//-2147483648~2147483647
-	
-    float speed;//rpm
-	
-	  uint32_t sum_angle_raw;//0~2147483647
-	
-		int32_t sum_encoder;//-1073741823~1073741823
-	
-	  float sum_angle;
-	
-		uint32_t sum_turn_raw;//0~524287
-	
-	  int32_t sum_turn;//-262143~262143
-}Code_BRT_Rx_Info_t;
-
-typedef struct Code_BRT_Tx_Info_struct_t
-{
-	uint8_t command_flag[BRT_Command_Num];//0:æœªå‘é€æŒ‡ä»¤  1ï¼šæŒ‡ä»¤å·²å‘é€  2ï¼šæŒ‡ä»¤æˆåŠŸæ¥æ”¶  3ï¼šæŒ‡ä»¤æ¥æ”¶å¤±è´¥
-	
-	uint8_t tx_buff[8];
-	
-	uint8_t new_id;
-}Code_BRT_Tx_Info_t;
-
-typedef struct Code_BRT_State_struct_t
-{
-    uint32_t offline_cnt;
-
-    uint32_t offline_cnt_max;
-
-    dev_work_state_t status;
-}Code_BRT_State_t;
-
-
-typedef struct Code_BRT_struct_t
-{
-	
-    Code_BRT_Born_Info_t* born_info;
-	
-    Code_BRT_Rx_Info_t* rx_info;
-	
-    Code_BRT_State_t* state;
-	
-	  Code_BRT_Tx_Info_t* tx_info;
-	
-	  void (*rx)(struct Code_BRT_struct_t *code, uint8_t *rxBuf);
-	
-	  void (*init)(struct Code_BRT_struct_t *code);
-	
-	  void (*single_heart_beat)(struct Code_BRT_struct_t *code);
-	
-		void (*set_receive_time)(struct Code_BRT_struct_t *code, uint16_t Time);
-	
-		void (*receive_encoder)(struct Code_BRT_struct_t *code);
-	
-	  void (*receive_speed)(struct Code_BRT_struct_t *code);
-	
-	  void (*receive_sum_encoder)(struct Code_BRT_struct_t *code);
-		
-		void (*receive_sum_turn)(struct Code_BRT_struct_t *code);
-	
-	  void (*set_mode)(struct Code_BRT_struct_t *code, uint8_t Mode);
-		
-		void (*set_id)(struct Code_BRT_struct_t *code, uint8_t id);
-		
-		void (*set_baud)(struct Code_BRT_struct_t *code, uint8_t Baud);
-		
-		void (*set_zero)(struct Code_BRT_struct_t *code);
-		
-		void (*set_mid)(struct Code_BRT_struct_t *code);
-		
-		void (*set_encoder)(struct Code_BRT_struct_t *code,uint16_t encoder);
-		
-		void (*set_dire)(struct Code_BRT_struct_t *code, uint8_t dire);
-		
-		void (*set_sample_time)(struct Code_BRT_struct_t* code, uint16_t time);
-}Code_BRT_t;
-
-void BRT_Code_Init(Code_BRT_t* code);
-
-#endif
+/**
+  ******************************************************************************
+  * @file    BRT_code.h
+  * @brief   BRTµ¥È¦¾ø¶ÔÖµ±àÂëÆ÷Çı¶¯
+  ******************************************************************************
+  * @attention
+  * 
+  * 
+  ******************************************************************************
+  */
+	
+#ifndef __BRT_CODE_H
+#define __BRT_CODE_H
+/* Includes ------------------------------------------------------------------*/
+#include "rp_config.h"
+#include "drv_can.h"
+
+/* Exported typedef ----------------------------------------------------------*/
+/*±àÂëÆ÷Ö¸Áî¼¯*/
+typedef enum Code_BRT_Command
+{
+	Read_encoder = 0x01,//¶ÁÈ¡±àÂëÆ÷Öµ
+	Set_Id,//ÉèÖÃ±àÂëÆ÷ID
+	Set_Baud,//ÉèÖÃCANÍ¨ĞÅ²¨ÌØÂÊ
+	Set_Code_Mode,//ÉèÖÃ±àÂëÆ÷Ä£Ê½
+	Set_Receive_Time,//ÉèÖÃ»Ø´«Ê±¼ä
+	Set_Zero_Pole,//ÉèÖÃÁãµã
+	Set_Dire,//ÉèÖÃ·½Ïò
+	Read_sum_encoder,//¶ÁÈ¡¶àÈ¦Öµ
+	Read_Turn,//¶ÁÈ¡ĞéÄâÈ¦Êı
+	Read_speed,//¶ÁÈ¡±àÂëÆ÷½ÇËÙ¶ÈÖµ
+	Set_Sample_Time,//ÉèÖÃ²ÉÑùÊ±¼ä
+	Set_Mid_Pole,//ÉèÖÃÖĞµã
+	Set_Num_Pole,//ÉèÖÃµ±Ç°Î»ÖÃÖµ
+	BRT_Command_Num,
+}Code_BRT_Command_e;
+
+
+typedef struct Code_BRT_Born_Info_struct_t
+{
+		uint32_t stdId;//±êÊ¶ID
+	
+    FDCAN_HandleTypeDef *hcan;
+}Code_BRT_Born_Info_t;
+
+
+typedef struct Code_BRT_Rx_Info_struct_t
+{
+    uint16_t angle_raw;//0~4096
+	
+    float angle;//0~2PI
+
+		int32_t speed_raw;//-2147483648~2147483647
+	
+    float speed;//rpm
+	
+	  uint32_t sum_angle_raw;//0~2147483647
+	
+		int32_t sum_encoder;//-1073741823~1073741823
+	
+	  float sum_angle;
+	
+		uint32_t sum_turn_raw;//0~524287
+	
+	  int32_t sum_turn;//-262143~262143
+}Code_BRT_Rx_Info_t;
+
+typedef struct Code_BRT_Tx_Info_struct_t
+{
+	uint8_t command_flag[BRT_Command_Num];//0:Î´·¢ËÍÖ¸Áî  1£ºÖ¸ÁîÒÑ·¢ËÍ  2£ºÖ¸Áî³É¹¦½ÓÊÕ  3£ºÖ¸Áî½ÓÊÕÊ§°Ü
+	
+	uint8_t tx_buff[8];
+	
+	uint8_t new_id;
+}Code_BRT_Tx_Info_t;
+
+typedef struct Code_BRT_State_struct_t
+{
+    uint32_t offline_cnt;
+
+    uint32_t offline_cnt_max;
+
+    dev_work_state_t status;
+}Code_BRT_State_t;
+
+
+typedef struct Code_BRT_struct_t
+{
+	
+    Code_BRT_Born_Info_t* born_info;
+	
+    Code_BRT_Rx_Info_t* rx_info;
+	
+    Code_BRT_State_t* state;
+	
+	  Code_BRT_Tx_Info_t* tx_info;
+	
+	  void (*rx)(struct Code_BRT_struct_t *code, uint8_t *rxBuf);
+	
+	  void (*init)(struct Code_BRT_struct_t *code);
+	
+	  void (*single_heart_beat)(struct Code_BRT_struct_t *code);
+	
+		void (*set_receive_time)(struct Code_BRT_struct_t *code, uint16_t Time);
+	
+		void (*receive_encoder)(struct Code_BRT_struct_t *code);
+	
+	  void (*receive_speed)(struct Code_BRT_struct_t *code);
+	
+	  void (*receive_sum_encoder)(struct Code_BRT_struct_t *code);
+		
+		void (*receive_sum_turn)(struct Code_BRT_struct_t *code);
+	
+	  void (*set_mode)(struct Code_BRT_struct_t *code, uint8_t Mode);
+		
+		void (*set_id)(struct Code_BRT_struct_t *code, uint8_t id);
+		
+		void (*set_baud)(struct Code_BRT_struct_t *code, uint8_t Baud);
+		
+		void (*set_zero)(struct Code_BRT_struct_t *code);
+		
+		void (*set_mid)(struct Code_BRT_struct_t *code);
+		
+		void (*set_encoder)(struct Code_BRT_struct_t *code,uint16_t encoder);
+		
+		void (*set_dire)(struct Code_BRT_struct_t *code, uint8_t dire);
+		
+		void (*set_sample_time)(struct Code_BRT_struct_t* code, uint16_t time);
+}Code_BRT_t;
+
+void BRT_Code_Init(Code_BRT_t* code);
+
+#endif

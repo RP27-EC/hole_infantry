@@ -1,20 +1,20 @@
 /* USER CODE BEGIN Header */
 /**
- ******************************************************************************
- * File Name          : freertos.c
- * Description        : Code for freertos applications
- ******************************************************************************
- * @attention
- *
- * Copyright (c) 2025 STMicroelectronics.
- * All rights reserved.
- *
- * This software is licensed under terms that can be found in the LICENSE file
- * in the root directory of this software component.
- * If no LICENSE file comes with this software, it is provided AS-IS.
- *
- ******************************************************************************
- */
+  ******************************************************************************
+  * File Name          : freertos.c
+  * Description        : Code for freertos applications
+  ******************************************************************************
+  * @attention
+  *
+  * Copyright (c) 2025 STMicroelectronics.
+  * All rights reserved.
+  *
+  * This software is licensed under terms that can be found in the LICENSE file
+  * in the root directory of this software component.
+  * If no LICENSE file comes with this software, it is provided AS-IS.
+  *
+  ******************************************************************************
+  */
 /* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
@@ -25,6 +25,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -46,13 +47,6 @@
 /* USER CODE BEGIN Variables */
 osSemaphoreId_t semTaskObserveToCtrl;
 osSemaphoreId_t semTaskCtrlToObserve;
-/* Definitions for RP_LogTask */
-osThreadId_t RP_LogTaskHandle;
-const osThreadAttr_t RP_LogTask_attributes = {
-    .name = "RP_LogTask",
-    .stack_size = 256 * 4,
-    .priority = (osPriority_t)osPriorityAboveNormal,
-};
 /* USER CODE END Variables */
 /* Definitions for MonitorTask */
 osThreadId_t MonitorTaskHandle;
@@ -86,13 +80,20 @@ const osThreadAttr_t UpdataTask_attributes = {
 osThreadId_t UITaskHandle;
 const osThreadAttr_t UITask_attributes = {
   .name = "UITask",
-  .stack_size = 256 * 4,
-  .priority = (osPriority_t) osPriorityBelowNormal,
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityAboveNormal,
+};
+/* Definitions for ConnectTask */
+osThreadId_t ConnectTaskHandle;
+const osThreadAttr_t ConnectTask_attributes = {
+  .name = "ConnectTask",
+  .stack_size = 512 * 4,
+  .priority = (osPriority_t) osPriorityHigh,
 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
-void StartRP_LogTask(void *argument);
+
 /* USER CODE END FunctionPrototypes */
 
 void StartMonitorTask(void *argument);
@@ -100,6 +101,7 @@ void StartCtrlTask(void *argument);
 void StartCommandTask(void *argument);
 void StartUpdataTask(void *argument);
 void StartUITask(void *argument);
+void StartConnectTask(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -145,10 +147,11 @@ void MX_FREERTOS_Init(void) {
   /* creation of UITask */
   UITaskHandle = osThreadNew(StartUITask, NULL, &UITask_attributes);
 
+  /* creation of ConnectTask */
+  ConnectTaskHandle = osThreadNew(StartConnectTask, NULL, &ConnectTask_attributes);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  /* creation of RP_LogTask */
-  RP_LogTaskHandle = osThreadNew(StartRP_LogTask, NULL, &RP_LogTask_attributes);
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -159,16 +162,16 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartMonitorTask */
 /**
- * @brief  Function implementing the MonitorTask thread.
- * @param  argument: Not used
- * @retval None
- */
+  * @brief  Function implementing the MonitorTask thread.
+  * @param  argument: Not used
+  * @retval None
+  */
 /* USER CODE END Header_StartMonitorTask */
 __weak void StartMonitorTask(void *argument)
 {
   /* USER CODE BEGIN StartMonitorTask */
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
     osDelay(1);
   }
@@ -177,16 +180,16 @@ __weak void StartMonitorTask(void *argument)
 
 /* USER CODE BEGIN Header_StartCtrlTask */
 /**
- * @brief Function implementing the CtrlTask thread.
- * @param argument: Not used
- * @retval None
- */
+* @brief Function implementing the CtrlTask thread.
+* @param argument: Not used
+* @retval None
+*/
 /* USER CODE END Header_StartCtrlTask */
 __weak void StartCtrlTask(void *argument)
 {
   /* USER CODE BEGIN StartCtrlTask */
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
     osDelay(1);
   }
@@ -195,16 +198,16 @@ __weak void StartCtrlTask(void *argument)
 
 /* USER CODE BEGIN Header_StartCommandTask */
 /**
- * @brief Function implementing the CommandTask thread.
- * @param argument: Not used
- * @retval None
- */
+* @brief Function implementing the CommandTask thread.
+* @param argument: Not used
+* @retval None
+*/
 /* USER CODE END Header_StartCommandTask */
 __weak void StartCommandTask(void *argument)
 {
   /* USER CODE BEGIN StartCommandTask */
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
     osDelay(1);
   }
@@ -213,16 +216,16 @@ __weak void StartCommandTask(void *argument)
 
 /* USER CODE BEGIN Header_StartUpdataTask */
 /**
- * @brief Function implementing the UpdataTask thread.
- * @param argument: Not used
- * @retval None
- */
+* @brief Function implementing the UpdataTask thread.
+* @param argument: Not used
+* @retval None
+*/
 /* USER CODE END Header_StartUpdataTask */
 __weak void StartUpdataTask(void *argument)
 {
   /* USER CODE BEGIN StartUpdataTask */
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
     osDelay(1);
   }
@@ -231,20 +234,38 @@ __weak void StartUpdataTask(void *argument)
 
 /* USER CODE BEGIN Header_StartUITask */
 /**
- * @brief Function implementing the UITask thread.
- * @param argument: Not used
- * @retval None
- */
+* @brief Function implementing the UITask thread.
+* @param argument: Not used
+* @retval None
+*/
 /* USER CODE END Header_StartUITask */
 __weak void StartUITask(void *argument)
 {
   /* USER CODE BEGIN StartUITask */
   /* Infinite loop */
-  for (;;)
+  for(;;)
   {
     osDelay(1);
   }
   /* USER CODE END StartUITask */
+}
+
+/* USER CODE BEGIN Header_StartConnectTask */
+/**
+* @brief Function implementing the ConnectTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartConnectTask */
+__weak void StartConnectTask(void *argument)
+{
+  /* USER CODE BEGIN StartConnectTask */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END StartConnectTask */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -1,274 +1,168 @@
 
-
 #include "Command_Instance.h"
+#include "Board_protocol.h"
+#include "Balance.h"
 
-command_t command[COMMAND_LIST] =
-
-    {
-
-        [JUMP] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-
-        [KNEE_STRIKE] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-
-        [JUMP_THEN_KNEE_STRIKE] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-
-        [SW_MID_LENGTH] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-
-        [JUMP_AND_MID] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-
-        [RTS] = {
-            .cmd_type = RISE_TRIGER_C,
-            .run_time_max = OUT_TIME_OFF,
-            .init = Cmd_Class_Init,
-        },
-
-        [Energy_Engine_Mode] = {
-
-            .cmd_type = HIGH_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-        [Outpost_Mode] = {
-
-            .cmd_type = HIGH_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-
-        [Reset_to_Normal] = {
-
-            .cmd_type = HIGH_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-        [PRE_CHARGE_MODE] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
-        [GIMBAL_180] = {
-
-            .cmd_type = RISE_TRIGER_C,
-
-            .run_time_max = OUT_TIME_OFF,
-
-            .init = Cmd_Class_Init,
-
-        },
+command_t command[COMMAND_LIST] = 
+{
+  [JUMP] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+  [KNEE_STRIKE] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+	
+	[U_TURN] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+	[R_TURN45] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+	
+	[L_TURN45] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+	
+	[FLY] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+	[RESERVE_FLY] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+  [LOB] = {
+    .cmd_type = RISE_TRIGER_C,
+    .run_time_max = OUT_TIME_OFF,  
+	.init = Cmd_Class_Init,
+	},
+	
 
 };
 
 /**
-
- * @brief ÂëΩ‰ª§ÂàùÂßãÂåñÔºåË∞ÉÁî®‰∏ÄÊ¨°
-
+ * @brief √¸¡Ó≥ı ºªØ£¨µ˜”√“ª¥Œ
  */
-
 void Cmd_Init(void)
-
 {
-
-    for (uint8_t i = 0; i < COMMAND_LIST; i++)
-
-    {
-
-        command[i].init(&command[i]);
-    }
+	for(uint8_t i = 0; i < COMMAND_LIST; i++)
+	{
+		command[i].init(&command[i]);
+	}
 }
-
 /**
-
- * @brief ÂëΩ‰ª§ÂøÉË∑≥ Âæ™ÁéØË∞ÉÁî®
-
+ * @brief √¸¡Ó–ƒÃ¯ —≠ª∑µ˜”√
  */
-
 void Cmd_Heartbeat(void)
-
 {
-
-    for (uint8_t i = 0; i < COMMAND_LIST; i++)
-
-    {
-
-        command[i].heartbeat(&command[i]);
-    }
+	for(uint8_t i = 0; i < COMMAND_LIST; i++)
+	{
+		command[i].heartbeat(&command[i]);
+	}
 }
-
 /**
-
- * @brief ÂëΩ‰ª§Êõ¥Êñ∞ Âæ™ÁéØË∞ÉÁî®
-
+ * @brief √¸¡Ó∏¸–¬ —≠ª∑µ˜”√
  */
-
 void Command_Update(void)
-
 {
+	static uint32_t RC_ONLINE_TICK;
+	rc_sensor_info_t*  rc_info=Balance.rc->sensor->info;
+	
+	if(Balance.rc->sensor->work_state==DEV_ONLINE)
+	{
+		RC_ONLINE_TICK++;
+	}
+	else
+	{
+		RC_ONLINE_TICK=0;
+	}
+	static uint8_t last_rc_info_s1;
+	static uint8_t last_rc_info_s2;
+	static uint8_t last_rc_info_wheel[4];
+	static uint8_t fly_step;
+	
+	
+	if(RC_ONLINE_TICK>=200)//∆¡±Œø™øÿ√¸¡Ó
+	{
+		/*√¸¡Ó∏¸–¬ÃÓ’‚¿Ô*/
+		if(Balance.ctrl == RC_CTRL)
+		{
+//			command[JUMP].update(&command[JUMP],rc_info->s1 == RC_SW_UP && rc_info->s2 ==  RC_SW_UP 
+//		                       && ((rc_info->thumbwheel.step[0] != last_rc_info_wheel[0])||(rc_info->thumbwheel.step[1] != last_rc_info_wheel[1])));
+//		
+//		  command[KNEE_STRIKE].update(&command[KNEE_STRIKE],rc_info->s1 == RC_SW_UP && rc_info->s2 ==  RC_SW_UP 
+//		                              && ((rc_info->thumbwheel.step[2] != last_rc_info_wheel[2])||(rc_info->thumbwheel.step[3] != last_rc_info_wheel[3])));
+//		
+//			command[U_TURN].update(&command[U_TURN],rc_info->s1 == RC_SW_DOWN && rc_info->s2 ==  RC_SW_UP 
+//		                              && ((rc_info->thumbwheel.step[0] != last_rc_info_wheel[0])||(rc_info->thumbwheel.step[1] != last_rc_info_wheel[1])));
+			
+			
+			command[JUMP].update(&command[JUMP],rc_info->s1 == RC_SW_DOWN && rc_info->s2 ==  RC_SW_UP 
+		                       && ((rc_info->thumbwheel.step[0] != last_rc_info_wheel[0])||(rc_info->thumbwheel.step[1] != last_rc_info_wheel[1])));
+		
+		  command[KNEE_STRIKE].update(&command[KNEE_STRIKE],rc_info->s1 == RC_SW_DOWN && rc_info->s2 ==  RC_SW_UP 
+		                              && ((rc_info->thumbwheel.step[2] != last_rc_info_wheel[2])||(rc_info->thumbwheel.step[3] != last_rc_info_wheel[3])));
+		
+			command[U_TURN].update(&command[U_TURN],rc_info->s1 == RC_SW_DOWN && rc_info->s2 ==  RC_SW_MID 
+		                              && ((rc_info->thumbwheel.step[0] != last_rc_info_wheel[0])||(rc_info->thumbwheel.step[1] != last_rc_info_wheel[1])));
+			
+//		  command[FLY].update(&command[FLY],rc_info->s1 == RC_SW_DOWN && rc_info->s2 ==  RC_SW_MID 
+//		                              && ((rc_info->thumbwheel.step[0] != last_rc_info_wheel[0])||(rc_info->thumbwheel.step[1] != last_rc_info_wheel[1])));
+//		
+//		  command[RESERVE_FLY].update(&command[RESERVE_FLY],rc_info->s1 == RC_SW_DOWN && rc_info->s2 ==  RC_SW_MID 
+//		                              && ((rc_info->thumbwheel.step[2] != last_rc_info_wheel[2])||(rc_info->thumbwheel.step[3] != last_rc_info_wheel[3])));
+		}
+		
+		else if(Balance.ctrl == KEY_CTRL)
+		{
+			command[JUMP].update(&command[JUMP],rc_info->Q.status == release_to_press);
+		
+		  command[KNEE_STRIKE].update(&command[KNEE_STRIKE],rc_info->C.status == release_to_press);
+			
+			command[U_TURN].update(&command[U_TURN],rc_info->R.status == release_to_press );//&& (D_Board_Tx_Pkt.vision_mode == 0 || (D_Board_Tx_Pkt.vision_mode != 0 && D_Board_Rx_Info.vision_state == 0))
+			
+//			command[L_TURN45].update(&command[L_TURN45],rc_info->Q.status == release_to_press);
+//			
+//			command[R_TURN45].update(&command[R_TURN45],rc_info->E.status == release_to_press);
+		
+//			if(rc_info->F.status == release_to_press)
+//			{
+//				fly_step ++;
+//			}
+//			
+		  command[FLY].update(&command[FLY], rc_info->G.status == release_to_press);
+//		
+//		  command[RESERVE_FLY].update(&command[RESERVE_FLY],rc_info->F.status == release_to_press && fly_step % 3 == 1);
+//			
+//			command[LOB].update(&command[LOB],(rc_info->Shift.status == release_to_press || rc_info->Shift.status == short_press || rc_info->Shift.status == long_press)
+//		                                    && rc_info->Z.status == release_to_press);
+			
+		}
 
-    static uint32_t RC_ONLINE_TICK;
-
-    rc_sensor_info_t *rc_info = Balance.rc->sensor->info;
-
-    static uint8_t wheel_up, last_wheel_up, wheel_dn, last_wheel_dn = 0;
-
-    last_wheel_up = wheel_up;
-
-    wheel_up = rc_info->thumbwheel.step[RC_TB_UP];
-
-    last_wheel_dn = wheel_dn;
-
-    wheel_dn = rc_info->thumbwheel.step[RC_TB_DN];
-
-    if (Balance.rc->sensor->work_state == DEV_ONLINE)
-    {
-        RC_ONLINE_TICK++;
-    }
-
-    else
-    {
-        RC_ONLINE_TICK = 0;
-    }
-
-    static uint8_t last_rc_info_s1;
-
-    if (RC_ONLINE_TICK >= 200) // Èò≤Ê≠¢ÂºÄÊéßÊó∂Ëß¶ÂèëÂëΩ‰ª§
-
-    {
-
-        if (Balance.ctrl != KEY_CTRL)
-
-        {
-            command[Outpost_Mode].update(&command[Outpost_Mode], rc_info->s1 == RC_SW_MID &&
-                                                                     rc_info->s2 == RC_SW_UP &&
-                                                                     wheel_dn != last_wheel_dn);
-            command[Energy_Engine_Mode].update(&command[Energy_Engine_Mode], rc_info->s1 == RC_SW_MID &&
-                                                                                 rc_info->s2 == RC_SW_DOWN &&
-                                                                                 wheel_dn != last_wheel_dn);
-            // command[JUMP].update(&command[JUMP], rc_info->s1 == RC_SW_UP &&
-
-            //                                          rc_info->s2 == RC_SW_UP &&
-
-            //                                          wheel_up != last_wheel_up &&
-            //                                          Balance.Flag->KNEE_STRIKE_Flag == false &&
-            //                                          Balance.Flag->Middle_Flag == false);
-            // command[RTS].update(&command[RTS], rc_info->s1 == RC_SW_UP &&
-            //                                        rc_info->s2 == RC_SW_UP &&
-            //                                        wheel_up != last_wheel_up &&
-            //                                        Balance.Flag->KNEE_STRIKE_Flag == false &&
-            //                                        Balance.Flag->Jumping_Flag == false &&
-            //                                        Balance.Flag->Middle_Flag == false);
-
-            command[KNEE_STRIKE].update(&command[KNEE_STRIKE], rc_info->s1 == RC_SW_UP &&
-
-                                                                   rc_info->s2 == RC_SW_UP &&
-
-                                                                   wheel_dn != last_wheel_dn &&
-                                                                   Balance.Flag->Middle_Flag == false &&
-                                                                   Balance.Flag->JUMP_AND_MID_Flag == false);
-
-            command[SW_MID_LENGTH].update(&command[SW_MID_LENGTH], rc_info->s1 == RC_SW_UP &&
-
-                                                                       rc_info->s2 == RC_SW_MID &&
-
-                                                                       wheel_dn != last_wheel_dn &&
-                                                                       Balance.Flag->KNEE_STRIKE_Flag == false &&
-                                                                       Balance.Flag->JUMP_AND_MID_Flag == false);
-
-            command[Reset_to_Normal].update(&command[Reset_to_Normal], rc_info->s1 == RC_SW_UP &&
-                                                                           rc_info->s2 == RC_SW_DOWN &&
-                                                                           wheel_up != last_wheel_up);
-
-            // command[PRE_CHARGE_MODE].update(&command[PRE_CHARGE_MODE], rc_info->s1 == RC_SW_DOWN &&
-            //                                                                rc_info->s2 == RC_SW_UP &&
-            //                                                                wheel_up != last_wheel_up);
-        }
-
-        else
-
-        {
-            command[Outpost_Mode].update(&command[Outpost_Mode], rc_info->E.value == true);
-            command[Energy_Engine_Mode].update(&command[Energy_Engine_Mode], rc_info->X.value == true);
-
-            command[KNEE_STRIKE].update(&command[KNEE_STRIKE], rc_info->C.status == release_to_press &&
-                                                                   Balance.Flag->Middle_Flag == false &&
-                                                                   Balance.Flag->JUMP_AND_MID_Flag == false &&
-                                                                   Balance.Flag->KNEE_STRIKE_Flag != true);
-
-            command[Reset_to_Normal].update(&command[Reset_to_Normal], rc_info->Ctrl.status == release_to_press);
-
-            command[SW_MID_LENGTH].update(&command[SW_MID_LENGTH], rc_info->G.status == release_to_press &&
-                                                                       Balance.Flag->KNEE_STRIKE_Flag == false &&
-                                                                       Balance.Flag->JUMP_AND_MID_Flag == false &&
-                                                                       Balance.Flag->Middle_Flag != true);
-
-            command[JUMP].update(&command[JUMP], rc_info->Q.status == release_to_press &&
-                                                     Balance.Flag->KNEE_STRIKE_Flag == false &&
-                                                     Balance.Flag->Middle_Flag == false);
-
-            // command[RTS].update(&command[RTS],
-            //                     rc_info->Q.status == release_to_press &&
-            //                         Chassis.mode == C_Follow &&
-            //                         Balance.Flag->Middle_Flag == false &&
-            //                         Balance.Flag->JUMP_AND_MID_Flag == false &&
-            //                         Balance.Flag->KNEE_STRIKE_Flag == false &&
-            //                         Balance.Flag->RTS_Flag == false);
-            // command[PRE_CHARGE_MODE].update(&command[PRE_CHARGE_MODE],);
-            command[GIMBAL_180].update(&command[GIMBAL_180], rc_info->R.status == release_to_press &&
-                                                                 Balance.Flag->GIMBAL_180_Flag != true);
-        }
-    }
-
-    last_rc_info_s1 = rc_info->s1;
+	}
+	
+	
+	last_rc_info_s1 = rc_info->s1;
+	last_rc_info_s2 = rc_info->s2;
+	for(uint8_t i = 0; i < 4;i++)
+	{
+		last_rc_info_wheel[i] = rc_info->thumbwheel.step[i];
+	}
+	
+	
 }
+
+
+

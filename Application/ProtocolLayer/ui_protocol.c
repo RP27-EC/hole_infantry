@@ -1,1022 +1,447 @@
-
+/**
+ * @file ui_protocol.c
+ * @brief uiĞ­Òé²ã
+ * @version 0.1
+ */
 
 #include "ui_protocol.h"
-
 #include "crc.h"
-
 #include "string.h"
-
 #include "stdbool.h"
-
 #include "stdio.h"
-
 #include "judge_protocol.h"
-
 #include "judge.h"
 
-/* é…ç½®åŒº begin */
-
-#define UI_huart huart1 // ä¸²å£æ¥å£
-
+/* ÅäÖÃÇø begin */
+#define UI_huart huart1 // ´®¿Ú½Ó¿Ú
 extern UART_HandleTypeDef UI_huart;
 
 client_info_t client_info =
-
-    {
-
-        .robot_id = 1,
-
-        .client_id = 0x0101,
-
+{
+    .robot_id = 1,
+    .client_id = 0x0101,
 };
 
 __attribute__((section(".AXI_SRAM"))) uint8_t client_tx_buf[128];
 
 /**
-
- * @brief æ›´æ–°çº¢è“æ–¹æœºå™¨äººä¿¡æ¯ï¼Œåœ¨è£åˆ¤ç³»ç»Ÿæ¥å—ä¸­æ–­ä¸­è°ƒç”¨
-
- *
-
+ * @brief ¸üĞÂºìÀ¶·½»úÆ÷ÈËĞÅÏ¢£¬ÔÚ²ÃÅĞÏµÍ³½ÓÊÜÖĞ¶ÏÖĞµ÷ÓÃ
  */
-
 void client_info_update(void)
-
 {
-
-    switch (My_Judge.org_info->game_robot_status.robot_id)
-
+    switch (judge.info->robot_status.robot_id)
     {
-
-    case 1: // çº¢æ–¹è‹±é›„
-
+    case 1: // ºì·½Ó¢ĞÛ
         client_info.robot_id = 1;
-
         client_info.client_id = 0x0101;
-
         break;
-
-    case 2: // çº¢æ–¹å·¥ç¨‹
-
+    case 2: // ºì·½¹¤³Ì
         client_info.robot_id = 2;
-
         client_info.client_id = 0x0102;
-
         break;
-
-    case 3: // çº¢æ–¹æ­¥å…µ
-
+    case 3: // ºì·½²½±ø
         client_info.robot_id = 3;
-
         client_info.client_id = 0x0103;
-
         break;
-
-    case 4: // çº¢æ–¹æ­¥å…µ
-
+    case 4: // ºì·½²½±ø
         client_info.robot_id = 4;
-
         client_info.client_id = 0x0104;
-
         break;
-
-    case 5: // çº¢æ–¹æ­¥å…µ
-
+    case 5: // ºì·½²½±ø
         client_info.robot_id = 5;
-
         client_info.client_id = 0x0105;
-
         break;
-
-    case 101: // è“æ–¹è‹±é›„
-
+    case 101: // À¶·½Ó¢ĞÛ
         client_info.robot_id = 101;
-
         client_info.client_id = 0x0165;
-
         break;
-
-    case 102: // è“æ–¹å·¥ç¨‹
-
+    case 102: // À¶·½¹¤³Ì
         client_info.robot_id = 102;
-
         client_info.client_id = 0x0166;
-
         break;
-
-    case 103: // è“æ–¹æ­¥å…µ
-
+    case 103: // À¶·½²½±ø
         client_info.robot_id = 103;
-
         client_info.client_id = 0x0167;
-
         break;
-
-    case 104: // è“æ–¹æ­¥å…µ
-
+    case 104: // À¶·½²½±ø
         client_info.robot_id = 104;
-
         client_info.client_id = 0x0168;
-
         break;
-
-    case 105: // è“æ–¹æ­¥å…µ
-
+    case 105: // À¶·½²½±ø
         client_info.robot_id = 105;
-
         client_info.client_id = 0x0169;
-
         break;
-
-    default: // æ”¶ä¸åˆ°è£åˆ¤ç³»ç»Ÿæ•°æ®
-
+    default: // ÊÕ²»µ½²ÃÅĞÏµÍ³Êı¾İ
         client_info.robot_id = 1;
-
         client_info.client_id = 0x0101;
-
         break;
     }
 }
+/* ÅäÖÃÇø end */
 
-/* é…ç½®åŒº end */
-
-/******************************è·å–å›¾åƒæ•°æ®å¸§begin******************************/
-
+/******************************»ñÈ¡Í¼ÏñÊı¾İÖ¡begin******************************/
 /**
-
-  * @brief  è·å–ç›´çº¿æ•°æ®å¸§
-
+  * @brief  »ñÈ¡Ö±ÏßÊı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_line(char *name, // å›¾å½¢å
-
-                                uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                                uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                                uint8_t color, // é¢œè‰²
-
-                                uint16_t width, // çº¿æ¡å®½åº¦
-
-                                uint16_t start_x, // èµ·ç‚¹ x åæ ‡
-
-                                uint16_t start_y, // èµ·ç‚¹ y åæ ‡
-
-                                uint16_t end_x, // ç»ˆç‚¹ x åæ ‡
-
-                                uint16_t end_y) // ç»ˆç‚¹ y åæ ‡
-
+graphic_data_struct_t draw_line(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t width, uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 0;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = 0;
-
     data.end_angle = 0;
-
     data.width = width;
-
     data.start_x = start_x;
-
     data.start_y = start_y;
-
     data.radius = 0;
-
     data.end_x = end_x;
-
     data.end_y = end_y;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–çŸ©å½¢æ•°æ®å¸§
-
+  * @brief  »ñÈ¡¾ØĞÎÊı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_rectangle(char *name, // å›¾å½¢å
-
-                                     uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                                     uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                                     uint8_t color, // é¢œè‰²DSFZa
-
-                                     uint16_t width, // çº¿æ¡å®½åº¦
-
-                                     uint16_t start_x, // èµ·ç‚¹ x åæ ‡
-
-                                     uint16_t start_y, // èµ·ç‚¹ y åæ ‡
-
-                                     uint16_t end_x, // å¯¹è§’é¡¶ç‚¹ x åæ ‡
-
-                                     uint16_t end_y) // å¯¹è§’é¡¶ç‚¹ y åæ ‡
-
+graphic_data_struct_t draw_rectangle(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t width, uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 1;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = 0;
-
     data.end_angle = 0;
-
     data.width = width;
-
     data.start_x = start_x;
-
     data.start_y = start_y;
-
     data.radius = 0;
-
     data.end_x = end_x;
-
     data.end_y = end_y;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–æ•´åœ†æ•°æ®å¸§
-
+  * @brief  »ñÈ¡ÕûÔ²Êı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_circle(char *name, // å›¾å½¢å
-
-                                  uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                                  uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                                  uint8_t color, // é¢œè‰²
-
-                                  uint16_t width, // çº¿æ¡å®½åº¦
-
-                                  uint16_t ciclemid_x, // åœ†å¿ƒ x åæ ‡
-
-                                  uint16_t ciclemid_y, // åœ†å¿ƒ y åæ ‡
-
-                                  uint16_t radius) // åŠå¾„
-
+graphic_data_struct_t draw_circle(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t width, uint16_t ciclemid_x, uint16_t ciclemid_y, uint16_t radius)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 2;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = 0;
-
     data.end_angle = 0;
-
     data.width = width;
-
     data.start_x = ciclemid_x;
-
     data.start_y = ciclemid_y;
-
     data.radius = radius;
-
     data.end_x = 0;
-
     data.end_y = 0;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–æ¤­åœ†æ•°æ®å¸§
-
+  * @brief  »ñÈ¡ÍÖÔ²Êı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_ellipse(char *name, // å›¾å½¢å
-
-                                   uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                                   uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                                   uint8_t color, // é¢œè‰²
-
-                                   uint16_t width, // çº¿æ¡å®½åº¦
-
-                                   uint16_t start_x, // åœ†å¿ƒ x åæ ‡
-
-                                   uint16_t start_y, // åœ†å¿ƒ y åæ ‡
-
-                                   uint16_t end_x, // x åŠè½´é•¿åº¦
-
-                                   uint16_t end_y) // y åŠè½´é•¿åº¦
-
+graphic_data_struct_t draw_ellipse(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t width, uint16_t start_x, uint16_t start_y, uint16_t end_x, uint16_t end_y)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 3;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = 0;
-
     data.end_angle = 0;
-
     data.width = width;
-
     data.start_x = start_x;
-
     data.start_y = start_y;
-
     data.radius = 0;
-
     data.end_x = end_x;
-
     data.end_y = end_y;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–åœ†å¼§æ•°æ®å¸§
-
+  * @brief  »ñÈ¡Ô²»¡Êı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_arc(char *name, // å›¾å½¢å
-
-                               uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                               uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                               uint8_t color, // é¢œè‰²
-
-                               uint16_t start_angle, // èµ·å§‹è§’åº¦
-
-                               uint16_t end_angle, // ç»ˆæ­¢è§’åº¦
-
-                               uint16_t width, // çº¿æ¡å®½åº¦
-
-                               uint16_t circlemin_x, // åœ†å¿ƒ x åæ ‡
-
-                               uint16_t circlemin_y, // åœ†å¿ƒ y åæ ‡
-
-                               uint16_t end_x, // x åŠè½´é•¿åº¦
-
-                               uint16_t end_y) // y åŠè½´é•¿åº¦
-
+graphic_data_struct_t draw_arc(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t start_angle, uint16_t end_angle, uint16_t width, uint16_t circlemin_x, uint16_t circlemin_y, uint16_t end_x, uint16_t end_y)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 4;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = start_angle;
-
     data.end_angle = end_angle;
-
     data.width = width;
-
     data.start_x = circlemin_x;
-
     data.start_y = circlemin_y;
-
     data.radius = 0;
-
     data.end_x = end_x;
-
     data.end_y = end_y;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–æµ®ç‚¹æ•°æ•°æ®å¸§
-
+  * @brief  »ñÈ¡¸¡µãÊıÊı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_float(char *name, // å›¾å½¢å
-
-                                 uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                                 uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                                 uint8_t color, // é¢œè‰²
-
-                                 uint16_t size, // å­—ä½“å¤§å°
-
-                                 uint16_t decimal, // å°æ•°ä½æœ‰æ•ˆä¸ªæ•°
-
-                                 uint16_t width, // çº¿æ¡å®½åº¦
-
-                                 uint16_t start_x, // èµ·ç‚¹ x åæ ‡
-
-                                 uint16_t start_y, // èµ·ç‚¹ y åæ ‡
-
-                                 int32_t num) // ä¹˜ä»¥ 1000 åï¼Œä»¥ 32 ä½æ•´å‹æ•°ï¼Œint32_t
-
+graphic_data_struct_t draw_float(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t size, uint16_t decimal, uint16_t width, uint16_t start_x, uint16_t start_y, int32_t num)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 5;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = size;
-
     data.end_angle = decimal;
-
     data.width = width;
-
     data.start_x = start_x;
-
     data.start_y = start_y;
-
     data.radius = num;
-
     data.end_x = num >> 10;
-
     data.end_y = num >> 21;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–æ•´å‹æ•°æ•°æ®å¸§
-
+  * @brief  »ñÈ¡ÕûĞÍÊıÊı¾İÖ¡
   * @param
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_int(char *name, // å›¾å½¢å
-
-                               uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                               uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                               uint8_t color, // é¢œè‰²
-
-                               uint16_t size, // å­—ä½“å¤§å°
-
-                               uint16_t width, // çº¿æ¡å®½åº¦
-
-                               uint16_t start_x, // èµ·ç‚¹ x åæ ‡
-
-                               uint16_t start_y, // èµ·ç‚¹ y åæ ‡
-
-                               int32_t num) // 32 ä½æ•´å‹æ•°ï¼Œint32_t
-
+graphic_data_struct_t draw_int(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t size, uint16_t width, uint16_t start_x, uint16_t start_y, int32_t num)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 6;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = size;
-
     data.end_angle = 0;
-
     data.width = width;
-
     data.start_x = start_x;
-
     data.start_y = start_y;
-
     data.radius = num;
-
     data.end_x = num >> 10;
-
     data.end_y = num >> 21;
-
     return data;
 }
 
 /**
-
-  * @brief  è·å–å­—ç¬¦æ•°æ®å¸§
-
-  * @param  operate_tpye å›¾å½¢æ“ä½œ
-
-    * @param  layer å›¾å±‚æ•°ï¼Œ0~9
-
-    * @param  color é¢œè‰²
-
-    * @param  size å­—ä½“å¤§å°
-
-    * @param  length å­—ç¬¦é•¿åº¦
-
-    * @param  width çº¿æ¡å®½åº¦
-
-    * @param  start_x èµ·ç‚¹ x åæ ‡
-
-    * @param  start_y èµ·ç‚¹ y åæ ‡
-
-  * @retval å›¾å½¢æ•°æ®ç»“æ„ä½“
-
+  * @brief  »ñÈ¡×Ö·ûÊı¾İÖ¡
+  * @param  operate_tpye Í¼ĞÎ²Ù×÷
+    * @param  layer Í¼²ãÊı£¬0~9
+    * @param  color ÑÕÉ«
+    * @param  size ×ÖÌå´óĞ¡
+    * @param  length ×Ö·û³¤¶È
+    * @param  width ÏßÌõ¿í¶È
+    * @param  start_x Æğµã x ×ø±ê
+    * @param  start_y Æğµã y ×ø±ê
+  * @retval Í¼ĞÎÊı¾İ½á¹¹Ìå
   */
-
-graphic_data_struct_t draw_char(char *name, // å›¾å½¢å
-
-                                uint8_t operate_tpye, // å›¾å½¢æ“ä½œ
-
-                                uint8_t layer, // å›¾å±‚æ•°ï¼Œ0~9
-
-                                uint8_t color, // é¢œè‰²
-
-                                uint16_t size, // å­—ä½“å¤§å°
-
-                                uint16_t length, // å­—ç¬¦é•¿åº¦
-
-                                uint16_t width, // çº¿æ¡å®½åº¦
-
-                                uint16_t start_x, // èµ·ç‚¹ x åæ ‡
-
-                                uint16_t start_y) // èµ·ç‚¹ y åæ ‡
-
+graphic_data_struct_t draw_char(char *name, uint8_t operate_tpye, uint8_t layer, uint8_t color, uint16_t size, uint16_t length, uint16_t width, uint16_t start_x, uint16_t start_y)
 {
-
     graphic_data_struct_t data;
-
     memcpy(data.graphic_name, name, 3);
-
     data.operate_tpye = operate_tpye;
-
     data.graphic_tpye = 7;
-
     data.layer = layer;
-
     data.color = color;
-
     data.start_angle = size;
-
     data.end_angle = length;
-
     data.width = width;
-
     data.start_x = start_x;
-
     data.start_y = start_y;
-
     data.radius = 0;
-
     data.end_x = 0;
-
     data.end_y = 0;
-
     return data;
 }
+/******************************»ñÈ¡Í¼ÏñÊı¾İÖ¡end******************************/
 
-/******************************è·å–å›¾åƒæ•°æ®å¸§end******************************/
-
-/******************************å‘é€å¸§æ•°æ®begin******************************/
-
+/******************************·¢ËÍÖ¡Êı¾İbegin******************************/
 /**
-
-    * @brief  å‘é€ç»˜åˆ¶ä¸€ä¸ªå›¾å½¢å¸§æ•°æ®
-
+    * @brief  ·¢ËÍ»æÖÆÒ»¸öÍ¼ĞÎÖ¡Êı¾İ
   * @param
-
   * @retval
-
   */
-
 uint8_t client_send_single_graphic(ext_client_custom_graphic_single_t data)
-
 {
-
     frame_t frame;
-
     ext_student_interactive_header_data_t data_header;
-
-    /* å¸§å¤´ */
-
     frame.frame_header.SOF = 0xA5;
-
     frame.frame_header.data_length = LEN_ID_draw_one_graphic;
-
     frame.frame_header.seq = 0;
-
     memcpy(client_tx_buf, &frame.frame_header, 4);
-
     Append_CRC8_Check_Num(client_tx_buf, 5);
-
-    /* å‘½ä»¤ç ID */
-
     frame.cmd_id = 0x301;
-
     memcpy(&client_tx_buf[5], (void *)&frame.cmd_id, 2);
-
-    /* æ•°æ®æ®µ */
-
     data_header.data_cmd_id = ID_draw_one_graphic;
-
     data_header.sender_ID = client_info.robot_id;
-
     data_header.receiver_ID = client_info.client_id;
-
     memcpy(&client_tx_buf[7], &data_header, 6);
-
     memcpy(&client_tx_buf[13], &data.grapic_data_struct, 15);
-
-    /* å¸§å°¾ */
-
     Append_CRC16_Check_Sum(client_tx_buf, 5 + 2 + LEN_ID_draw_one_graphic + 2);
-
-    /* å‘é€ */
-
     return uart_send_data(client_tx_buf, 5 + 2 + LEN_ID_draw_one_graphic + 2);
 }
 
 /**
-
-    * @brief  å‘é€ç»˜åˆ¶äºŒä¸ªå›¾å½¢å¸§æ•°æ®
-
+    * @brief  ·¢ËÍ»æÖÆ¶ş¸öÍ¼ĞÎÖ¡Êı¾İ
   * @param
-
   * @retval
-
   */
-
 uint8_t client_send_double_graphic(ext_client_custom_graphic_double_t data)
-
 {
-
     frame_t frame;
-
     ext_student_interactive_header_data_t data_header;
-
-    /* å¸§å¤´ */
-
     frame.frame_header.SOF = 0xA5;
-
     frame.frame_header.data_length = LEN_ID_draw_two_graphic;
-
     frame.frame_header.seq = 0;
-
     memcpy(client_tx_buf, &frame.frame_header, 4);
-
     Append_CRC8_Check_Num(client_tx_buf, 5);
-
-    /* å‘½ä»¤ç ID */
-
     frame.cmd_id = 0x301;
-
     memcpy(&client_tx_buf[5], (void *)&frame.cmd_id, 2);
-
-    /* æ•°æ®æ®µ */
-
     data_header.data_cmd_id = ID_draw_two_graphic;
-
     data_header.sender_ID = client_info.robot_id;
-
     data_header.receiver_ID = client_info.client_id;
-
     memcpy(&client_tx_buf[7], &data_header, 6);
-
     memcpy(&client_tx_buf[13], data.grapic_data_struct, 15 * 2);
-
-    /* å¸§å°¾ */
-
     Append_CRC16_Check_Sum(client_tx_buf, 5 + 2 + LEN_ID_draw_two_graphic + 2);
-
-    /* å‘é€ */
-
     return uart_send_data(client_tx_buf, 5 + 2 + LEN_ID_draw_two_graphic + 2);
 }
 
 /**
-
-    * @brief  å‘é€ç»˜åˆ¶äº”ä¸ªå›¾å½¢å¸§æ•°æ®
-
+    * @brief  ·¢ËÍ»æÖÆÎå¸öÍ¼ĞÎÖ¡Êı¾İ
   * @param
-
   * @retval
-
   */
-
 uint8_t client_send_five_graphic(ext_client_custom_graphic_five_t data)
-
 {
-
     frame_t frame;
-
     ext_student_interactive_header_data_t data_header;
-
-    /* å¸§å¤´ */
-
     frame.frame_header.SOF = 0xA5;
-
     frame.frame_header.data_length = LEN_ID_draw_five_graphic;
-
     frame.frame_header.seq = 0;
-
     memcpy(client_tx_buf, &frame.frame_header, 4);
-
     Append_CRC8_Check_Num(client_tx_buf, 5);
-
-    /* å‘½ä»¤ç ID */
-
     frame.cmd_id = 0x301;
-
     memcpy(&client_tx_buf[5], (void *)&frame.cmd_id, 2);
-
-    /* æ•°æ®æ®µ */
-
     data_header.data_cmd_id = ID_draw_five_graphic;
-
     data_header.sender_ID = client_info.robot_id;
-
     data_header.receiver_ID = client_info.client_id;
-
     memcpy(&client_tx_buf[7], &data_header, 6);
-
     memcpy(&client_tx_buf[13], data.grapic_data_struct, 15 * 5);
-
-    /* å¸§å°¾ */
-
     Append_CRC16_Check_Sum(client_tx_buf, 5 + 2 + LEN_ID_draw_five_graphic + 2);
-
-    /* å‘é€ */
-
     return uart_send_data(client_tx_buf, 5 + 2 + LEN_ID_draw_five_graphic + 2);
 }
 
 /**
-
-    * @brief  å‘é€ç»˜åˆ¶ä¸ƒä¸ªå›¾å½¢å¸§æ•°æ®
-
+    * @brief  ·¢ËÍ»æÖÆÆß¸öÍ¼ĞÎÖ¡Êı¾İ
   * @param
-
   * @retval
-
   */
-
 uint8_t client_send_seven_graphic(ext_client_custom_graphic_seven_t data)
-
 {
-
     frame_t frame;
-
     ext_student_interactive_header_data_t data_header;
-
-    /* å¸§å¤´ */
-
     frame.frame_header.SOF = 0xA5;
-
     frame.frame_header.data_length = LEN_ID_draw_seven_graphic;
-
     frame.frame_header.seq = 0;
-
     memcpy(client_tx_buf, &frame.frame_header, 4);
-
     Append_CRC8_Check_Num(client_tx_buf, 5);
-
-    /* å‘½ä»¤ç ID */
-
     frame.cmd_id = 0x301;
-
     memcpy(&client_tx_buf[5], (void *)&frame.cmd_id, 2);
-
-    /* æ•°æ®æ®µ */
-
     data_header.data_cmd_id = ID_draw_seven_graphic;
-
     data_header.sender_ID = client_info.robot_id;
-
     data_header.receiver_ID = client_info.client_id;
-
     memcpy(&client_tx_buf[7], &data_header, 6);
-
     memcpy(&client_tx_buf[13], data.grapic_data_struct, 15 * 7);
-
-    /* å¸§å°¾ */
-
     Append_CRC16_Check_Sum(client_tx_buf, 5 + 2 + LEN_ID_draw_seven_graphic + 2);
-
-    /* å‘é€ */
-
     return uart_send_data(client_tx_buf, 5 + 2 + LEN_ID_draw_seven_graphic + 2);
 }
 
 /**
-
-    * @brief  å‘é€ç»˜åˆ¶å­—ç¬¦å¸§æ•°æ®
-
+    * @brief  ·¢ËÍ»æÖÆ×Ö·ûÖ¡Êı¾İ
   * @param
-
   * @retval
-
   */
-
 uint8_t client_send_char(ext_client_custom_character_t data)
-
 {
-
     frame_t frame;
-
     ext_student_interactive_header_data_t data_header;
-
-    /* å¸§å¤´ */
-
     frame.frame_header.SOF = 0xA5;
-
     frame.frame_header.data_length = LEN_ID_draw_char_graphic;
-
     frame.frame_header.seq = 0;
-
     memcpy(client_tx_buf, &frame.frame_header, 4);
-
     Append_CRC8_Check_Num(client_tx_buf, 5);
-
-    /* å‘½ä»¤ç ID */
-
     frame.cmd_id = 0x301;
-
     memcpy(&client_tx_buf[5], (void *)&frame.cmd_id, 2);
-
-    /* æ•°æ®æ®µ */
-
     data_header.data_cmd_id = ID_draw_char_graphic;
-
     data_header.sender_ID = client_info.robot_id;
-
     data_header.receiver_ID = client_info.client_id;
-
     memcpy(&client_tx_buf[7], &data_header, 6);
-
     memcpy(&client_tx_buf[13], &data.grapic_data_struct, 15);
-
     memcpy(&client_tx_buf[28], data.data, 30);
-
-    /* å¸§å°¾ */
-
     Append_CRC16_Check_Sum(client_tx_buf, 5 + 2 + LEN_ID_draw_char_graphic + 2);
-
-    /* å‘é€ */
-
     return uart_send_data(client_tx_buf, 5 + 2 + LEN_ID_draw_char_graphic + 2);
 }
 
 /**
-
-    * @brief  åˆ é™¤ä¸€ä¸ªå›¾å±‚
-
-  * @param  uint8_t delete_layer åˆ é™¤çš„å›¾å±‚æ•°
-
+    * @brief  É¾³ıÒ»¸öÍ¼²ã
+  * @param  uint8_t delete_layer É¾³ıµÄÍ¼²ãÊı
   * @retval
-
   */
-
 uint8_t client_graphic_delete_update(uint8_t delete_layer)
-
 {
-
     frame_t frame;
-
     ext_student_interactive_header_data_t data_header;
-
-    /* å¸§å¤´ */
-
     frame.frame_header.SOF = 0xA5;
-
     frame.frame_header.data_length = LEN_ID_draw_char_graphic;
-
     frame.frame_header.seq = 0;
-
     memcpy(client_tx_buf, &frame.frame_header, 4);
-
     Append_CRC8_Check_Num(client_tx_buf, 5);
-
-    /* å‘½ä»¤ç ID */
-
     frame.cmd_id = 0x301;
-
     memcpy(&client_tx_buf[5], (void *)&frame.cmd_id, 2);
-
-    /* æ•°æ®æ®µ */
-
     data_header.data_cmd_id = ID_delete_graphic;
-
     data_header.sender_ID = client_info.robot_id;
-
     data_header.receiver_ID = client_info.client_id;
-
     memcpy(&client_tx_buf[7], &data_header, 6);
-
-    client_tx_buf[13] = 1; // åˆ é™¤å•ä¸ªå›¾å±‚
-
-    client_tx_buf[14] = delete_layer; // åˆ é™¤å›¾å±‚
-
-    /* å¸§å°¾ */
-
+    client_tx_buf[13] = 1;
+    client_tx_buf[14] = delete_layer;
     Append_CRC16_Check_Sum(client_tx_buf, 5 + 2 + LEN_ID_delete_graphic + 2);
-
-    /* å‘é€ */
-
     return uart_send_data(client_tx_buf, 5 + 2 + LEN_ID_delete_graphic + 2);
 }
+/******************************·¢ËÍÖ¡Êı¾İend****************************************/
 
-/******************************å‘é€å¸§æ•°æ®end****************************************/
-
-/******************************ä¸²å£å‘é€æ•°æ®begin************************************/
-
+/******************************´®¿Ú·¢ËÍÊı¾İbegin************************************/
 /**
-
-    * @brief  ä¸²å£å‘é€æ•°æ®
-
+    * @brief  ´®¿Ú·¢ËÍÊı¾İ
   * @param
-
   * @retval
-
   */
-
 uint8_t uart_send_data(uint8_t *txbuf, uint16_t length)
-
 {
-
     return HAL_UART_Transmit_DMA(&UI_huart, txbuf, length);
 }
-
-/******************************ä¸²å£å‘é€æ•°æ®end**************************************/
+/******************************´®¿Ú·¢ËÍÊı¾İend**************************************/

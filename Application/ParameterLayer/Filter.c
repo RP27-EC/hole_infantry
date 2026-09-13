@@ -1,132 +1,99 @@
 #include "Filter.h"
+/*¶ÔË®Æ½ËÙ¶ÈµÄÂË²¨*/
+KalmanFilter_t vaEstimateKF;	   // ¿¨¶ûÂüÂË²¨Æ÷½á¹¹Ìå
 
-/*å¯¹æ°´å¹³é€Ÿåº¦çš„æ»¤æ³¢*/
-
-KalmanFilter_t vaEstimateKF; // å¡å°”æ›¼æ»¤æ³¢å™¨ç»“æ„ä½“
-
-float vaEstimateKF_F[4] = {1.0f, 0.001f,
-
-                           0.0f, 1.0f}; // çŠ¶æ€è½¬ç§»çŸ©é˜µï¼Œæ§åˆ¶å‘¨æœŸä¸º0.001s
+float vaEstimateKF_F[4] = {1.0f, 0.001f, 
+                           0.0f, 1.0f};	   // ×´Ì¬×ªÒÆ¾ØÕó£¬¿ØÖÆÖÜÆÚÎª0.001s
 
 float vaEstimateKF_P[4] = {1.0f, 0.0f,
+                           0.0f, 1.0f};    // ºóÑé¹À¼ÆĞ­·½²î³õÊ¼Öµ
 
-                           0.0f, 1.0f}; // åéªŒä¼°è®¡åæ–¹å·®åˆå§‹å€¼
+float vaEstimateKF_Q[4] = {0.1f, 0.0f, 
+                           0.0f, 0.1f};    // Q¾ØÕó³õÊ¼Öµ
 
-float vaEstimateKF_Q[4] = {0.1f, 0.0f,
-
-                           0.0f, 0.1f}; // QçŸ©é˜µåˆå§‹å€¼
-
-float vaEstimateKF_R[4] = {200.0f, 0.0f,
-
-                           0.0f, 200.0f};
-
+float vaEstimateKF_R[4] = {200.0f, 0.0f, 
+                            0.0f,  200.0f}; 	
+														
 float vaEstimateKF_K[4];
-
+													 
 const float vaEstimateKF_H[4] = {1.0f, 0.0f,
+                                 0.0f, 1.0f};	// ÉèÖÃ¾ØÕóHÎª³£Á¿
 
-                                 0.0f, 1.0f}; // è®¾ç½®çŸ©é˜µHä¸ºå¸¸é‡
-
+																 
 void xvEstimateKF_Init(KalmanFilter_t *EstimateKF)
-
 {
-
-    Kalman_Filter_Init(EstimateKF, 2, 0, 2); // çŠ¶æ€å‘é‡2ç»´ æ²¡æœ‰æ§åˆ¶é‡ æµ‹é‡å‘é‡2ç»´
-
-    memcpy(EstimateKF->F_data, vaEstimateKF_F, sizeof(vaEstimateKF_F));
-
+    Kalman_Filter_Init(EstimateKF, 2, 0, 2);	// ×´Ì¬ÏòÁ¿2Î¬ Ã»ÓĞ¿ØÖÆÁ¿ ²âÁ¿ÏòÁ¿2Î¬
+	
+		memcpy(EstimateKF->F_data, vaEstimateKF_F, sizeof(vaEstimateKF_F));
     memcpy(EstimateKF->P_data, vaEstimateKF_P, sizeof(vaEstimateKF_P));
-
     memcpy(EstimateKF->Q_data, vaEstimateKF_Q, sizeof(vaEstimateKF_Q));
-
     memcpy(EstimateKF->R_data, vaEstimateKF_R, sizeof(vaEstimateKF_R));
-
     memcpy(EstimateKF->H_data, vaEstimateKF_H, sizeof(vaEstimateKF_H));
+
 }
 
-void xvEstimateKF_Update(KalmanFilter_t *EstimateKF, float acc, float vel)
-
-{
-
-    // å¡å°”æ›¼æ»¤æ³¢å™¨æµ‹é‡å€¼æ›´æ–°
-
-    EstimateKF->MeasuredVector[0] = vel; // æµ‹é‡é€Ÿåº¦
-
-    EstimateKF->MeasuredVector[1] = acc; // æµ‹é‡åŠ é€Ÿåº¦
-
-    // å¡å°”æ›¼æ»¤æ³¢å™¨æ›´æ–°å‡½æ•°
-
+void xvEstimateKF_Update(KalmanFilter_t *EstimateKF ,float acc,float vel)
+{   	
+    //¿¨¶ûÂüÂË²¨Æ÷²âÁ¿Öµ¸üĞÂ
+    EstimateKF->MeasuredVector[0] =	vel;//²âÁ¿ËÙ¶È
+    EstimateKF->MeasuredVector[1] = acc;//²âÁ¿¼ÓËÙ¶È
+    		
+    //¿¨¶ûÂüÂË²¨Æ÷¸üĞÂº¯Êı
     Kalman_Filter_Update(EstimateKF);
+
 }
 
-/*å¯¹æ°´å¹³ä½ç§»çš„æ»¤æ³¢*/
+/*¶ÔË®Æ½Î»ÒÆµÄÂË²¨*/
+KalmanFilter_t XEstimateKF;	   // ¿¨¶ûÂüÂË²¨Æ÷½á¹¹Ìå
 
-KalmanFilter_t XEstimateKF; // å¡å°”æ›¼æ»¤æ³¢å™¨ç»“æ„ä½“
-
-float XEstimateKF_F[4] = {1.0f, 0.001f,
-
-                          0.0f, 1.0f}; // çŠ¶æ€è½¬ç§»çŸ©é˜µï¼Œæ§åˆ¶å‘¨æœŸä¸º0.001s
+float XEstimateKF_F[4] = {1.0f, 0.001f, 
+                           0.0f, 1.0f};	   // ×´Ì¬×ªÒÆ¾ØÕó£¬¿ØÖÆÖÜÆÚÎª0.001s
 
 float XEstimateKF_P[4] = {1.0f, 0.0f,
+                           0.0f, 1.0f};    // ºóÑé¹À¼ÆĞ­·½²î³õÊ¼Öµ
 
-                          0.0f, 1.0f}; // åéªŒä¼°è®¡åæ–¹å·®åˆå§‹å€¼
+float XEstimateKF_Q[4] = {0.1f, 0.0f, 
+                           0.0f, 0.1f};    // Q¾ØÕó³õÊ¼Öµ
 
-float XEstimateKF_Q[4] = {0.1f, 0.0f,
-
-                          0.0f, 0.1f}; // QçŸ©é˜µåˆå§‹å€¼
-
-float XEstimateKF_R[4] = {200.0f, 0.0f,
-
-                          0.0f, 100.0f};
-
+float XEstimateKF_R[4] = {200.0f, 0.0f, 
+                            0.0f,  100.0f}; 	
+														
 float XEstimateKF_K[4];
-
+													 
 const float XEstimateKF_H[4] = {1.0f, 0.0f,
+                                 0.0f, 1.0f};	// ÉèÖÃ¾ØÕóHÎª³£Á¿
 
-                                0.0f, 1.0f}; // è®¾ç½®çŸ©é˜µHä¸ºå¸¸é‡
-
+																 
 void XEstimateKF_Init(KalmanFilter_t *EstimateKF)
-
 {
-
-    Kalman_Filter_Init(EstimateKF, 2, 0, 2); // çŠ¶æ€å‘é‡2ç»´ æ²¡æœ‰æ§åˆ¶é‡ æµ‹é‡å‘é‡2ç»´
-
-    memcpy(EstimateKF->F_data, XEstimateKF_F, sizeof(XEstimateKF_F));
-
+	 Kalman_Filter_Init(EstimateKF, 2, 0, 2);	// ×´Ì¬ÏòÁ¿2Î¬ Ã»ÓĞ¿ØÖÆÁ¿ ²âÁ¿ÏòÁ¿2Î¬
+	
+		memcpy(EstimateKF->F_data, XEstimateKF_F, sizeof(XEstimateKF_F));
     memcpy(EstimateKF->P_data, XEstimateKF_P, sizeof(XEstimateKF_P));
-
     memcpy(EstimateKF->H_data, XEstimateKF_H, sizeof(XEstimateKF_H));
-
-    memcpy(EstimateKF->K_data, XEstimateKF_K, sizeof(XEstimateKF_K));
+		memcpy(EstimateKF->K_data, XEstimateKF_K, sizeof(XEstimateKF_K));
 }
 
 void XEstimateKF_Clear(KalmanFilter_t *EstimateKF)
-
 {
-
-    memcpy(EstimateKF->F_data, XEstimateKF_F, sizeof(XEstimateKF_F));
-
+		memcpy(EstimateKF->F_data, XEstimateKF_F, sizeof(XEstimateKF_F));
     memcpy(EstimateKF->P_data, XEstimateKF_P, sizeof(XEstimateKF_P));
-
     memcpy(EstimateKF->Q_data, XEstimateKF_Q, sizeof(XEstimateKF_Q));
-
     memcpy(EstimateKF->R_data, XEstimateKF_R, sizeof(XEstimateKF_R));
-
     memcpy(EstimateKF->H_data, XEstimateKF_H, sizeof(XEstimateKF_H));
-
-    memset(EstimateKF->Pminus_data, 0, sizeof_float * 4);
+		memset(EstimateKF->Pminus_data, 0, sizeof_float * 4);
 }
 
-void XEstimateKF_Update(KalmanFilter_t *EstimateKF, float vel, float s)
-
-{
-
-    // å¡å°”æ›¼æ»¤æ³¢å™¨æµ‹é‡å€¼æ›´æ–°
-
-    EstimateKF->MeasuredVector[0] = s; // æµ‹é‡ä½ç§»
-
-    EstimateKF->MeasuredVector[1] = vel; // æµ‹é‡é€Ÿåº¦
-
-    // å¡å°”æ›¼æ»¤æ³¢å™¨æ›´æ–°å‡½æ•°
-
+void XEstimateKF_Update(KalmanFilter_t *EstimateKF ,float vel,float s)
+{   	
+    //¿¨¶ûÂüÂË²¨Æ÷²âÁ¿Öµ¸üĞÂ
+    EstimateKF->MeasuredVector[0] =	s;//²âÁ¿Î»ÒÆ
+    EstimateKF->MeasuredVector[1] = vel;//²âÁ¿ËÙ¶È
+    		
+    //¿¨¶ûÂüÂË²¨Æ÷¸üĞÂº¯Êı
     Kalman_Filter_Update(EstimateKF);
+
 }
+
+
+
